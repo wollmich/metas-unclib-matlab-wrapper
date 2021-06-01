@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.MCProp V2.4.7
-% Michael Wollensack METAS - 25.05.2021
+% Metas.UncLib.Matlab.MCProp V2.4.8
+% Michael Wollensack METAS - 28.05.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -494,6 +494,9 @@ classdef MCProp
                             s2 = max(s, max_index);
                             if prod(s) ~= prod(s2)
                                 A2 = MCProp(zeros(s2));
+                                if B.IsComplex
+                                    A2 = complex(A2);
+                                end
                                 if numel(A) == 0
                                     A = A2;
                                 else

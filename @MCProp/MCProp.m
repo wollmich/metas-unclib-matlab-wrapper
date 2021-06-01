@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.MCProp V2.3.1
-% Michael Wollensack METAS - 28.02.2020
+% Metas.UncLib.Matlab.MCProp V2.4.4
+% Michael Wollensack METAS - 01.02.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -18,6 +18,9 @@
 %
 % MCProp Input (ComplexUncArray)
 % [a] = MCProp([value], [covariance], (description))
+%
+% MCProp From Samples
+% a = MCProp([samples], 'samples', (description), (probability))
 %
 % MCProp Xml String
 % a = MCProp(xml_string)
@@ -119,6 +122,30 @@ classdef MCProp
                             otherwise
                                 error('Wrong file type')
                         end
+                    elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char')
+                        switch lower(varargin{2})
+                            case 'samples'
+                                s = MCProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector);
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector);
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix);
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix);
+                                    end
+                                end
+                            otherwise
+                                error('Wrong type of input arguments')
+                        end
                     else
                         error('Wrong type of input arguments')
                     end
@@ -147,6 +174,30 @@ classdef MCProp
                                 obj.NetObject = h.RealUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             end
                         end
+                    elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
+                        switch lower(varargin{2})
+                            case 'samples'
+                                s = MCProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                    end
+                                end
+                            otherwise
+                                error('Wrong type of input arguments')
+                        end
                     else
                         error('Wrong type of input arguments')
                     end
@@ -155,6 +206,30 @@ classdef MCProp
                         switch lower(varargin{4})
                             case 'system'
                                 obj.NetObject = MCProp.System2MCProp(varargin{1}, varargin{2}, varargin{3}).NetObject;
+                            otherwise
+                                error('Wrong type of input arguments')
+                        end
+                    elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char') && isa(varargin{4}, 'double')
+                        switch lower(varargin{2})
+                            case 'samples'
+                                s = MCProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    end
+                                end
                             otherwise
                                 error('Wrong type of input arguments')
                         end

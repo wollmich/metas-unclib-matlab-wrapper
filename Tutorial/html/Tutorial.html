@@ -1,0 +1,839 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Tutorial</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-08-23"><meta name="DC.source" content="Tutorial.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">--- LinProp ---</a></li><li><a href="#3">Create uncertain numbers</a></li><li><a href="#4">Create uncertain arrays</a></li><li><a href="#5">Create uncertain matrices</a></li><li><a href="#6">Careful: The matrices look the same but they are different</a></li><li><a href="#7">A note on matrices</a></li><li><a href="#8">Do some calculations with uncertain numbers</a></li><li><a href="#9">Return expectation value of result</a></li><li><a href="#10">Calculate uncertainty of result</a></li><li><a href="#11">Calculate expanded uncertainty of result</a></li><li><a href="#12">Calculate covariance or correlation of result</a></li><li><a href="#13">Calculate uncertainty contribution of base inputs</a></li><li><a href="#14">Calculate sensitivities w.r.t. intermediate results</a></li><li><a href="#15">Calculate uncertainty contribution of intermediate result</a></li><li><a href="#16">Store an uncertainty object</a></li><li><a href="#17">Reload a stored uncertainty object</a></li><li><a href="#18">How to bridge non-analytical parts in the measurement equation</a></li><li><a href="#19">--- DistProp ---</a></li><li><a href="#20">Initialize DistProp level</a></li><li><a href="#21">Creation of DistProp objects</a></li><li><a href="#22">Calculate with DistProp objects</a></li><li><a href="#23">Expectation and function value are not the same</a></li><li><a href="#24">Uncertainties of DistProp objects</a></li></ul></div><pre class="codeinput"><span class="comment">% Metas.UncLib.Matlab Tutorial</span>
+<span class="comment">%</span>
+<span class="comment">% Quick start guide on how to use Metas.UncLib.Matlab. Provides simple</span>
+<span class="comment">% examples on how to deal with uncertain objects and points out potential</span>
+<span class="comment">% pitfalls.</span>
+<span class="comment">% It is expected that the user has basic knowledge of MATLAB.</span>
+<span class="comment">%</span>
+<span class="comment">% M. Wollensack &amp; M. Zeier, METAS</span>
+<span class="comment">%</span>
+
+clear <span class="string">all</span>;
+echo <span class="string">on</span>;
+</pre><pre class="codeoutput">
+%% --- LinProp ---
+% define function handle for LinProp
+unc = @LinProp;
+</pre><h2>--- LinProp ---<a name="2"></a></h2><p>define function handle for LinProp</p><pre class="codeinput">unc = @LinProp;
+</pre><pre class="codeoutput">
+%% Create uncertain numbers
+x1 = unc(1,0.1)
+</pre><h2>Create uncertain numbers<a name="3"></a></h2><pre class="codeinput">x1 = unc(1,0.1)
+x2 = unc(2,0.2)
+</pre><pre class="codeoutput"> 
+x1 = 
+ 
+   (1 &plusmn; 0.1)
+ 
+x2 = unc(2,0.2)
+ 
+x2 = 
+ 
+   (2 &plusmn; 0.2)
+ 
+
+%% Create uncertain arrays
+v1 = unc([1 2],diag([0.1^2 0.2^2]))
+</pre><h2>Create uncertain arrays<a name="4"></a></h2><pre class="codeinput">v1 = unc([1 2],diag([0.1^2 0.2^2]))
+<span class="comment">% or</span>
+v2 = [x1 x2]
+</pre><pre class="codeoutput"> 
+v1.value = 
+ 
+     1     2
+
+v1.standard_unc = 
+ 
+    0.1000    0.2000
+
+% or
+v2 = [x1 x2]
+ 
+v2.value = 
+ 
+     1     2
+
+v2.standard_unc = 
+ 
+    0.1000    0.2000
+
+
+%% Create uncertain matrices
+% the order in the covariance matrix is based on a column-wise 
+% vectorization of the matrix   
+m1 = unc([1 2; 3 4],diag([0.1^2 0.3^2 0.2^2 0.4^2]))
+</pre><h2>Create uncertain matrices<a name="5"></a></h2><p>the order in the covariance matrix is based on a column-wise vectorization of the matrix</p><pre class="codeinput">m1 = unc([1 2; 3 4],diag([0.1^2 0.3^2 0.2^2 0.4^2]))
+<span class="comment">% or</span>
+m2 = [x1 x2; 3.*x1 2.*x2]
+</pre><pre class="codeoutput"> 
+m1.value = 
+ 
+     1     2
+     3     4
+
+m1.standard_unc = 
+ 
+    0.1000    0.2000
+    0.3000    0.4000
+
+% or
+m2 = [x1 x2; 3.*x1 2.*x2]
+ 
+m2.value = 
+ 
+     1     2
+     3     4
+
+m2.standard_unc = 
+ 
+    0.1000    0.2000
+    0.3000    0.4000
+
+
+%% Careful: The matrices look the same but they are different 
+% m1 and m2 have the same values but different dependencies.
+% The elements of m1 are uncorrelated base inputs whereas some of the 
+% elements of m2 were constructed from base inputs x1 and x2 and
+% are thus correlated. The difference is obvious if one looks at the 
+% uncertainties of the inverted matrices
+m3 = inv(m1)
+</pre><h2>Careful: The matrices look the same but they are different<a name="6"></a></h2><p>m1 and m2 have the same values but different dependencies. The elements of m1 are uncorrelated base inputs whereas some of the elements of m2 were constructed from base inputs x1 and x2 and are thus correlated. The difference is obvious if one looks at the uncertainties of the inverted matrices</p><pre class="codeinput">m3 = inv(m1)
+m4 = inv(m2)
+</pre><pre class="codeoutput"> 
+m3.value = 
+ 
+   -2.0000    1.0000
+    1.5000   -0.5000
+
+m3.standard_unc = 
+ 
+    1.1136    0.4583
+    0.6874    0.2784
+
+m4 = inv(m2)
+ 
+m4.value = 
+ 
+   -2.0000    1.0000
+    1.5000   -0.5000
+
+m4.standard_unc = 
+ 
+    0.2000    0.1000
+    0.1500    0.0500
+
+
+%% A note on matrices
+% direct assignement of a subpart of a matrix does not work
+% v3(2,:) = [x1 x2]; %DOES NOT WORK! RETURNS ERROR
+% instead preallocate matrix first 
+v3 = unc(zeros(2))
+</pre><h2>A note on matrices<a name="7"></a></h2><p>direct assignement of a subpart of a matrix does not work</p><pre class="codeinput"><span class="comment">% v3(2,:) = [x1 x2]; %DOES NOT WORK! RETURNS ERROR</span>
+
+<span class="comment">% instead preallocate matrix first</span>
+v3 = unc(zeros(2))
+<span class="comment">% and then assign</span>
+v3(2,:) = [x1 x2]
+
+<span class="comment">% Preallocation of arrays and matrices is generally recommended because it</span>
+<span class="comment">% improves performance.</span>
+
+<span class="comment">% But careful: Preallocation of an array or matrix as doubles and then</span>
+<span class="comment">% filling it with uncertain elements will not work</span>
+
+<span class="comment">% v3 = [];</span>
+<span class="comment">% v3(1) = x1; %DOES NOT WORK! RETURNS DOUBLE</span>
+</pre><pre class="codeoutput"> 
+v3.value = 
+ 
+     0     0
+     0     0
+
+v3.standard_unc = 
+ 
+     0     0
+     0     0
+
+% and then assign
+v3(2,:) = [x1 x2]
+ 
+v3.value = 
+ 
+     0     0
+     1     2
+
+v3.standard_unc = 
+ 
+         0         0
+    0.1000    0.2000
+
+
+% Preallocation of arrays and matrices is generally recommended because it
+% improves performance.
+% But careful: Preallocation of an array or matrix as doubles and then 
+% filling it with uncertain elements will not work
+% v3 = [];
+% v3(1) = x1; %DOES NOT WORK! RETURNS DOUBLE
+%% Do some calculations with uncertain numbers
+x3 = x1 + x2
+</pre><h2>Do some calculations with uncertain numbers<a name="8"></a></h2><pre class="codeinput">x3 = x1 + x2
+x4 = x1.*x2
+x5 = sqrt(x3+x4)
+x6 = x3./x4
+x7 = x5.*sin(x6)
+</pre><pre class="codeoutput"> 
+x3 = 
+ 
+   (3 &plusmn; 0.223607)
+ 
+x4 = x1.*x2
+ 
+x4 = 
+ 
+   (2 &plusmn; 0.282843)
+ 
+x5 = sqrt(x3+x4)
+ 
+x5 = 
+ 
+   (2.23607 &plusmn; 0.111803)
+ 
+x6 = x3./x4
+ 
+x6 = 
+ 
+   (1.5 &plusmn; 0.111803)
+ 
+x7 = x5.*sin(x6)
+ 
+x7 = 
+ 
+   (2.23047 &plusmn; 0.0960322)
+ 
+
+%% Return expectation value of result
+get_value(x7)
+</pre><h2>Return expectation value of result<a name="9"></a></h2><pre class="codeinput">get_value(x7)
+<span class="comment">% for LinProp the same as function value</span>
+get_fcn_value(x7)
+</pre><pre class="codeoutput">
+ans =
+
+    2.2305
+
+% for LinProp the same as function value
+get_fcn_value(x7)
+
+ans =
+
+    2.2305
+
+
+%% Calculate uncertainty of result
+get_stdunc(x7)
+</pre><h2>Calculate uncertainty of result<a name="10"></a></h2><pre class="codeinput">get_stdunc(x7)
+</pre><pre class="codeoutput">
+ans =
+
+    0.0960
+
+
+%% Calculate expanded uncertainty of result
+% returns lower and upper limit
+get_coverage_interval(x7,0.95)
+</pre><h2>Calculate expanded uncertainty of result<a name="11"></a></h2><p>returns lower and upper limit</p><pre class="codeinput">get_coverage_interval(x7,0.95)
+</pre><pre class="codeoutput">
+ans =
+
+    2.0422    2.4187
+
+
+%% Calculate covariance or correlation of result
+get_covariance([x6 x7])
+</pre><h2>Calculate covariance or correlation of result<a name="12"></a></h2><pre class="codeinput">get_covariance([x6 x7])
+get_correlation([x6 x7])
+</pre><pre class="codeoutput">
+ans =
+
+    0.0125   -0.0092
+   -0.0092    0.0092
+
+get_correlation([x6 x7])
+
+ans =
+
+    1.0000   -0.8546
+   -0.8546    1.0000
+
+
+%% Calculate uncertainty contribution of base inputs
+% these are the sensitivity coefficients multiplied with the standard
+% uncertainties of the base inputs x1 and x2
+get_jacobi(x7)
+</pre><h2>Calculate uncertainty contribution of base inputs<a name="13"></a></h2><p>these are the sensitivity coefficients multiplied with the standard uncertainties of the base inputs x1 and x2</p><pre class="codeinput">get_jacobi(x7)
+</pre><pre class="codeoutput">
+ans =
+
+    0.0511    0.0813
+
+
+%% Calculate sensitivities w.r.t. intermediate results
+% x3 and x4 are intermediate results
+j1 = get_jacobi2(x7,[x3 x4])
+</pre><h2>Calculate sensitivities w.r.t. intermediate results<a name="14"></a></h2><p>x3 and x4 are intermediate results</p><pre class="codeinput">j1 = get_jacobi2(x7,[x3 x4])
+
+<span class="comment">% NOTE: The calculation of sensitivities w.r.t. intermediate results</span>
+<span class="comment">% requires special care and can't be done blindly. There are two</span>
+<span class="comment">% requirements:</span>
+<span class="comment">% 1. The vector g = [x3 x4] must be complete in the sense that x7 can be</span>
+<span class="comment">% calculated as a composite function x7 = f(g(x1,x2))</span>
+<span class="comment">% e.g. get_jacobi2(x7,x3) would return a wrong result</span>
+<span class="comment">% 2. The elements of g must be linear independent</span>
+<span class="comment">% e.g. get_jacobi2(x7,[x3 x4]) with x4 = 2.* x3 would crash</span>
+<span class="comment">% Generally it is not difficult to satisfy these requirement but it is</span>
+<span class="comment">% the responsibility of the user to do so. You will not be warned and</span>
+<span class="comment">% the returned result might be wrong, but it can be</span>
+<span class="comment">% checked by summing up uncertainty contributions and copmaring with</span>
+<span class="comment">% combined uncertainty (see next cell).</span>
+</pre><pre class="codeoutput">
+j1 =
+
+    0.3021    0.1044
+
+
+% NOTE: The calculation of sensitivities w.r.t. intermediate results
+% requires special care and can't be done blindly. There are two
+% requirements:
+% 1. The vector g = [x3 x4] must be complete in the sense that x7 can be
+% calculated as a composite function x7 = f(g(x1,x2))
+% e.g. get_jacobi2(x7,x3) would return a wrong result
+% 2. The elements of g must be linear independent
+% e.g. get_jacobi2(x7,[x3 x4]) with x4 = 2.* x3 would crash
+% Generally it is not difficult to satisfy these requirement but it is 
+% the responsibility of the user to do so. You will not be warned and 
+% the returned result might be wrong, but it can be
+% checked by summing up uncertainty contributions and copmaring with
+% combined uncertainty (see next cell). 
+%% Calculate uncertainty contribution of intermediate result
+u1 = get_unc_component(x7,[x3 x4])
+</pre><h2>Calculate uncertainty contribution of intermediate result<a name="15"></a></h2><pre class="codeinput">u1 = get_unc_component(x7,[x3 x4])
+<span class="comment">% this is the same as</span>
+j1.*get_stdunc([x3 x4])
+
+<span class="comment">% NOTE: the squared sum of these uncertainties is not equal to the</span>
+<span class="comment">% combined uncertainty of x7, because x3 and x4 are correlated</span>
+sqrt(sum(u1.^2)) <span class="comment">% not the same as u(x7)</span>
+
+<span class="comment">% but by taking correlation into account it is the same as u(x7)</span>
+sqrt(j1*get_covariance([x3 x4])*j1') <span class="comment">% same as u(x7)</span>
+</pre><pre class="codeoutput">
+u1 =
+
+    0.0676    0.0295
+
+% this is the same as
+j1.*get_stdunc([x3 x4])
+
+ans =
+
+    0.0676    0.0295
+
+
+% NOTE: the squared sum of these uncertainties is not equal to the 
+% combined uncertainty of x7, because x3 and x4 are correlated
+sqrt(sum(u1.^2)) % not the same as u(x7)
+
+ans =
+
+    0.0737
+
+
+% but by taking correlation into account it is the same as u(x7)
+sqrt(j1*get_covariance([x3 x4])*j1') % same as u(x7)
+
+ans =
+
+    0.0960
+
+
+%% Store an uncertainty object
+% stores uncertain objects in xml format maintaining all information
+xml_file([x6 x7],'test.xml')
+</pre><h2>Store an uncertainty object<a name="16"></a></h2><p>stores uncertain objects in xml format maintaining all information</p><pre class="codeinput">xml_file([x6 x7],<span class="string">'test.xml'</span>)
+</pre><pre class="codeoutput">
+%% Reload a stored uncertainty object
+% all information is recovered. 
+a1 = unc('test.xml','xml_file');
+</pre><h2>Reload a stored uncertainty object<a name="17"></a></h2><p>all information is recovered.</p><pre class="codeinput">a1 = unc(<span class="string">'test.xml'</span>,<span class="string">'xml_file'</span>);
+x6n = a1(1)
+x7n = a1(2)
+
+<span class="comment">% correlation between x6n and x7n is the same as between x7 and x6</span>
+get_correlation([x6n x7n])
+
+<span class="comment">% also correlations with respect to any other quantities are the same</span>
+get_correlation([x6n x7n x6 x7 x3])
+
+<span class="comment">% NOTE: x6n and x7n are in every aspect identical to x6 and x7.</span>
+<span class="comment">% Recovery of full information works even if you shut down Matlab</span>
+<span class="comment">% and then restart, as long as the uncertainty objects were stored before</span>
+<span class="comment">% shutdown and then reloaded after restart again.</span>
+<span class="comment">% All the necessary information is stored in the files.</span>
+</pre><pre class="codeoutput">x6n = a1(1)
+ 
+x6n = 
+ 
+   (1.5 &plusmn; 0.111803)
+ 
+x7n = a1(2)
+ 
+x7n = 
+ 
+   (2.23047 &plusmn; 0.0960322)
+ 
+
+% correlation between x6n and x7n is the same as between x7 and x6
+get_correlation([x6n x7n])
+
+ans =
+
+    1.0000   -0.8546
+   -0.8546    1.0000
+
+
+% also correlations with respect to any other quantities are the same 
+get_correlation([x6n x7n x6 x7 x3])
+
+ans =
+
+    1.0000   -0.8546    1.0000   -0.8546   -0.8000
+   -0.8546    1.0000   -0.8546    1.0000    0.9953
+    1.0000   -0.8546    1.0000   -0.8546   -0.8000
+   -0.8546    1.0000   -0.8546    1.0000    0.9953
+   -0.8000    0.9953   -0.8000    0.9953    1.0000
+
+
+% NOTE: x6n and x7n are in every aspect identical to x6 and x7. 
+% Recovery of full information works even if you shut down Matlab 
+% and then restart, as long as the uncertainty objects were stored before 
+% shutdown and then reloaded after restart again.
+% All the necessary information is stored in the files.
+%% How to bridge non-analytical parts in the measurement equation
+% If the measurement equation consists of a non-analytical 
+% part, as e.g. a numerical method like nonlinear leat squares, which 
+% returns an output p with value p0 and if the sensitivities j1 j2 of 
+% p with respect to the inputs x1 and x2 can be determined somehow, 
+% it is possible to define p as an uncertainty number with
+% p = unc(p0, [x1 x2], [j1 j2], 'system')
+% e.g.
+p0 = 5.0
+</pre><h2>How to bridge non-analytical parts in the measurement equation<a name="18"></a></h2><p>If the measurement equation consists of a non-analytical part, as e.g. a numerical method like nonlinear leat squares, which returns an output p with value p0 and if the sensitivities j1 j2 of p with respect to the inputs x1 and x2 can be determined somehow, it is possible to define p as an uncertainty number with p = unc(p0, [x1 x2], [j1 j2], 'system')</p><pre class="codeinput"><span class="comment">% e.g.</span>
+p0 = 5.0
+j = [2.1 4.5]
+p = unc(p0, [x1 x2], j, <span class="string">'system'</span>)
+</pre><pre class="codeoutput">
+p0 =
+
+     5
+
+j = [2.1 4.5]
+
+j =
+
+    2.1000    4.5000
+
+p = unc(p0, [x1 x2], j, 'system')
+ 
+p = 
+ 
+   (5 &plusmn; 0.924175)
+ 
+
+%% --- DistProp ---
+% define function handle for DistProp
+unc = @DistProp;
+</pre><h2>--- DistProp ---<a name="19"></a></h2><p>define function handle for DistProp</p><pre class="codeinput">unc = @DistProp;
+</pre><pre class="codeoutput">
+%% Initialize DistProp level
+% MaxLevel specifies the maximum order of the taylor expansion
+DistPropGlobalMaxLevel(3);
+</pre><h2>Initialize DistProp level<a name="20"></a></h2><p>MaxLevel specifies the maximum order of the taylor expansion</p><pre class="codeinput">DistPropGlobalMaxLevel(3);
+
+<span class="comment">% NOTE: There is no upper limit for MaxLevel but be aware that memory</span>
+<span class="comment">% consumption and computational burden increase exponentially with the</span>
+<span class="comment">% value of MaxLevel.</span>
+<span class="comment">% MaxLevel=3 is a good value which already provides reasonable</span>
+<span class="comment">% results for many cases at which LinProp fails.</span>
+<span class="comment">%</span>
+</pre><pre class="codeoutput">
+% NOTE: There is no upper limit for MaxLevel but be aware that memory 
+% consumption and computational burden increase exponentially with the
+% value of MaxLevel.
+% MaxLevel=3 is a good value which already provides reasonable
+% results for many cases at which LinProp fails.
+% 
+%% Creation of DistProp objects
+% the same as for LinProp
+% In the future it will be possible to specify distributions other than
+% gaussians
+y1 = unc(0,0.1)
+</pre><h2>Creation of DistProp objects<a name="21"></a></h2><p>the same as for LinProp In the future it will be possible to specify distributions other than gaussians</p><pre class="codeinput">y1 = unc(0,0.1)
+</pre><pre class="codeoutput"> 
+y1 = 
+ 
+   (0 &plusmn; 0.1)
+ 
+
+%% Calculate with DistProp objects
+% LinProp would return an uncertainty of 0
+y2 = y1.^2
+</pre><h2>Calculate with DistProp objects<a name="22"></a></h2><p>LinProp would return an uncertainty of 0</p><pre class="codeinput">y2 = y1.^2
+y3 = cos(y1)
+</pre><pre class="codeoutput"> 
+y2 = 
+ 
+   (0.01 &plusmn; 0.0141421)
+ 
+y3 = cos(y1)
+ 
+y3 = 
+ 
+   (0.995 &plusmn; 0.00707107)
+ 
+
+%% Expectation and function value are not the same
+get_value(y2)
+</pre><h2>Expectation and function value are not the same<a name="23"></a></h2><pre class="codeinput">get_value(y2)
+get_fcn_value(y2)
+get_value(y3)
+get_fcn_value(y3)
+</pre><pre class="codeoutput">
+ans =
+
+    0.0100
+
+get_fcn_value(y2)
+
+ans =
+
+     0
+
+get_value(y3)
+
+ans =
+
+    0.9950
+
+get_fcn_value(y3)
+
+ans =
+
+     1
+
+
+%% Uncertainties of DistProp objects
+get_stdunc(y2)
+</pre><h2>Uncertainties of DistProp objects<a name="24"></a></h2><pre class="codeinput">get_stdunc(y2)
+get_stdunc(y3)
+get_coverage_interval(y2,0.95)
+get_coverage_interval(y3,0.95)
+
+<span class="comment">% NOTE: This is based on the assumption that the result distribution is</span>
+<span class="comment">% gaussian. It is possible to obtain central moments of the result</span>
+<span class="comment">% distribution using get_moment(). This information is not yet used to</span>
+<span class="comment">% calculate more realistic coverage intervals.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.0141
+
+get_stdunc(y3)
+
+ans =
+
+    0.0071
+
+get_coverage_interval(y2,0.95)
+
+ans =
+
+   -0.0177    0.0377
+
+get_coverage_interval(y3,0.95)
+
+ans =
+
+    0.9811    1.0089
+
+
+% NOTE: This is based on the assumption that the result distribution is 
+% gaussian. It is possible to obtain central moments of the result 
+% distribution using get_moment(). This information is not yet used to 
+% calculate more realistic coverage intervals.
+%%
+echo off;
+</pre><pre class="codeinput">echo <span class="string">off</span>;
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+% Metas.UncLib.Matlab Tutorial
+%
+% Quick start guide on how to use Metas.UncLib.Matlab. Provides simple
+% examples on how to deal with uncertain objects and points out potential 
+% pitfalls.
+% It is expected that the user has basic knowledge of MATLAB.
+%
+% M. Wollensack & M. Zeier, METAS
+%
+
+clear all;
+echo on;
+
+%% REPLACE_WITH_DASH_DASH- LinProp REPLACE_WITH_DASH_DASH-
+% define function handle for LinProp
+unc = @LinProp;
+
+%% Create uncertain numbers
+x1 = unc(1,0.1)
+x2 = unc(2,0.2)
+
+%% Create uncertain arrays
+v1 = unc([1 2],diag([0.1^2 0.2^2]))
+% or
+v2 = [x1 x2]
+
+%% Create uncertain matrices
+% the order in the covariance matrix is based on a column-wise 
+% vectorization of the matrix   
+m1 = unc([1 2; 3 4],diag([0.1^2 0.3^2 0.2^2 0.4^2]))
+% or
+m2 = [x1 x2; 3.*x1 2.*x2]
+
+%% Careful: The matrices look the same but they are different 
+% m1 and m2 have the same values but different dependencies.
+% The elements of m1 are uncorrelated base inputs whereas some of the 
+% elements of m2 were constructed from base inputs x1 and x2 and
+% are thus correlated. The difference is obvious if one looks at the 
+% uncertainties of the inverted matrices
+
+m3 = inv(m1)
+m4 = inv(m2)
+
+%% A note on matrices
+% direct assignement of a subpart of a matrix does not work
+
+% v3(2,:) = [x1 x2]; %DOES NOT WORK! RETURNS ERROR
+
+% instead preallocate matrix first 
+v3 = unc(zeros(2))
+% and then assign
+v3(2,:) = [x1 x2]
+
+% Preallocation of arrays and matrices is generally recommended because it
+% improves performance.
+
+% But careful: Preallocation of an array or matrix as doubles and then 
+% filling it with uncertain elements will not work
+
+% v3 = [];
+% v3(1) = x1; %DOES NOT WORK! RETURNS DOUBLE
+
+%% Do some calculations with uncertain numbers
+x3 = x1 + x2
+x4 = x1.*x2
+x5 = sqrt(x3+x4)
+x6 = x3./x4
+x7 = x5.*sin(x6)
+
+%% Return expectation value of result
+get_value(x7)
+% for LinProp the same as function value
+get_fcn_value(x7)
+
+%% Calculate uncertainty of result
+get_stdunc(x7)
+
+%% Calculate expanded uncertainty of result
+% returns lower and upper limit
+get_coverage_interval(x7,0.95)
+
+%% Calculate covariance or correlation of result
+get_covariance([x6 x7])
+get_correlation([x6 x7])
+
+%% Calculate uncertainty contribution of base inputs
+% these are the sensitivity coefficients multiplied with the standard
+% uncertainties of the base inputs x1 and x2
+get_jacobi(x7)
+
+%% Calculate sensitivities w.r.t. intermediate results
+% x3 and x4 are intermediate results
+j1 = get_jacobi2(x7,[x3 x4])
+
+% NOTE: The calculation of sensitivities w.r.t. intermediate results
+% requires special care and can't be done blindly. There are two
+% requirements:
+% 1. The vector g = [x3 x4] must be complete in the sense that x7 can be
+% calculated as a composite function x7 = f(g(x1,x2))
+% e.g. get_jacobi2(x7,x3) would return a wrong result
+% 2. The elements of g must be linear independent
+% e.g. get_jacobi2(x7,[x3 x4]) with x4 = 2.* x3 would crash
+% Generally it is not difficult to satisfy these requirement but it is 
+% the responsibility of the user to do so. You will not be warned and 
+% the returned result might be wrong, but it can be
+% checked by summing up uncertainty contributions and copmaring with
+% combined uncertainty (see next cell). 
+
+%% Calculate uncertainty contribution of intermediate result
+u1 = get_unc_component(x7,[x3 x4])
+% this is the same as
+j1.*get_stdunc([x3 x4])
+
+% NOTE: the squared sum of these uncertainties is not equal to the 
+% combined uncertainty of x7, because x3 and x4 are correlated
+sqrt(sum(u1.^2)) % not the same as u(x7)
+
+% but by taking correlation into account it is the same as u(x7)
+sqrt(j1*get_covariance([x3 x4])*j1') % same as u(x7)
+
+%% Store an uncertainty object
+% stores uncertain objects in xml format maintaining all information
+xml_file([x6 x7],'test.xml')
+
+%% Reload a stored uncertainty object
+% all information is recovered. 
+a1 = unc('test.xml','xml_file');
+x6n = a1(1)
+x7n = a1(2)
+
+% correlation between x6n and x7n is the same as between x7 and x6
+get_correlation([x6n x7n])
+
+% also correlations with respect to any other quantities are the same 
+get_correlation([x6n x7n x6 x7 x3])
+
+% NOTE: x6n and x7n are in every aspect identical to x6 and x7. 
+% Recovery of full information works even if you shut down Matlab 
+% and then restart, as long as the uncertainty objects were stored before 
+% shutdown and then reloaded after restart again.
+% All the necessary information is stored in the files.
+
+%% How to bridge non-analytical parts in the measurement equation
+% If the measurement equation consists of a non-analytical 
+% part, as e.g. a numerical method like nonlinear leat squares, which 
+% returns an output p with value p0 and if the sensitivities j1 j2 of 
+% p with respect to the inputs x1 and x2 can be determined somehow, 
+% it is possible to define p as an uncertainty number with
+% p = unc(p0, [x1 x2], [j1 j2], 'system')
+
+% e.g.
+p0 = 5.0
+j = [2.1 4.5]
+p = unc(p0, [x1 x2], j, 'system')
+
+%% REPLACE_WITH_DASH_DASH- DistProp REPLACE_WITH_DASH_DASH-
+% define function handle for DistProp
+unc = @DistProp;
+
+%% Initialize DistProp level
+% MaxLevel specifies the maximum order of the taylor expansion
+DistPropGlobalMaxLevel(3);
+
+% NOTE: There is no upper limit for MaxLevel but be aware that memory 
+% consumption and computational burden increase exponentially with the
+% value of MaxLevel.
+% MaxLevel=3 is a good value which already provides reasonable
+% results for many cases at which LinProp fails.
+% 
+%% Creation of DistProp objects
+% the same as for LinProp
+% In the future it will be possible to specify distributions other than
+% gaussians
+
+y1 = unc(0,0.1)
+
+%% Calculate with DistProp objects
+% LinProp would return an uncertainty of 0
+y2 = y1.^2
+y3 = cos(y1)
+
+%% Expectation and function value are not the same
+get_value(y2)
+get_fcn_value(y2)
+get_value(y3)
+get_fcn_value(y3)
+
+%% Uncertainties of DistProp objects
+get_stdunc(y2)
+get_stdunc(y3)
+get_coverage_interval(y2,0.95)
+get_coverage_interval(y3,0.95)
+
+% NOTE: This is based on the assumption that the result distribution is 
+% gaussian. It is possible to obtain central moments of the result 
+% distribution using get_moment(). This information is not yet used to 
+% calculate more realistic coverage intervals.
+
+%%
+echo off;
+
+
+##### SOURCE END #####
+--></body></html>

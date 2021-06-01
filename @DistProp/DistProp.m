@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.4.4
-% Michael Wollensack METAS - 01.02.2021
+% Metas.UncLib.Matlab.DistProp V2.4.7
+% Michael Wollensack METAS - 25.05.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -367,7 +367,65 @@ classdef DistProp
                     error('Too many input arguments')
             end
         end
-        function y = reshape(x, s)
+        function y = reshape(x, varargin)
+            %RESHAPE Reshape array.
+            %   RESHAPE(X,M,N) or RESHAPE(X,[M,N]) returns the M-by-N matrix
+            %   whose elements are taken columnwise from X. An error results
+            %   if X does not have M*N elements.
+            %
+            %   RESHAPE(X,M,N,P,...) or RESHAPE(X,[M,N,P,...]) returns an
+            %   N-D array with the same elements as X but reshaped to have
+            %   the size M-by-N-by-P-by-.... The product of the specified
+            %   dimensions, M*N*P*..., must be the same as NUMEL(X).
+            %
+            %   RESHAPE(X,...,[],...) calculates the length of the dimension
+            %   represented by [], such that the product of the dimensions
+            %   equals NUMEL(X). The value of NUMEL(X) must be evenly divisible
+            %   by the product of the specified dimensions. You can use only one
+            %   occurrence of [].
+            %
+            unknownDimensions = [];
+            if numel(varargin) > 1
+                unknownDimensions = cellfun(@isempty, varargin);
+                if sum(unknownDimensions) > 1
+                    error('Size can only have one unknown dimension.');
+                elseif sum(unknownDimensions) == 1
+                    % Temporarily replace empty dimension with 1, so
+                    %   prod() can be used, as the unknown dimension is for now assumed to be 1,
+                    %   numel(varargin) == numel(cell2mat(varargin)), and
+                    %   checks on numeric values do not fail.
+                    varargin(unknownDimensions) = {1};
+                    % Correct value will be calculated after other arguments habe been checked.
+                end
+                if any(not(cellfun(@isscalar, varargin)))
+                    error('Size arguments must be integer scalars.');
+                end
+                s = cell2mat(varargin);
+            else
+                s = double(varargin{1});
+            end
+            if numel(s) < 2
+                error('Size vector must have at least two elements.');
+            end
+            if any(not(isreal(s)))
+                error('Size argument cannot be complex.');
+            end
+            % check if size arguments have integer values (rounding has no effect and not inf, nan also fails this test).
+            if any(ceil(s)~=s | isinf(s))
+                error('Size arguments must be real integers.');
+            end
+            % Fix and check dimensions
+            if sum(unknownDimensions) == 1
+                if mod(numel(x), prod(s)) ~= 0
+                    error('Product of known dimensions, %i, not divisible into total number of elements, %i.', prod(s), numel(x));
+                else
+                    s(unknownDimensions) = numel(x) / prod(s);
+                end
+            else
+                if prod(s) ~= numel(x)
+                    error('Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
+                end
+            end
             xm = DistProp.Convert2UncArray(x);
             xm.Reshape(int32(s(:)));
             y = DistProp.Convert2DistProp(xm);
@@ -1044,7 +1102,7 @@ classdef DistProp
                     z = v*diag(diag(d).^y)/(v);
                 end
             else
-                error("Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To perform elementwise matrix powers, use '.^'.")
+                error('Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To perform elementwise matrix powers, use ''.^''.')
             end
         end
         function z = mrdivide(x,y)

@@ -465,11 +465,11 @@ classdef LinProp
             dimI = numel(I);
             
             % Convert logical indexes to subscripts
-            logicalIndexes = cellfun(@islogical, I);
-            I(logicalIndexes) = cellfun(@find, I(logicalIndexes), 'UniformOutput', false);
+            isLogicalIndex = cellfun(@islogical, I);
+            I(isLogicalIndex) = cellfun(@find, I(isLogicalIndex), 'UniformOutput', false);
             
             % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~logicalIndexes)))
+            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~isLogicalIndex)))
                 error('Array indices must be positive integers or logical values.');
             end
             
@@ -693,11 +693,11 @@ classdef LinProp
             end
 
             % Convert logical indexes to subscripts
-            logicalIndexes = cellfun(@islogical, src_subs);
-            src_subs(logicalIndexes) = cellfun(@find, src_subs(logicalIndexes), 'UniformOutput', false);
+            isLogicalIndex = cellfun(@islogical, src_subs);
+            src_subs(isLogicalIndex) = cellfun(@find, src_subs(isLogicalIndex), 'UniformOutput', false);
 
             % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~logicalIndexes)))
+            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
                 error('Array indices must be positive integers or logical values.');
             end
             

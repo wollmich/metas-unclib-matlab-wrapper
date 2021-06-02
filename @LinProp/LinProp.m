@@ -430,6 +430,8 @@ classdef LinProp
             xm.Reshape(int32(s(:)));
             y = LinProp.Convert2LinProp(xm);
         end
+        function C = subsasgn(A, S, B)
+        %SUBSASGN Subscripted assignment.
         %   A(I) = B assigns the values of B into the elements of A specified by
         %   the subscript vector I.  B must have the same number of elements as I
         %   or be a scalar. 
@@ -448,7 +450,7 @@ classdef LinProp
         %   be shiftable to that size by adding or removing singleton dimensions, or
         %   contain a scalar, in which case its value is replicated to form a matrix
         %   of that size.
-        function C = subsasgn(A, S, B)
+        
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');   %TODO: This was allowed in  V2.4.7 of the uncLib MATLAB wrapper - but did not serve any function, as far as Dion can see.
             elseif strcmp('{}', {S.type})
@@ -615,6 +617,7 @@ classdef LinProp
             end
                
         end
+        function B = subsref(A, S)
         %SUBSREF Subscripted reference.
         %   A(I) is an array formed from the elements of A specified by the
         %   subscript vector I.  The resulting array is the same size as I except
@@ -630,8 +633,7 @@ classdef LinProp
         %
         %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
         %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
-        %
-        function B = subsref(A, S)
+        
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');   %TODO: This was allowed in  V2.4.7 of the uncLib MATLAB wrapper - but did not serve any function, as far as Dion can see.
             elseif strcmp('{}', {S.type})

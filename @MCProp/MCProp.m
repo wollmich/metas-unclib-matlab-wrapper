@@ -430,7 +430,7 @@ classdef MCProp
             xm.Reshape(int32(s(:)));
             y = MCProp.Convert2MCProp(xm);
         end
-        
+        function C = subsasgn(A, S, B)
         %   A(I) = B assigns the values of B into the elements of A specified by
         %   the subscript vector I.  B must have the same number of elements as I
         %   or be a scalar. 
@@ -449,7 +449,7 @@ classdef MCProp
         %   be shiftable to that size by adding or removing singleton dimensions, or
         %   contain a scalar, in which case its value is replicated to form a matrix
         %   of that size.
-        function C = subsasgn(A, S, B)
+        
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');   %TODO: This was allowed in  V2.4.7 of the uncLib MATLAB wrapper - but did not serve any function, as far as Dion can see.
             elseif strcmp('{}', {S.type})
@@ -616,6 +616,7 @@ classdef MCProp
             end
                
         end
+        function B = subsref(A, S)
         %SUBSREF Subscripted reference.
         %   A(I) is an array formed from the elements of A specified by the
         %   subscript vector I.  The resulting array is the same size as I except
@@ -631,8 +632,7 @@ classdef MCProp
         %
         %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
         %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
-        %
-        function B = subsref(A, S)
+        
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');   %TODO: This was allowed in  V2.4.7 of the uncLib MATLAB wrapper - but did not serve any function, as far as Dion can see.
             elseif strcmp('{}', {S.type})

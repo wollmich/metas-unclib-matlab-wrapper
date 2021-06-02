@@ -1580,9 +1580,6 @@ classdef MCProp
                     u = MCProp(x.GetItem2d(0, 0));
                 else
                     u = MCProp(x);
-                    if ndims(u) == 1
-                        u = reshape(u, size(u));
-                    end
                 end
             else
                 u = MCProp(x);

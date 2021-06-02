@@ -483,10 +483,13 @@ classdef DistProp
                             C = []; % TODO: Do we need to destroy/free something?
                             return;
                         else
-                            idx = true(1, numel(A));
-                            idx(I{1})= false;
-                            S.subs{1} = idx;
-                            C = subsref(A, S);
+                            S.subs{1} = true(size(A));
+                            S.subs{1}(I{1})= false;
+                            if isvector(A)
+                                C = subsref(A, S);
+                            else
+                                C = subsref(A, S)';
+                            end
                             return;
                         end
                     else
@@ -671,8 +674,12 @@ classdef DistProp
             % Reshape A if (partial) linear indexing is used.
             if ni == 1 && isvectorA
                 % Special case for shape of output, based on definition of subsref
-                % B has the same shape as A. We have to do nothing at this
-                % point.
+                % B has the same shape as A. 
+                % What is not mentioned in the documentation is that this
+                % only applies if the argument is not ':'.
+                if sizeA(2) > 1 && ~strcmp(src_subs{1}, ':')
+                    transpose_vector = true;
+                end
             else
                 sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
                 if numel(sizeAnew) == 1

@@ -480,7 +480,7 @@ classdef LinProp
                 else
                     if dimI == 1
                         if strcmp(I, ':')
-                            C = []; % TODO: Do we need to destroy/free something?
+                            C = [];
                             return;
                         else
                             S.subs{1} = true(size(A));

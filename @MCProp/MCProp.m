@@ -451,7 +451,7 @@ classdef MCProp
         %   of that size.
         
             if strcmp('.', {S.type})
-                error('Dot indexing is not supported for variables of this type.');   %TODO: This was allowed in  V2.4.7 of the uncLib MATLAB wrapper - but did not serve any function, as far as Dion can see.
+                error('Dot indexing is not supported for variables of this type.');
             elseif strcmp('{}', {S.type})
                 error('Brace indexing is not supported for variables of this type.');
             elseif length(S) > 1

@@ -700,52 +700,21 @@ classdef DistProp
             sizeA = size(A);
             isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
             src_subs = S.subs;
-            transpose_vector = false;
             output_shape = [];
-
-            % This is a very special case. If linear indexing is used, but
-            % the linear indexes are arranged in form of a vector, 
-            if ni == 1 && ~isvector(src_subs{1})
-                if islogical(src_subs{1})
-                    src_subs{1} = src_subs{1}(:);
-                else
-                    output_shape = size(src_subs{1});   % Save shape of output for later.
-                    src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
-                end
-            end
             
-            % Reshape A if (partial) linear indexing is used.
-            if ni == 1 && isvectorA
-                % Special case for shape of output, based on definition of subsref
-                % B has the same shape as A. 
-                % What is not mentioned in the documentation is that this
-                % only applies if the argument is not ':'.
-                if sizeA(2) > 1 && ~strcmp(src_subs{1}, ':')
-                    transpose_vector = true;
-                end
-            else
-                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
-                if numel(sizeAnew) == 1
-                    if iscolumn(src_subs{1})
-                        sizeAnew = [sizeAnew(1) 1];
-                    else 
-                        % This is a special case we have to address
-                        % later, or we have to use SetItemsNd instead of SetItems1d
-                        sizeAnew = [1 sizeAnew(1)];
-                        transpose_vector = true;
-                    end
-                end
-                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
-                    A = reshape(A, sizeAnew);
-                    sizeA = sizeAnew;
-                    isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
-                end
-            end
-
             % Convert logical indexes to subscripts
             isLogicalIndex = cellfun(@islogical, src_subs);
-            src_subs(isLogicalIndex) = cellfun(@find, src_subs(isLogicalIndex), 'UniformOutput', false);
+            src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
 
+            % This is a very special case. If linear indexing is used, but
+            % the linear indexes are arranged in form of a matrix, the
+            % output has the shape of the matrix. This does not apply to
+            % logical indexes.
+            if ni == 1 && ~isvector(src_subs{1})
+                output_shape = size(src_subs{1});   % Save shape of output for later.
+                src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
+            end
+            
             % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
             if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
                 error('Array indices must be positive integers or logical values.');
@@ -761,6 +730,34 @@ classdef DistProp
             end
             if strcmp(src_subs{ni}, ':') % Special case for last dimension
                 src_subs{ni} = (1:(numel(A)/prod(sizeA(1 : (ni-1)))))';   
+            end
+            
+            % Reshape A if (partial) linear indexing is used.
+            if ni == 1 && isvectorA
+                % Special case for shape of output, based on definition of subsref
+                % B has the same shape as A. 
+                % What is not mentioned in the documentation is that this
+                % only applies if the argument is not ':'.
+                if sizeA(2) > 1 && ~strcmp(S.subs{1}, ':')
+                    output_shape = [1 numel(src_subs{1})];
+                end
+            else
+                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
+                if numel(sizeAnew) == 1
+                    if iscolumn(src_subs{1})
+                        sizeAnew = [sizeAnew(1) 1];
+                    else 
+                        % This is a special case we have to address
+                        % later, or we have to use SetItemsNd instead of SetItems1d
+                        sizeAnew = [1 sizeAnew(1)];
+                        output_shape  = [1 numel(src_subs{1})];
+                    end
+                end
+                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                    A = reshape(A, sizeAnew);
+                    sizeA = sizeAnew;
+                    isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
+                end
             end
 
             % Test if indexes are in bounds
@@ -798,9 +795,7 @@ classdef DistProp
             B = DistProp.Convert2DistProp(bm);
 
             % Corect shape of B
-            if transpose_vector
-                B = B.';
-            elseif ~isempty(output_shape)
+            if ~isempty(output_shape)
                 B = reshape(B, output_shape);
             else
                 sizeB = size(B);

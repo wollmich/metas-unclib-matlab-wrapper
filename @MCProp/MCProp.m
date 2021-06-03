@@ -522,23 +522,32 @@ classdef MCProp
             if numelA == 0
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
-                dotIndexes = find(strcmp(I, ':'));
-                if numel(dotIndexes) > 0
-                    if numel(dotIndexes) == 1 && isvector(B)
-                        sizeB = length(B);
-                    else
-                        sizeB = size(B);
-                    end
-                    numelB = prod(sizeB);
-                    if numel(dotIndexes) < numel(sizeB) && numelB > 1
+                sizeB = size(B);
+                numelB = prod(sizeB);
+                tmpProd = 1;
+                idx = 1;
+                if any(strcmp(I, ':'))
+                    if dimI < sum(sizeB>1)
                         error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                     end
-                    tmpProd = 1;
-                    for ii = 1:length(dotIndexes)-1
-                        I{dotIndexes(ii)} = 1:sizeB(ii);
-                        tmpProd = tmpProd * sizeB(ii);
+                    for ii = 1:(dimI-1)  % Dimensions except the last one
+                        if strcmp(I{ii}, ':')
+                            I{ii} = 1:sizeB(idx);
+                            tmpProd = tmpProd * sizeB(idx);
+                            idx = idx + 1;
+                        elseif numel(I{ii}) > 1
+                            if numel(I{ii}) ~= sizeB(idx)
+                                error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                            end
+                            tmpProd = tmpProd * sizeB(idx);
+                            idx = idx + 1;
+                        end
                     end
-                    I{dotIndexes(end)} = 1:numelB/tmpProd;
+                    if strcmp(I{dimI}, ':') % Special case for last dimension
+                        I{dimI} = 1:(numelB/tmpProd);
+                    elseif numel(I{dimI}) ~= numelB/tmpProd
+                        error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                    end
                 end
             else
                 % If A has already been defined, the dots (:) refer to the

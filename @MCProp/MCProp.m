@@ -329,9 +329,9 @@ classdef MCProp
         end
         function n = ndims(obj)
             if obj.IsArray
-                n = double(obj.NetObject.ndims);
+                n = max(2, double(obj.NetObject.ndims));
             else
-                n = 1;
+                n = 2;
             end
         end
         function n = numel(obj)
@@ -1809,9 +1809,6 @@ classdef MCProp
                     u = MCProp(x.GetItem2d(0, 0));
                 else
                     u = MCProp(x);
-                    if ndims(u) == 1
-                        u = reshape(u, size(u));
-                    end
                 end
             else
                 u = MCProp(x);

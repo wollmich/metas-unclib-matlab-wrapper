@@ -702,16 +702,23 @@ classdef LinProp
             src_subs = S.subs;
             transpose_vector = false;
             output_shape = [];
+            
+            % Convert logical indexes to subscripts
+            isLogicalIndex = cellfun(@islogical, src_subs);
+            src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
 
             % This is a very special case. If linear indexing is used, but
-            % the linear indexes are arranged in form of a vector, 
+            % the linear indexes are arranged in form of a matrix, the
+            % output has the shape of the matrix. This does not apply to
+            % logical indexes.
             if ni == 1 && ~isvector(src_subs{1})
-                if islogical(src_subs{1})
-                    src_subs{1} = src_subs{1}(:);
-                else
-                    output_shape = size(src_subs{1});   % Save shape of output for later.
-                    src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
-                end
+                output_shape = size(src_subs{1});   % Save shape of output for later.
+                src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
+            end
+            
+            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
+            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
+                error('Array indices must be positive integers or logical values.');
             end
             
             % TODO: We could probably simplify this code if we would used 
@@ -745,14 +752,6 @@ classdef LinProp
                 end
             end
 
-            % Convert logical indexes to subscripts
-            isLogicalIndex = cellfun(@islogical, src_subs);
-            src_subs(isLogicalIndex) = cellfun(@find, src_subs(isLogicalIndex), 'UniformOutput', false);
-
-            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
-                error('Array indices must be positive integers or logical values.');
-            end
             
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address

@@ -520,13 +520,38 @@ classdef LinProp
             % all following dimensions.
             sizeA = size(A);
             numelA = prod(sizeA);
-            for ii = 1:(dimI-1)  % Dimensions except the last one
-                if strcmp(I{ii}, ':')
-                    I{ii} = 1:sizeA(ii);
+            if numelA == 0
+                % If A has not been defined yet, the dots (:) refer to the
+                % size of B.
+                dotIndexes = find(strcmp(I, ':'));
+                if numel(dotIndexes) > 0
+                    if numel(dotIndexes) == 1 && isvector(B)
+                        sizeB = length(B);
+                    else
+                        sizeB = size(B);
+                    end
+                    numelB = prod(sizeB);
+                    if numel(dotIndexes) < numel(sizeB) && numelB > 1
+                        error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                    end
+                    tmpProd = 1;
+                    for ii = 1:length(dotIndexes)-1
+                        I{dotIndexes(ii)} = 1:sizeB(ii);
+                        tmpProd = tmpProd * sizeB(ii);
+                    end
+                    I{dotIndexes(end)} = 1:numelB/tmpProd;
                 end
-            end
-            if strcmp(I{dimI}, ':') % Special case for last dimension
-                I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
+            else
+                % If A has already been defined, the dots (:) refer to the
+                % size of A.
+                for ii = 1:(dimI-1)  % Dimensions except the last one
+                    if strcmp(I{ii}, ':')
+                        I{ii} = 1:sizeA(ii);
+                    end
+                end
+                if strcmp(I{dimI}, ':') % Special case for last dimension
+                    I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
+                end
             end
             I_maxIndex = cellfun(@max, I);
             
@@ -594,6 +619,9 @@ classdef LinProp
                 end
                     
                 % Expand A, if the addressed area is larger
+                if numel(I_maxIndex) > numel(sizeA)
+                    sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
+                end
                 sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
                 if any(I_maxIndex > sA_nI)
                     A2 = LinProp(zeros(max(I_maxIndex, sA_nI)));
@@ -606,6 +634,13 @@ classdef LinProp
                         % Copy over existing values from A to A2...
                         A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
                     end
+                end
+                
+                % Remove trailing singleton dimensions that might have been
+                % addressed. These might actually not exist if the
+                % subscript used was 1.
+                while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
+                    I(end) = [];
                 end
                 
                 % Call core library functions to copy values

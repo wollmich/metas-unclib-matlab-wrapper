@@ -540,7 +540,12 @@ classdef LinProp
                 
                 % Grow vector if necessary
                 if I_maxIndex > numelA
-                    if isrow(A)
+                    if numelA == 0
+                        A = LinProp(zeros(1, I_maxIndex));
+                        if B.IsComplex
+                            A = complex(A);
+                        end
+                    elseif isrow(A)
                         A = [A, LinProp(zeros(1, I_maxIndex-numelA))];
                     elseif iscolumn(A)
                         A = [A; LinProp(zeros(I_maxIndex-numelA, 1))];
@@ -592,6 +597,9 @@ classdef LinProp
                 sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
                 if any(I_maxIndex > sA_nI)
                     A2 = LinProp(zeros(max(I_maxIndex, sA_nI)));
+                    if B.IsComplex
+                        A2 = complex(A2);
+                    end
                     if numel(A) == 0
                         A = A2;
                     else

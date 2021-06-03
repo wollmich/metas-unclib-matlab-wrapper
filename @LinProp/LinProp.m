@@ -700,7 +700,6 @@ classdef LinProp
             sizeA = size(A);
             isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
             src_subs = S.subs;
-            transpose_vector = false;
             output_shape = [];
             
             % Convert logical indexes to subscripts
@@ -721,38 +720,6 @@ classdef LinProp
                 error('Array indices must be positive integers or logical values.');
             end
             
-            % TODO: We could probably simplify this code if we would used 
-            % SetItemsNd instead of SetItems1d for 1-by-N vectors.
-            
-            % Reshape A if (partial) linear indexing is used.
-            if ni == 1 && isvectorA
-                % Special case for shape of output, based on definition of subsref
-                % B has the same shape as A. 
-                % What is not mentioned in the documentation is that this
-                % only applies if the argument is not ':'.
-                if sizeA(2) > 1 && ~strcmp(src_subs{1}, ':')
-                    transpose_vector = true;
-                end
-            else
-                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
-                if numel(sizeAnew) == 1
-                    if iscolumn(src_subs{1})
-                        sizeAnew = [sizeAnew(1) 1];
-                    else 
-                        % This is a special case we have to address
-                        % later, or we have to use SetItemsNd instead of SetItems1d
-                        sizeAnew = [1 sizeAnew(1)];
-                        transpose_vector = true;
-                    end
-                end
-                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
-                    A = reshape(A, sizeAnew);
-                    sizeA = sizeAnew;
-                    isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
-                end
-            end
-
-            
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address
             % all following dimensions.
@@ -763,6 +730,34 @@ classdef LinProp
             end
             if strcmp(src_subs{ni}, ':') % Special case for last dimension
                 src_subs{ni} = (1:(numel(A)/prod(sizeA(1 : (ni-1)))))';   
+            end
+            
+            % Reshape A if (partial) linear indexing is used.
+            if ni == 1 && isvectorA
+                % Special case for shape of output, based on definition of subsref
+                % B has the same shape as A. 
+                % What is not mentioned in the documentation is that this
+                % only applies if the argument is not ':'.
+                if sizeA(2) > 1 && ~strcmp(S.subs{1}, ':')
+                    output_shape = [1 numel(src_subs{1})];
+                end
+            else
+                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
+                if numel(sizeAnew) == 1
+                    if iscolumn(src_subs{1})
+                        sizeAnew = [sizeAnew(1) 1];
+                    else 
+                        % This is a special case we have to address
+                        % later, or we have to use SetItemsNd instead of SetItems1d
+                        sizeAnew = [1 sizeAnew(1)];
+                        output_shape  = [1 numel(src_subs{1})];
+                    end
+                end
+                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                    A = reshape(A, sizeAnew);
+                    sizeA = sizeAnew;
+                    isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
+                end
             end
 
             % Test if indexes are in bounds
@@ -800,9 +795,7 @@ classdef LinProp
             B = LinProp.Convert2LinProp(bm);
 
             % Corect shape of B
-            if transpose_vector
-                B = B.';
-            elseif ~isempty(output_shape)
+            if ~isempty(output_shape)
                 B = reshape(B, output_shape);
             else
                 sizeB = size(B);

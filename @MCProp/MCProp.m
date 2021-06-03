@@ -431,24 +431,24 @@ classdef MCProp
             y = MCProp.Convert2MCProp(xm);
         end
         function C = subsasgn(A, S, B)
-        %   A(I) = B assigns the values of B into the elements of A specified by
-        %   the subscript vector I.  B must have the same number of elements as I
-        %   or be a scalar. 
-        %
-        %   A(I,J) = B assigns the values of B into the elements of the rectangular
-        %   submatrix of A specified by the subscript vectors I and J.  A colon used as
-        %   a subscript, as in A(I,:) = B, indicates all columns of those rows
-        %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns J.
-        %
-        %   A(I,J,K,...) = B assigns the values of B to the submatrix of A specified
-        %   by the subscript vectors I, J, K, etc. A colon used as a subscript, as in
-        %   A(I,:,K) = B, indicates the entire dimension. 
-        %
-        %   For both A(I,J) = B and the more general multi-dimensional 
-        %   A(I,J,K,...) = B, B must be LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-... , or
-        %   be shiftable to that size by adding or removing singleton dimensions, or
-        %   contain a scalar, in which case its value is replicated to form a matrix
-        %   of that size.
+            %   A(I) = B assigns the values of B into the elements of A specified by
+            %   the subscript vector I.  B must have the same number of elements as I
+            %   or be a scalar. 
+            %
+            %   A(I,J) = B assigns the values of B into the elements of the rectangular
+            %   submatrix of A specified by the subscript vectors I and J.  A colon used as
+            %   a subscript, as in A(I,:) = B, indicates all columns of those rows
+            %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns J.
+            %
+            %   A(I,J,K,...) = B assigns the values of B to the submatrix of A specified
+            %   by the subscript vectors I, J, K, etc. A colon used as a subscript, as in
+            %   A(I,:,K) = B, indicates the entire dimension. 
+            %
+            %   For both A(I,J) = B and the more general multi-dimensional 
+            %   A(I,J,K,...) = B, B must be LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-... , or
+            %   be shiftable to that size by adding or removing singleton dimensions, or
+            %   contain a scalar, in which case its value is replicated to form a matrix
+            %   of that size.
         
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');
@@ -663,21 +663,21 @@ classdef MCProp
                
         end
         function B = subsref(A, S)
-        %SUBSREF Subscripted reference.
-        %   A(I) is an array formed from the elements of A specified by the
-        %   subscript vector I.  The resulting array is the same size as I except
-        %   for the special case where A and I are both vectors.  In this case,
-        %   A(I) has the same number of elements as I but has the orientation of A.
-        %
-        %   A(I,J) is an array formed from the elements of the rectangular
-        %   submatrix of A specified by the subscript vectors I and J.  The
-        %   resulting array has LENGTH(I) rows and LENGTH(J) columns.  A colon used
-        %   as a subscript, as in A(I,:), indicates all columns of those rows
-        %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns
-        %   J.
-        %
-        %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
-        %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
+            %SUBSREF Subscripted reference.
+            %   A(I) is an array formed from the elements of A specified by the
+            %   subscript vector I.  The resulting array is the same size as I except
+            %   for the special case where A and I are both vectors.  In this case,
+            %   A(I) has the same number of elements as I but has the orientation of A.
+            %
+            %   A(I,J) is an array formed from the elements of the rectangular
+            %   submatrix of A specified by the subscript vectors I and J.  The
+            %   resulting array has LENGTH(I) rows and LENGTH(J) columns.  A colon used
+            %   as a subscript, as in A(I,:), indicates all columns of those rows
+            %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns
+            %   J.
+            %
+            %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
+            %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
         
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');
@@ -771,7 +771,7 @@ classdef MCProp
                 end
             end
 
-            % Calucate size of output vector
+            % Calculate size of output vector
             n = cellfun(@(x) numel(x), src_subs);
             dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
 

@@ -431,6 +431,7 @@ classdef MCProp
             y = MCProp.Convert2MCProp(xm);
         end
         function C = subsasgn(A, S, B)
+            %SUBSASGN Subscripted assignment.
             %   A(I) = B assigns the values of B into the elements of A specified by
             %   the subscript vector I.  B must have the same number of elements as I
             %   or be a scalar. 

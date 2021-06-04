@@ -1,5 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
+% Dion Timmermann PTB - 04.06.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -341,6 +342,13 @@ classdef DistProp
                 n = 1;
             end
         end
+        function e = isempty(obj)
+            if obj.IsArray && obj.NetObject.numel == 0
+                e = true;
+            else
+                e = false;
+            end
+        end
         function s = size(obj, varargin)
             if obj.IsArray
                 if obj.NetObject.ndims == 1
@@ -431,161 +439,395 @@ classdef DistProp
             y = DistProp.Convert2DistProp(xm);
         end
         function C = subsasgn(A, S, B)
-            switch S(1).type
-                case '()'
-                    A = DistProp(A);
-                    B = DistProp(B);
-                    if A.IsComplex && ~B.IsComplex
-                        B = complex(B);
-                    end
-                    if ~A.IsComplex && B.IsComplex
-                        A = complex(A);
-                    end
-                    ni = numel(S.subs);
-                    na = ndims(A);
-%                    nb = ndims(B);
-                    if ((ni <= 1) || (ni >= na))
-                        if ni == 0
-                            C = A;
-                        else
-                            % Reshape A?
-                            if ni > na
-                                s = ones(1, ni);
-                                s(1:na) = size(A);
-                                am = DistProp.Convert2UncArray(A);
-                                am.Reshape(int32(s(:)));
-                                A = DistProp.Convert2DistProp(am);
-                            end
-                            % Reshape B?
-%                             if ni > nb
-%                                 s = ones(1, ni);
-%                                 sb = size(B);
-%                                 s(end-numel(sb)+1:end) = sb;
-%                                 bm = DistProp.Convert2UncArray(B);
-%                                 bm.Reshape(int32(s(:)));
-%                                 B = DistProp.Convert2DistProp(bm);
-%                             end
-                            % Prepare Index
-                            n = ones(1, ni);
-                            max_index = zeros(1, ni);
-                            dest_subs = S.subs;
-                            src_subs = cell(1, ni);
-                            for i = 1:ni
-                                if strcmp(dest_subs{i}, ':')
-                                    if ni == 1
-                                        dest_subs{i} = 1:numel(A);
-                                    else
-                                        dest_subs{i} = 1:size(A, i);
-                                    end
-                                end
-                                n(i) = numel(dest_subs{i});
-                                max_index(i) = max(dest_subs{i});
-                                src_subs{i} = 1:n(i);
-                            end
-                            % Resize A?
-                            s = size(A);
-                            if ((ni == 1) && (na <= 2))
-                                if s(2) > 1
-                                    max_index = [1 max_index];
-                                else
-                                    max_index = [max_index 1];
-                                end
-                            end
-                            s2 = max(s, max_index);
-                            if prod(s) ~= prod(s2)
-                                A2 = DistProp(zeros(s2));
-                                if B.IsComplex
-                                    A2 = complex(A2);
-                                end
-                                if numel(A) == 0
-                                    A = A2;
-                                else
-                                    S2.type = '()';
-                                    if ni == 1
-                                        S2.subs{1} = 1:numel(A);
-                                    else
-                                        for i = 1:ni
-                                            S2.subs{i} = 1:s(i);
-                                        end
-                                    end
-                                    A = subsasgn(A2, S2, A);
-                                end
-                            end
-                            % Index Matrix
-                            am = DistProp.Convert2UncArray(A);
-                            bm = DistProp.Convert2UncArray(B);
-                            src_index  = DistProp.IndexMatrix(src_subs);
-                            dest_index = DistProp.IndexMatrix(dest_subs);
-                            % Assign
-                            nb = ndims(B);
-                            if numel(B) == 1
-                                if ni == 1
-                                    am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
-                                else
-                                    am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
-                                end
-                            else
-                                if ni == 1
-                                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(src_index - 1)));
-                                else
-                                    src_index = src_index(:,1:nb);
-                                    am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));
-                                end
-                            end
-                            C = DistProp.Convert2DistProp(am);
-                        end  
-                    else
-                        error('Matrix dimensions must agree.')
-                    end
-                otherwise
-                    C = A;
-                    C.(S.subs) = B;
+            %SUBSASGN Subscripted assignment.
+            %   A(I) = B assigns the values of B into the elements of A specified by
+            %   the subscript vector I.  B must have the same number of elements as I
+            %   or be a scalar. 
+            %
+            %   A(I,J) = B assigns the values of B into the elements of the rectangular
+            %   submatrix of A specified by the subscript vectors I and J.  A colon used as
+            %   a subscript, as in A(I,:) = B, indicates all columns of those rows
+            %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns J.
+            %
+            %   A(I,J,K,...) = B assigns the values of B to the submatrix of A specified
+            %   by the subscript vectors I, J, K, etc. A colon used as a subscript, as in
+            %   A(I,:,K) = B, indicates the entire dimension. 
+            %
+            %   For both A(I,J) = B and the more general multi-dimensional 
+            %   A(I,J,K,...) = B, B must be LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-... , or
+            %   be shiftable to that size by adding or removing singleton dimensions, or
+            %   contain a scalar, in which case its value is replicated to form a matrix
+            %   of that size.
+        
+            if strcmp('.', {S.type})
+                error('Dot indexing is not supported for variables of this type.');
+            elseif strcmp('{}', {S.type})
+                error('Brace indexing is not supported for variables of this type.');
+            elseif length(S) > 1
+                error('Invalid array indexing.');    % This type of error should never appear.
             end
+            
+            % I describes the index-region of A that values are assigned
+            % to. I might be larger than A. In that case, A is extended.
+            I = S.subs;
+            dimI = numel(I);
+            
+            % Convert logical indexes to subscripts
+            isLogicalIndex = cellfun(@islogical, I);
+            I(isLogicalIndex) = cellfun(@find, I(isLogicalIndex), 'UniformOutput', false);
+            
+            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
+            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~isLogicalIndex)))
+                error('Array indices must be positive integers or logical values.');
+            end
+            
+            % Special case of null assignment to remove elements
+            if isempty(B) && isa(B, 'double')
+                if sum(~strcmp(I, ':')) > 1
+                    error('A null assignment can have only one non-colon index.');
+                else
+                    if dimI == 1
+                        if strcmp(I, ':')
+                            C = [];
+                            return;
+                        else
+                            S.subs{1} = true(size(A));
+                            S.subs{1}(I{1})= false;
+                            if isvector(A)
+                                C = subsref(A, S);
+                            else
+                                C = subsref(A, S)';
+                            end
+                            return;
+                        end
+                    else
+                        dim = find(~strcmp(I, ':'));
+                        S.subs{dim} = true(1, size(A, dim));
+                        S.subs{dim}(I{dim}) = false;
+                        C = subsref(A, S);
+                        return;
+                    end
+                end
+            end
+            
+            % Typecasts
+            if ~isa(A, 'DistProp')
+                A = DistProp(A);
+            end
+            if ~isa(B, 'DistProp')
+                B = DistProp(B);
+            end
+            if A.IsComplex && ~B.IsComplex
+                B = complex(B);
+            elseif ~A.IsComplex && B.IsComplex
+                A = complex(A);
+            end
+            
+            % Replace ':' placeholders 
+            % Note: The last dimension can always be used to address
+            % all following dimensions.
+            sizeA = size(A);
+            numelA = prod(sizeA);
+            if numelA == 0
+                % If A has not been defined yet, the dots (:) refer to the
+                % size of B.
+                sizeB = size(B);
+                if numel(sizeB) ~= sum(cellfun(@numel, I)>1 | strcmp(I, ':'))    % Singleton dimensions of B are ignored, except the dimensions already match.
+                    sizeB = sizeB(sizeB>1);
+                    sizeB = [sizeB ones(1, numel(I)-numel(sizeB))];
+                end
+                numelB = prod(sizeB);
+                tmpProd = 1;
+                idx = 1;
+                if any(strcmp(I, ':'))
+                    if dimI < sum(sizeB>1)
+                        error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                    end
+                    for ii = 1:(dimI-1)  % Dimensions except the last one
+                        if strcmp(I{ii}, ':')
+                            I{ii} = 1:sizeB(idx);
+                            tmpProd = tmpProd * sizeB(idx);
+                            idx = idx + 1;
+                        elseif numel(I{ii}) > 1
+                            if numel(I{ii}) ~= sizeB(idx)
+                                error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                            end
+                            tmpProd = tmpProd * sizeB(idx);
+                            idx = idx + 1;
+                        end
+                    end
+                    if strcmp(I{dimI}, ':') % Special case for last dimension
+                        I{dimI} = 1:(numelB/tmpProd);
+                    elseif numel(I{dimI}) ~= numelB/tmpProd
+                        error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                    end
+                end
+            else
+                % If A has already been defined, the dots (:) refer to the
+                % size of A.
+                for ii = 1:(dimI-1)  % Dimensions except the last one
+                    if strcmp(I{ii}, ':')
+                        I{ii} = 1:sizeA(ii);
+                    end
+                end
+                if strcmp(I{dimI}, ':') % Special case for last dimension
+                    I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
+                end
+            end
+            I_maxIndex = cellfun(@max, I);
+            
+            % Linear indexing
+            if dimI == 1
+                % Linear indexing follows some specific rules
+                
+                if ~isscalar(B) && numel(I{1}) ~= numel(B)
+                    error('Unable to perform assignment because the left and right sides have a different number of elements.');
+                end
+                
+                % Grow vector if necessary
+                if I_maxIndex > numelA
+                    if numelA == 0
+                        A = DistProp(zeros(1, I_maxIndex));
+                        if B.IsComplex
+                            A = complex(A);
+                        end
+                    elseif isrow(A)
+                        A = [A, DistProp(zeros(1, I_maxIndex-numelA))];
+                    elseif iscolumn(A)
+                        A = [A; DistProp(zeros(I_maxIndex-numelA, 1))];
+                    else
+                        error('Attempt to grow array along ambiguous dimension.');
+                    end
+                end
+                
+                % Call core library functions to copy values
+                am = DistProp.Convert2UncArray(A);
+                bm = DistProp.Convert2UncArray(B);
+                dest_index = DistProp.IndexMatrix(I);
+
+                if isscalar(B)
+                    am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
+                else
+                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
+                end
+                
+                C = DistProp.Convert2DistProp(am);
+                return;
+                
+            % Or subscript indexing / partial linear indexing
+            else
+  
+                if dimI < ndims(A)
+                    % partial linear indexing
+                    if max(I{end}) > prod(sizeA(dimI:end))
+                        error('Attempt to grow array along ambiguous dimension.');
+                    end
+                end
+                
+                % Check dimensions
+                if ~isscalar(B)
+                    sizeI = cellfun(@numel, I);
+                    sizeB = size(B);
+                    
+                    sizeI_reduced = sizeI(sizeI > 1);
+                    sizeB_reduced = sizeB(sizeB > 1);
+                    if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
+                        error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
+                        strjoin(string(sizeI), '-by-'), ...
+                        strjoin(string(sizeB), '-by-'));
+                    end
+                    
+                end
+                    
+                % Expand A, if the addressed area is larger
+                if numel(I_maxIndex) > numel(sizeA)
+                    sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
+                end
+                sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
+                if any(I_maxIndex > sA_nI)
+                    A2 = DistProp(zeros(max(I_maxIndex, sA_nI)));
+                    if B.IsComplex
+                        A2 = complex(A2);
+                    end
+                    if numel(A) == 0
+                        A = A2;
+                    else
+                        % Copy over existing values from A to A2...
+                        A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
+                    end
+                end
+                
+                % Remove trailing singleton dimensions that might have been
+                % addressed. These might actually not exist if the
+                % subscript used was 1.
+                while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
+                    I(end) = [];
+                end
+                
+                % Call core library functions to copy values
+                am = DistProp.Convert2UncArray(A);
+                bm = DistProp.Convert2UncArray(B);
+                dest_index = DistProp.IndexMatrix(I);
+
+                if isscalar(B)
+                    am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
+                else
+                    src_subs = arrayfun(@(x) 1:x, size(B), 'UniformOutput', false);
+                    src_index  = DistProp.IndexMatrix(src_subs);
+
+                    am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));
+                end
+
+                C = DistProp.Convert2DistProp(am);
+                return;
+
+            end
+               
         end
         function B = subsref(A, S)
-            switch S(1).type
-                case '()'
-                    ni = numel(S.subs);
-                    if ni == 0
-                        B = A;
-                    else
-                        n = ones(1, max(2, ni));
-                        src_subs = S.subs;
-                        dest_subs = cell(1, ni);
-                        for i = 1:ni
-                            if strcmp(src_subs{i}, ':')
-                                if ni == 1
-                                    src_subs{i} = 1:numel(A);
-                                else
-                                    src_subs{i} = 1:size(A, i);
-                                end
-                            end
-                            n(i) = numel(src_subs{i});
-                            dest_subs{i} = 1:n(i);
-                        end
-                        am = DistProp.Convert2UncArray(A);
-                        src_index  = DistProp.IndexMatrix(src_subs);
-                        dest_index = DistProp.IndexMatrix(dest_subs);
-                        if A.IsComplex
-                           bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
-                           bm.InitNd(int32(n(:)));
-                        else
-                           bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.DistProp.UncNumber'});
-                           bm.InitNd(int32(n(:)));
-                        end
-                        if ni == 1
-                            bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
-                        else
-                            bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
-                        end
-                        B = DistProp.Convert2DistProp(bm);
-                        s = size(B);
-                        if length(s) > 2 && s(end) == 1
-                            B = reshape(B, s(1:end-1));
-                        end
+            %SUBSREF Subscripted reference.
+            %   A(I) is an array formed from the elements of A specified by the
+            %   subscript vector I.  The resulting array is the same size as I except
+            %   for the special case where A and I are both vectors.  In this case,
+            %   A(I) has the same number of elements as I but has the orientation of A.
+            %
+            %   A(I,J) is an array formed from the elements of the rectangular
+            %   submatrix of A specified by the subscript vectors I and J.  The
+            %   resulting array has LENGTH(I) rows and LENGTH(J) columns.  A colon used
+            %   as a subscript, as in A(I,:), indicates all columns of those rows
+            %   indicated by vector I. Similarly, A(:,J) = B means all rows of columns
+            %   J.
+            %
+            %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
+            %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
+            
+            if strcmp('.', {S.type})
+                error('Dot indexing is not supported for variables of this type.');
+            elseif strcmp('{}', {S.type})
+                error('Brace indexing is not supported for variables of this type.');
+            elseif length(S) > 1
+                error('Invalid array indexing.');    % This type of error should never appear, as it would require multiple round brackets.
+            end
+            
+            ni = numel(S.subs);
+            if ni == 0
+                B = A;
+                return;
+            elseif ni == 1 && isempty(S.subs{1})
+                B = DistProp([]);
+                return;
+            end
+            
+            sizeA = size(A);
+            isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
+            src_subs = S.subs;
+            output_shape = [];
+            
+            % Convert logical indexes to subscripts
+            isLogicalIndex = cellfun(@islogical, src_subs);
+            src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
+
+            % This is a very special case. If linear indexing is used, but
+            % the linear indexes are arranged in form of a matrix, the
+            % output has the shape of the matrix. This does not apply to
+            % logical indexes.
+            if ni == 1 && ~isvector(src_subs{1})
+                output_shape = size(src_subs{1});   % Save shape of output for later.
+                src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
+            end
+            
+            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
+            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
+                error('Array indices must be positive integers or logical values.');
+            end
+            
+            % Replace ':' placeholders 
+            % Note: The last dimension can always be used to address
+            % all following dimensions.
+            for ii = 1:(ni-1)  % Dimensions except the last one
+                if strcmp(src_subs{ii}, ':')
+                    src_subs{ii} = 1:sizeA(ii);
+                end
+            end
+            if strcmp(src_subs{ni}, ':') % Special case for last dimension
+                src_subs{ni} = (1:(numel(A)/prod(sizeA(1 : (ni-1)))))';   
+            end
+            
+            % Reshape A if (partial) linear indexing is used.
+            if ni == 1 && isvectorA
+                % Special case for shape of output, based on definition of subsref
+                % B has the same shape as A. 
+                % What is not mentioned in the documentation is that this
+                % only applies if the argument is not ':'.
+                if sizeA(2) > 1 && ~strcmp(S.subs{1}, ':')
+                    output_shape = [1 numel(src_subs{1})];
+                end
+            else
+                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
+                if numel(sizeAnew) == 1
+                    if iscolumn(src_subs{1})
+                        sizeAnew = [sizeAnew(1) 1];
+                    else 
+                        % This is a special case we have to address
+                        % later, or we have to use SetItemsNd instead of SetItems1d
+                        sizeAnew = [1 sizeAnew(1)];
+                        output_shape  = [1 numel(src_subs{1})];
                     end
-                otherwise
-                    B = A.(S.subs);
+                end
+                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                    A = reshape(A, sizeAnew);
+                    sizeA = sizeAnew;
+                    isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
+                end
+            end
+
+            % Test if indexes are in bounds
+            if ni == 1 && isvectorA
+                if any(src_subs{1} > numel(A))
+                    error('Index exceeds the number of array elements (%i).', numel(A));
+                end
+            else
+                too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
+                if any(too_large)
+                    error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
+                end
+            end
+
+            % Calculate size of output vector
+            n = cellfun(@(x) numel(x), src_subs);
+            dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
+
+            % Extract values
+            am = DistProp.Convert2UncArray(A);
+            src_index  = DistProp.IndexMatrix(src_subs);
+            dest_index = DistProp.IndexMatrix(dest_subs);
+            if A.IsComplex
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+               bm.InitNd(int32(n(:)));
+            else
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.DistProp.UncNumber'});
+               bm.InitNd(int32(n(:)));
+            end
+            if ni == 1
+                bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
+            else
+                bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+            end
+            B = DistProp.Convert2DistProp(bm);
+
+            % Corect shape of B
+            if ~isempty(output_shape)
+                B = reshape(B, output_shape);
+            else
+                sizeB = size(B);
+                if numel(sizeB) > 2
+                    lastNonSingletonDimension = find(n>1, 1, 'last');
+                    if lastNonSingletonDimension < 2
+                        B = reshape(B, sizeB(1:2));
+                    else 
+                        B = reshape(B, sizeB(1:lastNonSingletonDimension));
+                    end
+                end
             end
         end
         function c = horzcat(a, varargin)

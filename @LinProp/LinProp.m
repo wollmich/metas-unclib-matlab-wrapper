@@ -341,6 +341,13 @@ classdef LinProp
                 n = 1;
             end
         end
+        function e = isempty(obj)
+            if obj.IsArray && obj.NetObject.numel == 0
+                e = true;
+            else
+                e = false;
+            end
+        end
         function s = size(obj, varargin)
             if obj.IsArray
                 if obj.NetObject.ndims == 1

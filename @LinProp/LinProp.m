@@ -700,7 +700,7 @@ classdef LinProp
             %
             %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
             %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
-        
+            
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');
             elseif strcmp('{}', {S.type})

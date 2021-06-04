@@ -1335,7 +1335,7 @@ classdef LinProp
                     z = v*diag(diag(d).^y)/(v);
                 end
             else
-                error('Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To perform elementwise matrix powers, use '.^''.')
+                error('Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To perform elementwise matrix powers, use ''.^''.')
             end
         end
         function z = mrdivide(x,y)

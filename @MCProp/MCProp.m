@@ -481,7 +481,7 @@ classdef MCProp
             end
             
             % Special case of null assignment to remove elements
-            if isempty(B)
+            if isempty(B) && isa(B, 'double')
                 if sum(~strcmp(I, ':')) > 1
                     error('A null assignment can have only one non-colon index.');
                 else

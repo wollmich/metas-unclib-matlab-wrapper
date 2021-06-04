@@ -42,23 +42,19 @@ m3 = inv(m1)
 m4 = inv(m2)
 
 %% A note on matrices
-% direct assignment of a subpart of a matrix does not work
-
-% v3(2,:) = [x1 x2]; %DOES NOT WORK! RETURNS ERROR
-
-% instead preallocate matrix first 
-v3 = unc(zeros(2))
-% and then assign
+% direct assignment of a subpart of a matrix does work
 v3(2,:) = [x1 x2]
-
-% Preallocation of arrays and matrices is generally recommended because it
-% improves performance.
 
 % But careful: Preallocation of an array or matrix as doubles and then 
 % filling it with uncertain elements will not work
+v3 = []
+v3(2,:) = [x1 x2] %DOES NOT WORK AS EXPECTED! RETURNS DOUBLE
 
-% v3 = [];
-% v3(1) = x1; %DOES NOT WORK! RETURNS DOUBLE
+% Preallocation of arrays and matrices is generally recommended because it
+% improves performance and helps to clarify the data type.
+v3 = unc(zeros(2))
+% and then assign
+v3(2,:) = [x1 x2]
 
 %% Do some calculations with uncertain numbers
 x3 = x1 + x2

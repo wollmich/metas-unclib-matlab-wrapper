@@ -531,6 +531,10 @@ classdef MCProp
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
                 sizeB = size(B);
+                if numel(sizeB) ~= sum(cellfun(@numel, I)>1 | strcmp(I, ':'))    % Singleton dimensions of B are ignored, except the dimensions already match.
+                    sizeB = sizeB(sizeB>1);
+                    sizeB = [sizeB ones(1, numel(I)-numel(sizeB))];
+                end
                 numelB = prod(sizeB);
                 tmpProd = 1;
                 idx = 1;

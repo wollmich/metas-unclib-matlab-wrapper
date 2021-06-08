@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 04.06.2021
+% Dion Timmermann PTB - 08.06.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1354,19 +1354,23 @@ classdef DistProp
             z = x*inv(y);
         end
         function z = mtimes(x,y)
-            x = DistProp(x);
-            y = DistProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
+            if isscalar(x) || isscalar(y)
+                z = times(x, y);
+            else
+                x = DistProp(x);
+                y = DistProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                linalg = DistProp.LinAlg(x.IsComplex);
+                xm = DistProp.Convert2UncArray(x);
+                ym = DistProp.Convert2UncArray(y);
+                zm = linalg.Dot(xm, ym);
+                z = DistProp.Convert2DistProp(zm);
             end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            linalg = DistProp.LinAlg(x.IsComplex);
-            xm = DistProp.Convert2UncArray(x);
-            ym = DistProp.Convert2UncArray(y);
-            zm = linalg.Dot(xm, ym);
-            z = DistProp.Convert2DistProp(zm);
         end
         function [L, U, P] = lu(A)
             linalg = DistProp.LinAlg(A.IsComplex);

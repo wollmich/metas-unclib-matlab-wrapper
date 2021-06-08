@@ -1354,6 +1354,11 @@ classdef LinProp
             z = x*inv(y);
         end
         function z = mtimes(x,y)
+            if isscalar(x) || isscalar(y)
+                z = times(x, y);
+                return
+            end
+            
             x = LinProp(x);
             y = LinProp(y);
             if x.IsComplex && ~y.IsComplex

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 04.06.2021
+% Dion Timmermann PTB - 08.06.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1354,19 +1354,23 @@ classdef LinProp
             z = x*inv(y);
         end
         function z = mtimes(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
+            if isscalar(x) || isscalar(y)
+                z = times(x, y);
+            else
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                linalg = LinProp.LinAlg(x.IsComplex);
+                xm = LinProp.Convert2UncArray(x);
+                ym = LinProp.Convert2UncArray(y);
+                zm = linalg.Dot(xm, ym);
+                z = LinProp.Convert2LinProp(zm);
             end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            linalg = LinProp.LinAlg(x.IsComplex);
-            xm = LinProp.Convert2UncArray(x);
-            ym = LinProp.Convert2UncArray(y);
-            zm = linalg.Dot(xm, ym);
-            z = LinProp.Convert2LinProp(zm);
         end
         function [L, U, P] = lu(A)
             linalg = LinProp.LinAlg(A.IsComplex);

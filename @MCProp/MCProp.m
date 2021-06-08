@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 04.06.2021
+% Dion Timmermann PTB - 08.06.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -1354,19 +1354,23 @@ classdef MCProp
             z = x*inv(y);
         end
         function z = mtimes(x,y)
-            x = MCProp(x);
-            y = MCProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
+            if isscalar(x) || isscalar(y)
+                z = times(x, y);
+            else
+                x = MCProp(x);
+                y = MCProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                linalg = MCProp.LinAlg(x.IsComplex);
+                xm = MCProp.Convert2UncArray(x);
+                ym = MCProp.Convert2UncArray(y);
+                zm = linalg.Dot(xm, ym);
+                z = MCProp.Convert2MCProp(zm);
             end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            linalg = MCProp.LinAlg(x.IsComplex);
-            xm = MCProp.Convert2UncArray(x);
-            ym = MCProp.Convert2UncArray(y);
-            zm = linalg.Dot(xm, ym);
-            z = MCProp.Convert2MCProp(zm);
         end
         function [L, U, P] = lu(A)
             linalg = MCProp.LinAlg(A.IsComplex);

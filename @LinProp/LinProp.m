@@ -1475,6 +1475,62 @@ classdef LinProp
                     error('Too many input arguments')
             end
         end
+        function a = diff(x, varargin)
+            if nargin > 3
+                error('Too many input arguments.');
+            end
+            if numel(varargin) >= 1
+                if iscell(varargin{1})
+                   error('Undefined function ''diff'' for input arguments of type ''cell''.');
+                end
+                if isempty(varargin{1})
+                    varargin{1} = 1;
+                else
+                    if any(isinf(varargin{1}(:))) || any(isnan(varargin{1}(:)))
+                        error('NaN and Inf not allowed.');
+                    end
+                    if numel(varargin{1}) > 1 || ~isnumeric(varargin{1}) || floor(varargin{1}) ~= varargin{1} || varargin{1} < 0 
+                        error('Difference order N must be a positive integer scalar.');
+                    end
+                end
+                    
+                if varargin{1} > 1
+                    varargin{1} = varargin{1} - 1;
+                    x = diff(x, varargin{:});
+                end
+            end
+            
+            s = size(x);
+            if numel(varargin) >= 2
+                if iscell(varargin{2})
+                   error('Undefined function ''diff'' for input arguments of type ''cell''.');
+                end
+                if numel(varargin{2}) ~= 1
+                    error('Dimension argument must be a positive integer scalar within indexing range.');
+                end
+                if ~isnumeric(varargin{2}) || floor(varargin{2}) ~= varargin{2} || isinf(varargin{2}) || varargin{2} < 0
+                    error('Dimension argument must be a positive integer scalar within indexing range.');
+                end
+                dim = varargin{2};
+            else
+                % find first non-singleton dimension
+                f = [find(s > 1) 1];
+                dim = f(1);
+            end
+            
+            if dim > numel(s)
+                a = [];
+            elseif s(dim) <= 1
+                a = [];
+            else
+                S = cell(1, max(numel(s), dim));
+                S(:) = {':'};
+                S1 = S; S1{dim} = 1:s(dim)-1;
+                S2 = S; S2{dim} = 2:s(dim);
+
+                a = subsref(x, substruct('()', S2)) - subsref(x, substruct('()', S1));
+            end
+        end
         function X = fft(A)
             numlib = LinProp.NumLib2(1);
             A = complex(A);

@@ -39,7 +39,7 @@
 % a = LinProp(value, standard_unc, idof, id, description)
 
 classdef LinProp
-    properties (Hidden = true)
+    properties
         NetObject
     end
     properties (SetAccess = private)

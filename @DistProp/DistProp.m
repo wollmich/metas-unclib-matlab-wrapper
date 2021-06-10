@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 08.06.2021
+% Dion Timmermann PTB - 10.06.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -713,9 +713,6 @@ classdef DistProp
             if ni == 0
                 B = A;
                 return;
-            elseif ni == 1 && isempty(S.subs{1})
-                B = DistProp([]);
-                return;
             end
             
             sizeA = size(A);
@@ -741,16 +738,17 @@ classdef DistProp
                 error('Array indices must be positive integers or logical values.');
             end
             
-            % Replace ':' placeholders 
+            sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
+            % Replace ':' placeholders
             % Note: The last dimension can always be used to address
             % all following dimensions.
             for ii = 1:(ni-1)  % Dimensions except the last one
                 if strcmp(src_subs{ii}, ':')
-                    src_subs{ii} = 1:sizeA(ii);
+                    src_subs{ii} = 1:sizeA_extended(ii);
                 end
             end
             if strcmp(src_subs{ni}, ':') % Special case for last dimension
-                src_subs{ni} = (1:(numel(A)/prod(sizeA(1 : (ni-1)))))';   
+                src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
             end
             
             % Reshape A if (partial) linear indexing is used.
@@ -763,7 +761,7 @@ classdef DistProp
                     output_shape = [1 numel(src_subs{1})];
                 end
             else
-                sizeAnew = [sizeA(1:ni-1) prod(sizeA(ni:end))];
+                sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
                 if numel(sizeAnew) == 1
                     if iscolumn(src_subs{1})
                         sizeAnew = [sizeAnew(1) 1];
@@ -821,7 +819,7 @@ classdef DistProp
             else
                 sizeB = size(B);
                 if numel(sizeB) > 2
-                    lastNonSingletonDimension = find(n>1, 1, 'last');
+                    lastNonSingletonDimension = find(n~=1, 1, 'last');
                     if lastNonSingletonDimension < 2
                         B = reshape(B, sizeB(1:2));
                     else 

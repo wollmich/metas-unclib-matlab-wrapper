@@ -1474,6 +1474,18 @@ classdef LinProp
             end
         end
         function a = diff(x, varargin)
+            %DIFF Difference and approximate derivative.
+            %   DIFF(X), for a vector X, is [X(2)-X(1)  X(3)-X(2) ... X(n)-X(n-1)].
+            %   DIFF(X), for a matrix X, is the matrix of row differences,
+            %      [X(2:n,:) - X(1:n-1,:)].
+            %   DIFF(X), for an N-D array X, is the difference along the first
+            %      non-singleton dimension of X.
+            %   DIFF(X,N) is the N-th order difference along the first non-singleton 
+            %      dimension (denote it by DIM). If N >= size(X,DIM), DIFF takes 
+            %      successive differences along the next non-singleton dimension.
+            %   DIFF(X,N,DIM) is the Nth difference function along dimension DIM. 
+            %      If N >= size(X,DIM), DIFF returns an empty array.
+            %
             if nargin > 3
                 error('Too many input arguments.');
             end
@@ -1498,7 +1510,7 @@ classdef LinProp
                 end
             end
             
-            s = size(x);
+            sizeX = size(x);
             if numel(varargin) >= 2
                 if iscell(varargin{2})
                    error('Undefined function ''diff'' for input arguments of type ''cell''.');
@@ -1512,19 +1524,21 @@ classdef LinProp
                 dim = varargin{2};
             else
                 % find first non-singleton dimension
-                f = [find(s > 1) 1];
+                f = [find(sizeX > 1) 1];
                 dim = f(1);
             end
             
-            if dim > numel(s)
-                a = [];
-            elseif s(dim) <= 1
-                a = [];
+            if size(x, dim) <= 1    % Call size instead of using sizeX to appropiatly handle dim>ndims(x)
+                a = LinProp([]);
+                if numel(varargin) >= 2 % If dim was passed as a parameter, return multi-dimensional matrix
+                    sizeX(dim) = 0;
+                    a = reshape(a, sizeX);
+                end
             else
-                S = cell(1, max(numel(s), dim));
+                S = cell(1, max(numel(sizeX), dim));
                 S(:) = {':'};
-                S1 = S; S1{dim} = 1:s(dim)-1;
-                S2 = S; S2{dim} = 2:s(dim);
+                S1 = S; S1{dim} = 1:sizeX(dim)-1;
+                S2 = S; S2{dim} = 2:sizeX(dim);
 
                 a = subsref(x, substruct('()', S2)) - subsref(x, substruct('()', S1));
             end

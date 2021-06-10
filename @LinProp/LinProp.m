@@ -1,5 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.8
 % Michael Wollensack METAS - 28.05.2021
+% Dion Timmermann PTB - 08.06.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -84,7 +85,7 @@ classdef LinProp
                         case 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*LinProp*UncNumber>'
                             obj.NetObject = varargin{1};
                         case 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*LinProp*UncNumber>'
-                            obj.NetObject = varargin{1};    
+                            obj.NetObject = varargin{1};
                         case 'char'
                             obj.NetObject = LinProp.XmlString2LinProp(varargin{1}).NetObject;
                         otherwise
@@ -248,7 +249,7 @@ classdef LinProp
                     end
                 otherwise
                     error('Wrong number of input arguments')
-            end 
+            end
         end
         function display(obj)
             name = inputname(1);
@@ -267,23 +268,23 @@ classdef LinProp
                     disp(get_value(obj))
                     disp([name,'.standard_unc = '])
                     disp(' ');
-                    disp(get_stdunc(obj))        
-                end    
+                    disp(get_stdunc(obj))
+                end
             else
                 if obj.IsComplex
                     sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
+                             ' ï¿½ ' num2str(get_stdunc(real(obj)), df) ')'];
                     simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
+                             ' ï¿½ ' num2str(get_stdunc(imag(obj)), df) ')'];
                     if (get_value(imag(obj)) < 0)
                         s = [sreal ' - ' simag 'i'];
                     else
                         s = [sreal ' + ' simag 'i'];
                     end
-                else        
+                else
                     s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' ± ' num2str(get_stdunc(obj), df) ')'];
-                end    
+                         ' ï¿½ ' num2str(get_stdunc(obj), df) ')'];
+                end
                 if (get_value(real(obj)) < 0)
                     s = ['  -' s];
                 else
@@ -298,7 +299,7 @@ classdef LinProp
                     disp(' ');
                     disp(s)
                     disp(' ');
-                end    
+                end
             end
         end
         function o = copy(obj)
@@ -441,7 +442,7 @@ classdef LinProp
             %SUBSASGN Subscripted assignment.
             %   A(I) = B assigns the values of B into the elements of A specified by
             %   the subscript vector I.  B must have the same number of elements as I
-            %   or be a scalar. 
+            %   or be a scalar.
             %
             %   A(I,J) = B assigns the values of B into the elements of the rectangular
             %   submatrix of A specified by the subscript vectors I and J.  A colon used as
@@ -450,14 +451,14 @@ classdef LinProp
             %
             %   A(I,J,K,...) = B assigns the values of B to the submatrix of A specified
             %   by the subscript vectors I, J, K, etc. A colon used as a subscript, as in
-            %   A(I,:,K) = B, indicates the entire dimension. 
+            %   A(I,:,K) = B, indicates the entire dimension.
             %
-            %   For both A(I,J) = B and the more general multi-dimensional 
+            %   For both A(I,J) = B and the more general multi-dimensional
             %   A(I,J,K,...) = B, B must be LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-... , or
             %   be shiftable to that size by adding or removing singleton dimensions, or
             %   contain a scalar, in which case its value is replicated to form a matrix
             %   of that size.
-        
+
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');
             elseif strcmp('{}', {S.type})
@@ -465,21 +466,21 @@ classdef LinProp
             elseif length(S) > 1
                 error('Invalid array indexing.');    % This type of error should never appear.
             end
-            
+
             % I describes the index-region of A that values are assigned
             % to. I might be larger than A. In that case, A is extended.
             I = S.subs;
             dimI = numel(I);
-            
+
             % Convert logical indexes to subscripts
             isLogicalIndex = cellfun(@islogical, I);
             I(isLogicalIndex) = cellfun(@find, I(isLogicalIndex), 'UniformOutput', false);
-            
+
             % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
             if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~isLogicalIndex)))
                 error('Array indices must be positive integers or logical values.');
             end
-            
+
             % Special case of null assignment to remove elements
             if isempty(B) && isa(B, 'double')
                 if sum(~strcmp(I, ':')) > 1
@@ -508,7 +509,7 @@ classdef LinProp
                     end
                 end
             end
-            
+
             % Typecasts
             if ~isa(A, 'LinProp')
                 A = LinProp(A);
@@ -521,8 +522,8 @@ classdef LinProp
             elseif ~A.IsComplex && B.IsComplex
                 A = complex(A);
             end
-            
-            % Replace ':' placeholders 
+
+            % Replace ':' placeholders
             % Note: The last dimension can always be used to address
             % all following dimensions.
             sizeA = size(A);
@@ -570,19 +571,19 @@ classdef LinProp
                     end
                 end
                 if strcmp(I{dimI}, ':') % Special case for last dimension
-                    I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
+                    I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));
                 end
             end
             I_maxIndex = cellfun(@max, I);
-            
+
             % Linear indexing
             if dimI == 1
                 % Linear indexing follows some specific rules
-                
+
                 if ~isscalar(B) && numel(I{1}) ~= numel(B)
                     error('Unable to perform assignment because the left and right sides have a different number of elements.');
                 end
-                
+
                 % Grow vector if necessary
                 if I_maxIndex > numelA
                     if numelA == 0
@@ -598,7 +599,7 @@ classdef LinProp
                         error('Attempt to grow array along ambiguous dimension.');
                     end
                 end
-                
+
                 % Call core library functions to copy values
                 am = LinProp.Convert2UncArray(A);
                 bm = LinProp.Convert2UncArray(B);
@@ -609,25 +610,25 @@ classdef LinProp
                 else
                     am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
                 end
-                
+
                 C = LinProp.Convert2LinProp(am);
                 return;
-                
+
             % Or subscript indexing / partial linear indexing
             else
-  
+
                 if dimI < ndims(A)
                     % partial linear indexing
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
                     end
                 end
-                
+
                 % Check dimensions
                 if ~isscalar(B)
                     sizeI = cellfun(@numel, I);
                     sizeB = size(B);
-                    
+
                     sizeI_reduced = sizeI(sizeI > 1);
                     sizeB_reduced = sizeB(sizeB > 1);
                     if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
@@ -635,9 +636,9 @@ classdef LinProp
                         strjoin(string(sizeI), '-by-'), ...
                         strjoin(string(sizeB), '-by-'));
                     end
-                    
+
                 end
-                    
+
                 % Expand A, if the addressed area is larger
                 if numel(I_maxIndex) > numel(sizeA)
                     sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
@@ -655,14 +656,14 @@ classdef LinProp
                         A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
                     end
                 end
-                
+
                 % Remove trailing singleton dimensions that might have been
                 % addressed. These might actually not exist if the
                 % subscript used was 1.
                 while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
                     I(end) = [];
                 end
-                
+
                 % Call core library functions to copy values
                 am = LinProp.Convert2UncArray(A);
                 bm = LinProp.Convert2UncArray(B);
@@ -681,7 +682,7 @@ classdef LinProp
                 return;
 
             end
-               
+
         end
         function B = subsref(A, S)
             %SUBSREF Subscripted reference.
@@ -699,7 +700,7 @@ classdef LinProp
             %
             %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
             %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
-        
+
             if strcmp('.', {S.type})
                 error('Dot indexing is not supported for variables of this type.');
             elseif strcmp('{}', {S.type})
@@ -707,18 +708,18 @@ classdef LinProp
             elseif length(S) > 1
                 error('Invalid array indexing.');    % This type of error should never appear, as it would require multiple round brackets.
             end
-            
+
             ni = numel(S.subs);
             if ni == 0
                 B = A;
                 return;
             end
-            
+
             sizeA = size(A);
             isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
             src_subs = S.subs;
             output_shape = [];
-            
+
             % Convert logical indexes to subscripts
             isLogicalIndex = cellfun(@islogical, src_subs);
             src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
@@ -731,14 +732,14 @@ classdef LinProp
                 output_shape = size(src_subs{1});   % Save shape of output for later.
                 src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
             end
-            
+
             % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
             if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
                 error('Array indices must be positive integers or logical values.');
             end
-            
+
             sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
-            % Replace ':' placeholders 
+            % Replace ':' placeholders
             % Note: The last dimension can always be used to address
             % all following dimensions.
             for ii = 1:(ni-1)  % Dimensions except the last one
@@ -747,13 +748,13 @@ classdef LinProp
                 end
             end
             if strcmp(src_subs{ni}, ':') % Special case for last dimension
-                src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';   
+                src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
             end
-            
+
             % Reshape A if (partial) linear indexing is used.
             if ni == 1 && isvectorA
                 % Special case for shape of output, based on definition of subsref
-                % B has the same shape as A. 
+                % B has the same shape as A.
                 % What is not mentioned in the documentation is that this
                 % only applies if the argument is not ':'.
                 if sizeA(2) > 1 && ~strcmp(S.subs{1}, ':')
@@ -764,7 +765,7 @@ classdef LinProp
                 if numel(sizeAnew) == 1
                     if iscolumn(src_subs{1})
                         sizeAnew = [sizeAnew(1) 1];
-                    else 
+                    else
                         % This is a special case we have to address
                         % later, or we have to use SetItemsNd instead of SetItems1d
                         sizeAnew = [1 sizeAnew(1)];
@@ -821,7 +822,7 @@ classdef LinProp
                     lastNonSingletonDimension = find(n~=1, 1, 'last');
                     if lastNonSingletonDimension < 2
                         B = reshape(B, sizeB(1:2));
-                    else 
+                    else
                         B = reshape(B, sizeB(1:lastNonSingletonDimension));
                     end
                 end
@@ -894,19 +895,19 @@ classdef LinProp
             o = obj.NetObject;
         end
         function d = get_value(obj)
-            h = LinProp.UncHelper(); 
+            h = LinProp.UncHelper();
             d = LinProp.Convert2Double(h.GetValue(obj.NetObject));
         end
         function d = get_stdunc(obj)
-            h = LinProp.UncHelper(); 
+            h = LinProp.UncHelper();
             d = LinProp.Convert2Double(h.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
-            h = LinProp.UncHelper(); 
+            h = LinProp.UncHelper();
             d = LinProp.Convert2Double(h.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)
-            h = LinProp.UncHelper(); 
+            h = LinProp.UncHelper();
             d = LinProp.Convert2Double(h.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
@@ -918,7 +919,7 @@ classdef LinProp
             d = LinProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
-            h = LinProp.UncHelper(); 
+            h = LinProp.UncHelper();
             d = LinProp.Convert2Double(h.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
@@ -1065,7 +1066,7 @@ classdef LinProp
                     z = LinProp.Convert2LinProp(x.NetObject.Pow(yint));
                 end
             else
-                value = get_value(x); 
+                value = get_value(x);
                 if any(value(:) < 0)
                     x = complex(x);
                 end
@@ -1117,10 +1118,10 @@ classdef LinProp
         function y = conj(x)
             x = complex(x);
             y = LinProp(x.NetObject.Conj());
-        end        
+        end
         function y = abs(x)
             y = LinProp(x.NetObject.Abs());
-        end       
+        end
         function y = angle(x)
             x = complex(x);
             y = LinProp(x.NetObject.Angle());
@@ -1129,21 +1130,21 @@ classdef LinProp
             y = LinProp(x.NetObject.Exp());
         end
         function y = log(x)
-            value = get_value(x); 
+            value = get_value(x);
             if any(value(:) < 0)
                 x = complex(x);
             end
             y = LinProp(x.NetObject.Log());
         end
         function y = log10(x)
-            value = get_value(x); 
+            value = get_value(x);
             if any(value(:) < 0)
                 x = complex(x);
             end
             y = LinProp(x.NetObject.Log10());
         end
         function y = sqrt(x)
-            value = get_value(x); 
+            value = get_value(x);
             if any(value(:) < 0)
                 x = complex(x);
             end
@@ -1351,19 +1352,23 @@ classdef LinProp
             z = x*inv(y);
         end
         function z = mtimes(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
+            if isscalar(x) || isscalar(y)
+                z = times(x, y);
+            else
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                linalg = LinProp.LinAlg(x.IsComplex);
+                xm = LinProp.Convert2UncArray(x);
+                ym = LinProp.Convert2UncArray(y);
+                zm = linalg.Dot(xm, ym);
+                z = LinProp.Convert2LinProp(zm);
             end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            linalg = LinProp.LinAlg(x.IsComplex);
-            xm = LinProp.Convert2UncArray(x);
-            ym = LinProp.Convert2UncArray(y);
-            zm = linalg.Dot(xm, ym);
-            z = LinProp.Convert2LinProp(zm);
         end
         function [L, U, P] = lu(A)
             linalg = LinProp.LinAlg(A.IsComplex);
@@ -1667,7 +1672,7 @@ classdef LinProp
             end
             sv = sv.NetObject;
             ev = ev.NetObject;
-            
+
             function c = BoundaryArg(b)
                 if (ischar(b))
                     b = lower(b);
@@ -1731,14 +1736,14 @@ classdef LinProp
                 lu_res = NET.GenericClass('Metas.UncLib.Core.Ndims.RealLuResult', 'Metas.UncLib.LinProp.UncNumber');
                 narray = NET.GenericClass('Metas.UncLib.Core.Ndims.RealNArray', 'Metas.UncLib.LinProp.UncNumber');
                 l = NET.createGeneric('Metas.UncLib.Core.Ndims.LinAlg', {lu_res, narray, 'Metas.UncLib.LinProp.UncNumber'});
-            end            
+            end
         end
         function l = LinAlg2(complex)
             if complex
                 l = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexLinAlg', {'Metas.UncLib.LinProp.UncNumber'});
             else
                 l = NET.createGeneric('Metas.UncLib.Core.Ndims.RealLinAlg', {'Metas.UncLib.LinProp.UncNumber'});
-            end            
+            end
         end
         function l = NumLib(complex)
             if complex
@@ -1748,7 +1753,7 @@ classdef LinProp
             else
                 narray = NET.GenericClass('Metas.UncLib.Core.Ndims.RealNArray', 'Metas.UncLib.LinProp.UncNumber');
                 l = NET.createGeneric('Metas.UncLib.Core.Ndims.NumLib', {narray, 'Metas.UncLib.LinProp.UncNumber'});
-            end            
+            end
         end
         function l = NumLib2(complex)
             if complex
@@ -1760,7 +1765,7 @@ classdef LinProp
         function c = Double2ComplexNumber(d)
             c = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.Core.Number'});
             c.InitDblReIm(real(d), imag(d));
-        end        
+        end
         function a = Double2Array(d)
             if numel(d) == 0
                 a = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1807,11 +1812,11 @@ classdef LinProp
                 if x.IsComplex
                     m = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
                 else
-                    m = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.LinProp.UncNumber'});                    
+                    m = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.LinProp.UncNumber'});
                 end
                 m.Init2d(1, 1);
                 m.SetItem2d(0, 0, x.NetObject);
-            end 
+            end
         end
         function u = Convert2LinProp(x)
             if LinProp.IsArrayNet(x)
@@ -1836,7 +1841,7 @@ classdef LinProp
             for i2 = 1:n2
                 temp_index = mod(floor((0:n1-1)./temp), s(i2)) + 1;
                 m(:,i2) = subs{i2}(temp_index);
-                temp = temp*s(i2); 
+                temp = temp*s(i2);
             end
         end
         function b = IsComplexNet(x)
@@ -1937,5 +1942,5 @@ classdef LinProp
             unc_number.Init(value, sys_inputs.data, sys_sensitivities(:));
             obj = LinProp(unc_number);
         end
-    end 
+    end
 end

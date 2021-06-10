@@ -39,7 +39,7 @@
 % a = LinProp(value, standard_unc, idof, id, description)
 
 classdef LinProp
-    properties
+    properties (Hidden = true)
         NetObject
     end
     properties (SetAccess = private)
@@ -459,9 +459,9 @@ classdef LinProp
             %   contain a scalar, in which case its value is replicated to form a matrix
             %   of that size.
         
-            if strcmp('.', {S.type})
+            if any(strcmp('.', {S.type}))
                 error('Dot indexing is not supported for variables of this type.');
-            elseif strcmp('{}', {S.type})
+            elseif any(strcmp('{}', {S.type}))
                 error('Brace indexing is not supported for variables of this type.');
             elseif length(S) > 1
                 error('Invalid array indexing.');    % This type of error should never appear.
@@ -684,6 +684,20 @@ classdef LinProp
             end
                
         end
+        function n = numArgumentsFromSubscript(~, ~, ~)
+            % Number of arguments returned by subsref and required by subsasgn. 
+            %
+            % When addressing a = {1, 2, 3} with a{:}, this function would
+            % return 3. When addressing a = {1, 2, 3} with a(:), this
+            % function would retrun 1. 
+            %
+            % This class does not support brace indexing. When using dot
+            % indexing on a LinProp matrix, e.g. a = Linprop(1:3); a.Value, 
+            % we want to return one matrix containing all the values of a.
+            % Thus, this function always returns 1.
+            %
+            n = 1;
+        end
         function B = subsref(A, S)
             %SUBSREF Subscripted reference.
             %   A(I) is an array formed from the elements of A specified by the
@@ -701,12 +715,18 @@ classdef LinProp
             %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
             %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
             
+            % Recursively handle multiple levels of indexing
+            if length(S) > 1
+                A = subsref(A, S(1:end-1));
+                S = S(end);
+            end
+            % The rest of this function deals with the last level
+            
             if strcmp('.', {S.type})
-                error('Dot indexing is not supported for variables of this type.');
+                B = A.(S.subs);
+                return;
             elseif strcmp('{}', {S.type})
                 error('Brace indexing is not supported for variables of this type.');
-            elseif length(S) > 1
-                error('Invalid array indexing.');    % This type of error should never appear, as it would require multiple round brackets.
             end
             
             ni = numel(S.subs);

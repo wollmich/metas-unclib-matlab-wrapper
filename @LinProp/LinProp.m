@@ -692,7 +692,7 @@ classdef LinProp
             % function would retrun 1. 
             %
             % This class does not support brace indexing. When using dot
-            % indexing on a LinProp matrix, e.g. a = Linprop(1:3); a.Value, 
+            % indexing on a LinProp matrix, e.g. a = LinProp(1:3); a.Value, 
             % we want to return one matrix containing all the values of a.
             % Thus, this function always returns 1.
             %

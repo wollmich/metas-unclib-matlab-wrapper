@@ -459,9 +459,9 @@ classdef DistProp
             %   contain a scalar, in which case its value is replicated to form a matrix
             %   of that size.
         
-            if strcmp('.', {S.type})
+            if any(strcmp('.', {S.type}))
                 error('Dot indexing is not supported for variables of this type.');
-            elseif strcmp('{}', {S.type})
+            elseif any(strcmp('{}', {S.type}))
                 error('Brace indexing is not supported for variables of this type.');
             elseif length(S) > 1
                 error('Invalid array indexing.');    % This type of error should never appear.
@@ -684,6 +684,20 @@ classdef DistProp
             end
                
         end
+        function n = numArgumentsFromSubscript(~, ~, ~)
+            % Number of arguments returned by subsref and required by subsasgn. 
+            %
+            % When addressing a = {1, 2, 3} with a{:}, this function would
+            % return 3. When addressing a = {1, 2, 3} with a(:), this
+            % function would retrun 1. 
+            %
+            % This class does not support brace indexing. When using dot
+            % indexing on a DistProp matrix, e.g. a = DistProp(1:3); a.Value, 
+            % we want to return one matrix containing all the values of a.
+            % Thus, this function always returns 1.
+            %
+            n = 1;
+        end
         function B = subsref(A, S)
             %SUBSREF Subscripted reference.
             %   A(I) is an array formed from the elements of A specified by the
@@ -701,131 +715,134 @@ classdef DistProp
             %   For multi-dimensional arrays, A(I,J,K,...) is the subarray specified by
             %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
             
-            if strcmp('.', {S.type})
-                error('Dot indexing is not supported for variables of this type.');
-            elseif strcmp('{}', {S.type})
+            if strcmp('.', S(1).type)
+                B = A.(S(1).subs);
+            elseif strcmp('{}', S(1).type)
                 error('Brace indexing is not supported for variables of this type.');
-            elseif length(S) > 1
-                error('Invalid array indexing.');    % This type of error should never appear, as it would require multiple round brackets.
-            end
-            
-            ni = numel(S.subs);
-            if ni == 0
-                B = A;
-                return;
-            end
-            
-            sizeA = size(A);
-            isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
-            src_subs = S.subs;
-            output_shape = [];
-            
-            % Convert logical indexes to subscripts
-            isLogicalIndex = cellfun(@islogical, src_subs);
-            src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
-
-            % This is a very special case. If linear indexing is used, but
-            % the linear indexes are arranged in form of a matrix, the
-            % output has the shape of the matrix. This does not apply to
-            % logical indexes.
-            if ni == 1 && ~isvector(src_subs{1})
-                output_shape = size(src_subs{1});   % Save shape of output for later.
-                src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
-            end
-            
-            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
-                error('Array indices must be positive integers or logical values.');
-            end
-            
-            sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
-            % Replace ':' placeholders
-            % Note: The last dimension can always be used to address
-            % all following dimensions.
-            for ii = 1:(ni-1)  % Dimensions except the last one
-                if strcmp(src_subs{ii}, ':')
-                    src_subs{ii} = 1:sizeA_extended(ii);
-                end
-            end
-            if strcmp(src_subs{ni}, ':') % Special case for last dimension
-                src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
-            end
-            
-            % Reshape A if (partial) linear indexing is used.
-            if ni == 1 && isvectorA
-                % Special case for shape of output, based on definition of subsref
-                % B has the same shape as A. 
-                % What is not mentioned in the documentation is that this
-                % only applies if the argument is not ':'.
-                if sizeA(2) > 1 && ~strcmp(S.subs{1}, ':')
-                    output_shape = [1 numel(src_subs{1})];
-                end
             else
-                sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
-                if numel(sizeAnew) == 1
-                    if iscolumn(src_subs{1})
-                        sizeAnew = [sizeAnew(1) 1];
-                    else 
-                        % This is a special case we have to address
-                        % later, or we have to use SetItemsNd instead of SetItems1d
-                        sizeAnew = [1 sizeAnew(1)];
-                        output_shape  = [1 numel(src_subs{1})];
+
+                ni = numel(S(1).subs);
+                if ni == 0
+                    B = A;
+                else
+
+                    sizeA = size(A);
+                    isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
+                    src_subs = S(1).subs;
+                    output_shape = [];
+
+                    % Convert logical indexes to subscripts
+                    isLogicalIndex = cellfun(@islogical, src_subs);
+                    src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
+
+                    % This is a very special case. If linear indexing is used, but
+                    % the linear indexes are arranged in form of a matrix, the
+                    % output has the shape of the matrix. This does not apply to
+                    % logical indexes.
+                    if ni == 1 && ~isvector(src_subs{1})
+                        output_shape = size(src_subs{1});   % Save shape of output for later.
+                        src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
+                    end
+
+                    % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
+                    if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
+                        error('Array indices must be positive integers or logical values.');
+                    end
+
+                    sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
+                    % Replace ':' placeholders
+                    % Note: The last dimension can always be used to address
+                    % all following dimensions.
+                    for ii = 1:(ni-1)  % Dimensions except the last one
+                        if strcmp(src_subs{ii}, ':')
+                            src_subs{ii} = 1:sizeA_extended(ii);
+                        end
+                    end
+                    if strcmp(src_subs{ni}, ':') % Special case for last dimension
+                        src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
+                    end
+
+                    % Reshape A if (partial) linear indexing is used.
+                    if ni == 1 && isvectorA
+                        % Special case for shape of output, based on definition of subsref
+                        % B has the same shape as A. 
+                        % What is not mentioned in the documentation is that this
+                        % only applies if the argument is not ':'.
+                        if sizeA(2) > 1 && ~strcmp(S(1).subs{1}, ':')
+                            output_shape = [1 numel(src_subs{1})];
+                        end
+                    else
+                        sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
+                        if numel(sizeAnew) == 1
+                            if iscolumn(src_subs{1})
+                                sizeAnew = [sizeAnew(1) 1];
+                            else 
+                                % This is a special case we have to address
+                                % later, or we have to use SetItemsNd instead of SetItems1d
+                                sizeAnew = [1 sizeAnew(1)];
+                                output_shape  = [1 numel(src_subs{1})];
+                            end
+                        end
+                        if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                            A = reshape(A, sizeAnew);
+                            sizeA = sizeAnew;
+                            isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
+                        end
+                    end
+
+                    % Test if indexes are in bounds
+                    if ni == 1 && isvectorA
+                        if any(src_subs{1} > numel(A))
+                            error('Index exceeds the number of array elements (%i).', numel(A));
+                        end
+                    else
+                        too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
+                        if any(too_large)
+                            error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
+                        end
+                    end
+
+                    % Calculate size of output vector
+                    n = cellfun(@(x) numel(x), src_subs);
+                    dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
+
+                    % Extract values
+                    am = DistProp.Convert2UncArray(A);
+                    src_index  = DistProp.IndexMatrix(src_subs);
+                    dest_index = DistProp.IndexMatrix(dest_subs);
+                    if A.IsComplex
+                       bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                       bm.InitNd(int32(n(:)));
+                    else
+                       bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                       bm.InitNd(int32(n(:)));
+                    end
+                    if ni == 1
+                        bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
+                    else
+                        bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+                    end
+                    B = DistProp.Convert2DistProp(bm);
+
+                    % Corect shape of B
+                    if ~isempty(output_shape)
+                        B = reshape(B, output_shape);
+                    else
+                        sizeB = size(B);
+                        if numel(sizeB) > 2
+                            lastNonSingletonDimension = find(n~=1, 1, 'last');
+                            if lastNonSingletonDimension < 2
+                                B = reshape(B, sizeB(1:2));
+                            else 
+                                B = reshape(B, sizeB(1:lastNonSingletonDimension));
+                            end
+                        end
                     end
                 end
-                if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
-                    A = reshape(A, sizeAnew);
-                    sizeA = sizeAnew;
-                    isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
-                end
             end
-
-            % Test if indexes are in bounds
-            if ni == 1 && isvectorA
-                if any(src_subs{1} > numel(A))
-                    error('Index exceeds the number of array elements (%i).', numel(A));
-                end
-            else
-                too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
-                if any(too_large)
-                    error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
-                end
-            end
-
-            % Calculate size of output vector
-            n = cellfun(@(x) numel(x), src_subs);
-            dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
-
-            % Extract values
-            am = DistProp.Convert2UncArray(A);
-            src_index  = DistProp.IndexMatrix(src_subs);
-            dest_index = DistProp.IndexMatrix(dest_subs);
-            if A.IsComplex
-               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
-               bm.InitNd(int32(n(:)));
-            else
-               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.DistProp.UncNumber'});
-               bm.InitNd(int32(n(:)));
-            end
-            if ni == 1
-                bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
-            else
-                bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
-            end
-            B = DistProp.Convert2DistProp(bm);
-
-            % Corect shape of B
-            if ~isempty(output_shape)
-                B = reshape(B, output_shape);
-            else
-                sizeB = size(B);
-                if numel(sizeB) > 2
-                    lastNonSingletonDimension = find(n~=1, 1, 'last');
-                    if lastNonSingletonDimension < 2
-                        B = reshape(B, sizeB(1:2));
-                    else 
-                        B = reshape(B, sizeB(1:lastNonSingletonDimension));
-                    end
-                end
+            
+            if length(S) > 1
+                B = subsref(B, S(2:end));
             end
         end
         function c = horzcat(a, varargin)

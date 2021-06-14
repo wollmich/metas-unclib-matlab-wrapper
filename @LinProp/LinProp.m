@@ -1,6 +1,6 @@
-% Metas.UncLib.Matlab.LinProp V2.4.8
+% Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 10.06.2021
+% Dion Timmermann PTB - 14.06.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -716,7 +716,7 @@ classdef LinProp
             %   the subscripts.  The result is LENGTH(I)-by-LENGTH(J)-by-LENGTH(K)-...
             
             if strcmp('.', S(1).type)
-                B = A.(S(1).subs);
+                B = builtin('subsref', A, S);
             elseif strcmp('{}', S(1).type)
                 error('Brace indexing is not supported for variables of this type.');
             else
@@ -839,10 +839,11 @@ classdef LinProp
                         end
                     end
                 end
-            end
-            
-            if length(S) > 1
-                B = subsref(B, S(2:end));
+                
+                % after S(1).type == '()' has been processed
+                if length(S) > 1
+                    B = subsref(B, S(2:end));
+                end
             end
         end
         function c = horzcat(a, varargin)

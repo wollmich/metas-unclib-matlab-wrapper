@@ -1,4 +1,4 @@
-% Metas.UncLib.Matlab.MCProp V2.4.8
+% Metas.UncLib.Matlab.MCProp V2.4.9
 % Michael Wollensack METAS - 28.05.2021
 % Dion Timmermann PTB - 14.06.2021
 %

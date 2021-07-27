@@ -574,7 +574,7 @@ classdef LinProp
                     I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
                 end
             end
-            I_maxIndex = cellfun(@max, I);
+            I_maxIndex = cellfun(@(x) double(max(x)), I);
             
             % Linear indexing
             if dimI == 1

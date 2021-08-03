@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.4.9
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 14.06.2021
+% Dion Timmermann PTB - 03.08.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -574,7 +574,7 @@ classdef MCProp
                     I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
                 end
             end
-            I_maxIndex = cellfun(@max, I);
+            I_maxIndex = cellfun(@(x) double(max(x)), I);
             
             % Linear indexing
             if dimI == 1

@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.MCProp V2.4.9
-% Michael Wollensack METAS - 28.05.2021
+% Michael Wollensack METAS - 05.08.2021
 % Dion Timmermann PTB - 03.08.2021
 %
 % MCProp Const:
@@ -249,6 +249,12 @@ classdef MCProp
                     end
                 otherwise
                     error('Wrong number of input arguments')
+            end
+            % Ensure arrays are internally always stored as matrices.
+            if MCProp.IsArrayNet(obj.NetObject)
+                if obj.NetObject.ndims == 1
+                    obj.NetObject.Reshape(int32([obj.NetObject.numel 1]));
+                end
             end 
         end
         function display(obj)
@@ -318,11 +324,7 @@ classdef MCProp
         end
         function l = length(obj)
             if obj.IsArray
-                if obj.NetObject.ndims == 1
-                    s = [double(obj.NetObject.numel) 1];
-                else
-                    s = double(obj.NetObject.size);
-                end
+                s = double(obj.NetObject.size);
             else
                 s = [1 1];
             end
@@ -351,11 +353,7 @@ classdef MCProp
         end
         function s = size(obj, varargin)
             if obj.IsArray
-                if obj.NetObject.ndims == 1
-                    s = [double(obj.NetObject.numel) 1];
-                else
-                    s = double(obj.NetObject.size);
-                end
+                s = double(obj.NetObject.size);
             else
                 s = [1 1];
             end
@@ -1804,11 +1802,7 @@ classdef MCProp
         end
         function d = Convert2Double(x)
             if MCProp.IsArrayNet(x)
-                if x.ndims == 1
-                    s = [x.numel 1];
-                else
-                    s = int32(x.size);
-                end
+                s = int32(x.size);
                 if MCProp.IsComplexNet(x)
                     d = double(x.DblRealValue()) + 1i.*double(x.DblImagValue());
                 else

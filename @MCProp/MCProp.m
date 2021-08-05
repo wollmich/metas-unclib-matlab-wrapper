@@ -279,9 +279,9 @@ classdef MCProp
             else
                 if obj.IsComplex
                     sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' Â± ' num2str(get_stdunc(real(obj)), df) ')'];       
+                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
                     simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' Â± ' num2str(get_stdunc(imag(obj)), df) ')'];
+                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
                     if (get_value(imag(obj)) < 0)
                         s = [sreal ' - ' simag 'i'];
                     else
@@ -289,7 +289,7 @@ classdef MCProp
                     end
                 else        
                     s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' Â± ' num2str(get_stdunc(obj), df) ')'];
+                         ' ± ' num2str(get_stdunc(obj), df) ')'];
                 end    
                 if (get_value(real(obj)) < 0)
                     s = ['  -' s];

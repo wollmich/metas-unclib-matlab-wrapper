@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 28.05.2021
-% Dion Timmermann PTB - 03.08.2021
+% Dion Timmermann PTB - 05.08.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -349,7 +349,39 @@ classdef DistProp
                 e = false;
             end
         end
-        function s = size(obj, varargin)
+        function varargout = size(obj, varargin)
+            %SIZE   Size of array.  
+            %   D = SIZE(X), for M-by-N matrix X, returns the two-element row vector
+            %   D = [M,N] containing the number of rows and columns in the matrix.
+            %   For N-D arrays, SIZE(X) returns a 1-by-N vector of dimension lengths.
+            %   Trailing singleton dimensions are ignored.
+            %
+            %   [M,N] = SIZE(X) for matrix X, returns the number of rows and columns in
+            %   X as separate output variables. 
+            %   
+            %   [M1,M2,M3,...,MN] = SIZE(X) for N>1 returns the sizes of the first N 
+            %   dimensions of the array X.  If the number of output arguments N does
+            %   not equal NDIMS(X), then for:
+            %
+            %   N > NDIMS(X), SIZE returns ones in the "extra" variables, i.e., outputs
+            %                 NDIMS(X)+1 through N.
+            %   N < NDIMS(X), MN contains the product of the sizes of dimensions N
+            %                 through NDIMS(X).
+            %
+            %   M = SIZE(X,DIM) returns the lengths of the specified dimensions in a 
+            %   row vector. DIM can be a scalar or vector of dimensions. For example, 
+            %   SIZE(X,1) returns the number of rows of X and SIZE(X,[1 2]) returns a 
+            %   row vector containing the number of rows and columns.
+            %
+            %   M = SIZE(X,DIM1,DIM2,...,DIMN) returns the lengths of the dimensions
+            %   DIM1,...,DIMN as a row vector.
+            %
+            %   [M1,M2,...,MN] = SIZE(X,DIM) OR [M1,M2,...,MN] = SIZE(X,DIM1,...,DIMN)
+            %   returns the lengths of the specified dimensions as separate outputs.
+            %   The number of outputs must equal the number of dimensions provided.
+            %
+            
+            % Write size of all dimensions to s.
             if obj.IsArray
                 if obj.NetObject.ndims == 1
                     s = [double(obj.NetObject.numel) 1];
@@ -359,21 +391,46 @@ classdef DistProp
             else
                 s = [1 1];
             end
-            switch nargin
+            
+            % Write all requested dimensions to dims
+            switch (numel(varargin))
+                case 0
+                    dims = 1:length(s);
                 case 1
-                case 2
-                    i = varargin{1};
-                    if i < 1
-                        error('Dimension argument must be a positive integer scalar within indexing range');
-                    end
-                    if i > numel(s)
-                        s = 1;
-                    else
-                        s = s(i);
-                    end
+                    dims = varargin{1};
                 otherwise
-                    error('Too many input arguments')
+                    if any(cellfun(@(x) ~isscalar(x) || ~isnumeric(x), varargin))
+                        error('Dimension argument must be a positive integer scalar within indexing range.');
+                    end
+                    dims = cellfun(@(x) x, varargin);
             end
+            
+            % Check if requested dims are valid
+            if any(dims < 1 | ceil(dims) ~= dims | isinf(dims))
+                error('Dimension argument must be a positive integer scalar or a vector of positive integers.'); 
+            end
+            
+            % Add singleton dimensions and reduce s to selected dims
+            s = [s ones(1, max(dims)-length(s))];
+            s = s(dims);
+            
+            % Special case for nargout ~= length(s) if no dims were specificed 
+            if numel(varargin) == 0 && nargout > 1
+                if nargout > length(s)
+                    s(end+1:nargout) = 1;
+                elseif nargout < length(s)
+                    s = [s(1:nargout-1) prod(s(nargout:end))];
+                end
+            end
+            
+            if nargout == 0 || nargout == 1
+                varargout{1} = s;
+            elseif nargout == numel(s)
+                varargout = num2cell(s);
+            else
+                error('Incorrect number of output arguments. Number of output arguments must equal the number of input dimension arguments.');
+            end
+            
         end
         function y = reshape(x, varargin)
             %RESHAPE Reshape array.

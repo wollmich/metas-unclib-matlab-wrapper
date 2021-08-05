@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 03.08.2021
+% Dion Timmermann PTB - 05.08.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -818,6 +818,17 @@ classdef DistProp
                     if ni == 1
                         bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
                     else
+                        % Due to the reshape of A above, am.ndims should
+                        % always be larger than or equal to the number of
+                        % dimensions addressed with src_index. However, a
+                        % scalar can never have more than two dimsions,
+                        % which necessitates this special case.
+                        if am.ndims < size(src_index, 2)
+                            tmp = src_index(:, am.ndims+1:end) == 1;
+                            if all(tmp(:))
+                                src_index = src_index(:, 1:am.ndims);
+                            end
+                        end
                         bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
                     end
                     B = DistProp.Convert2DistProp(bm);

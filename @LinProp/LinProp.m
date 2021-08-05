@@ -1802,11 +1802,7 @@ classdef LinProp
         end
         function d = Convert2Double(x)
             if LinProp.IsArrayNet(x)
-                if x.ndims == 1
-                    s = [x.numel 1];
-                else
-                    s = int32(x.size);
-                end
+                s = int32(x.size);
                 if LinProp.IsComplexNet(x)
                     d = double(x.DblRealValue()) + 1i.*double(x.DblImagValue());
                 else

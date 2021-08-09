@@ -1460,6 +1460,14 @@ classdef LinProp
                 if ~x.IsComplex && y.IsComplex
                     x = complex(x);
                 end
+                
+                dims = max(ndims(x), ndims(y));
+                if dims > 2
+                    error('Arguments must be 2-D, or at least one argument must be scalar. Use TIMES (.*) for elementwise multiplication.');
+                elseif any(size(x, 1:dims) ~= size(y, dims:-1:1))
+                    error('Incorrect dimensions for matrix multiplication. Check that the number of columns in the first matrix matches the number of rows in the second matrix. To perform elementwise multiplication, use ''.*''.');
+                end
+                
                 linalg = LinProp.LinAlg(x.IsComplex);
                 xm = LinProp.Convert2UncArray(x);
                 ym = LinProp.Convert2UncArray(y);

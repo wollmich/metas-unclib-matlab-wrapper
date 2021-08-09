@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 05.08.2021
+% Dion Timmermann PTB - 09.08.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -489,9 +489,10 @@ classdef DistProp
                     error('Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
                 end
             end
-            xm = DistProp.Convert2UncArray(x);
-            xm.Reshape(int32(s(:)));
-            y = DistProp.Convert2DistProp(xm);
+            y=copy(x);
+            ym = DistProp.Convert2UncArray(y);
+            ym.Reshape(int32(s(:)));
+            y = DistProp.Convert2DistProp(ym);
         end
         function C = subsasgn(A, S, B)
             %SUBSASGN Subscripted assignment.

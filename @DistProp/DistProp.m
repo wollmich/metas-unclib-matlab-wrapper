@@ -779,7 +779,7 @@ classdef DistProp
 
                 ni = numel(S(1).subs);
                 if ni == 0
-                    B = A;
+                    B = copy(A);
                 else
 
                     sizeA = size(A);
@@ -1069,7 +1069,7 @@ classdef DistProp
             n = double(obj.NetObject.memsize);
         end
         function y = uplus(x)
-            y = x;
+            y = copy(x);
         end
         function y = uminus(x)
             y = DistProp(x.NetObject.Negative());
@@ -1211,7 +1211,7 @@ classdef DistProp
         end
         function y = complex(x)
             if x.IsComplex
-                y = x;
+                y = copy(x);
             else
                 if x.IsArray
                     y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
@@ -1226,7 +1226,7 @@ classdef DistProp
             if x.IsComplex
                 y = DistProp(x.NetObject.Real());
             else
-                y = x;
+                y = copy(x);
             end
         end
         function y = imag(x)

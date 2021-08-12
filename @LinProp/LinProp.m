@@ -779,7 +779,7 @@ classdef LinProp
 
                 ni = numel(S(1).subs);
                 if ni == 0
-                    B = A;
+                    B = copy(A);
                 else
 
                     sizeA = size(A);
@@ -1069,7 +1069,7 @@ classdef LinProp
             n = double(obj.NetObject.memsize);
         end
         function y = uplus(x)
-            y = x;
+            y = copy(x);
         end
         function y = uminus(x)
             y = LinProp(x.NetObject.Negative());
@@ -1211,7 +1211,7 @@ classdef LinProp
         end
         function y = complex(x)
             if x.IsComplex
-                y = x;
+                y = copy(x);
             else
                 if x.IsArray
                     y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
@@ -1226,7 +1226,7 @@ classdef LinProp
             if x.IsComplex
                 y = LinProp(x.NetObject.Real());
             else
-                y = x;
+                y = copy(x);
             end
         end
         function y = imag(x)

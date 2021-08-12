@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 10.08.2021
+% Dion Timmermann PTB - 12.08.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -798,6 +798,10 @@ classdef LinProp
                     if ni == 1 && ~isvector(src_subs{1})
                         output_shape = size(src_subs{1});   % Save shape of output for later.
                         src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
+                    elseif ni > 1
+                        % If subscript indexing is used, interpret every
+                        % index as a vector. (This is necessary for repmat.)
+                        src_subs = cellfun(@(x) x(:), src_subs, 'UniformOutput', false);
                     end
 
                     % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).

@@ -779,7 +779,7 @@ classdef MCProp
 
                 ni = numel(S(1).subs);
                 if ni == 0
-                    B = A;
+                    B = copy(A);
                 else
 
                     sizeA = size(A);
@@ -1069,7 +1069,7 @@ classdef MCProp
             n = double(obj.NetObject.memsize);
         end
         function y = uplus(x)
-            y = x;
+            y = copy(x);
         end
         function y = uminus(x)
             y = MCProp(x.NetObject.Negative());
@@ -1211,7 +1211,7 @@ classdef MCProp
         end
         function y = complex(x)
             if x.IsComplex
-                y = x;
+                y = copy(x);
             else
                 if x.IsArray
                     y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.MCProp.UncNumber'});
@@ -1226,7 +1226,7 @@ classdef MCProp
             if x.IsComplex
                 y = MCProp(x.NetObject.Real());
             else
-                y = x;
+                y = copy(x);
             end
         end
         function y = imag(x)

@@ -1117,6 +1117,23 @@ classdef LinProp
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
+            
+            dims = max(ndims(x), ndims(y));
+            sizeX = size(x, 1:dims);
+            sizeY = size(y, 1:dims);
+            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                error('Arrays have incompatible sizes for this operation.');
+            end
+            doRepX = sizeX ~= sizeY & sizeX == 1;
+            repX = ones(1, dims);
+            repX(doRepX) = sizeY(doRepX);
+            x = repmat(x, repX);
+            
+            doRepY = sizeY ~= sizeX & sizeY == 1;
+            repY = ones(1, dims);
+            repY(doRepY) = sizeX(doRepY);
+            y = repmat(y, repY);
+            
             if ~x.IsArray && ~y.IsArray
                 z = LinProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray

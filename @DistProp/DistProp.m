@@ -1121,6 +1121,23 @@ classdef DistProp
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
+            
+            dims = max(ndims(x), ndims(y));
+            sizeX = size(x, 1:dims);
+            sizeY = size(y, 1:dims);
+            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                error('Arrays have incompatible sizes for this operation.');
+            end
+            doRepX = sizeX ~= sizeY & sizeX == 1;
+            repX = ones(1, dims);
+            repX(doRepX) = sizeY(doRepX);
+            x = repmat(x, repX);
+            
+            doRepY = sizeY ~= sizeX & sizeY == 1;
+            repY = ones(1, dims);
+            repY(doRepY) = sizeX(doRepY);
+            y = repmat(y, repY);
+            
             if ~x.IsArray && ~y.IsArray
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1464,6 +1481,14 @@ classdef DistProp
                 if ~x.IsComplex && y.IsComplex
                     x = complex(x);
                 end
+                
+                dims = max(ndims(x), ndims(y));
+                if dims > 2
+                    error('Arguments must be 2-D, or at least one argument must be scalar. Use TIMES (.*) for elementwise multiplication.');
+                elseif size(x, 2) ~= size(y, 1)
+                    error('Incorrect dimensions for matrix multiplication. Check that the number of columns in the first matrix matches the number of rows in the second matrix. To perform elementwise multiplication, use ''.*''.');
+                end
+                
                 linalg = DistProp.LinAlg(x.IsComplex);
                 xm = DistProp.Convert2UncArray(x);
                 ym = DistProp.Convert2UncArray(y);

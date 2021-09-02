@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 02.09.2021
 %
 % LinProp Const:
 % a = LinProp(value)

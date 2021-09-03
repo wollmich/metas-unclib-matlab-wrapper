@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1846,6 +1846,32 @@ classdef DistProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = DistProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = DistProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = DistProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = DistProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = DistProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = DistProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = DistProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = DistProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = DistProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

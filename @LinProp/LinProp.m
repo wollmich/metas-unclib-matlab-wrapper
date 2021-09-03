@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1846,6 +1846,32 @@ classdef LinProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = LinProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = LinProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = LinProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = LinProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = LinProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = LinProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = LinProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = LinProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = LinProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

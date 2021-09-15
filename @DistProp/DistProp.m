@@ -1249,6 +1249,9 @@ classdef DistProp
             x = complex(x);
             y = DistProp(x.NetObject.Angle());
         end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
+        end
         function y = exp(x)
             y = DistProp(x.NetObject.Exp());
         end

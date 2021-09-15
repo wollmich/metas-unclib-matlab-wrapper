@@ -1249,6 +1249,9 @@ classdef LinProp
             x = complex(x);
             y = LinProp(x.NetObject.Angle());
         end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
+        end
         function y = exp(x)
             y = LinProp(x.NetObject.Exp());
         end

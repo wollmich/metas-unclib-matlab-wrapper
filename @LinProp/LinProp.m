@@ -635,7 +635,7 @@ classdef LinProp
             I_maxIndex = zeros(size(I));
             I_maxIndex(~I_isempty) = cellfun(@(x) double(max(x)), I(~I_isempty));
             
-            if any(I_isempty)
+            if any(I_isempty) && numelA == 0
                 if numel(B) <= 1
                     s = I_maxIndex;
                     if numel(s) < 2
@@ -653,114 +653,113 @@ classdef LinProp
                 else 
                     error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                 end
-            else
+            end
             
-                % Linear indexing
-                if dimI == 1
-                    % Linear indexing follows some specific rules
+            % Linear indexing
+            if dimI == 1
+                % Linear indexing follows some specific rules
 
-                    if ~isscalar(B) && numel(I{1}) ~= numel(B)
-                        error('Unable to perform assignment because the left and right sides have a different number of elements.');
-                    end
+                if ~isscalar(B) && numel(I{1}) ~= numel(B)
+                    error('Unable to perform assignment because the left and right sides have a different number of elements.');
+                end
 
-                    % Grow vector if necessary
-                    if I_maxIndex > numelA
-                        if numelA == 0
-                            A = LinProp(zeros(1, I_maxIndex));
-                            if B.IsComplex
-                                A = complex(A);
-                            end
-                        elseif isrow(A)
-                            A = [A, LinProp(zeros(1, I_maxIndex-numelA))];
-                        elseif iscolumn(A)
-                            A = [A; LinProp(zeros(I_maxIndex-numelA, 1))];
-                        else
-                            error('Attempt to grow array along ambiguous dimension.');
-                        end
-                    end
-
-                    % Call core library functions to copy values
-                    am = LinProp.Convert2UncArray(A);
-                    bm = LinProp.Convert2UncArray(B);
-                    dest_index = LinProp.IndexMatrix(I);
-
-                    if isscalar(B)
-                        am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
-                    else
-                        am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
-                    end
-
-                    C = LinProp.Convert2LinProp(am);
-                    return;
-
-                % Or subscript indexing / partial linear indexing
-                else
-
-                    if dimI < ndims(A)
-                        % partial linear indexing
-                        if max(I{end}) > prod(sizeA(dimI:end))
-                            error('Attempt to grow array along ambiguous dimension.');
-                        end
-                    end
-
-                    % Check dimensions
-                    if ~isscalar(B)
-                        sizeI = cellfun(@numel, I);
-                        sizeB = size(B);
-
-                        sizeI_reduced = sizeI(sizeI > 1);
-                        sizeB_reduced = sizeB(sizeB > 1);
-                        if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
-                            error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
-                            strjoin(string(sizeI), '-by-'), ...
-                            strjoin(string(sizeB), '-by-'));
-                        end
-
-                    end
-
-                    % Expand A, if the addressed area is larger
-                    if numel(I_maxIndex) > numel(sizeA)
-                        sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
-                    end
-                    sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
-                    if any(I_maxIndex > sA_nI)
-                        A2 = LinProp(zeros(max(I_maxIndex, sA_nI)));
+                % Grow vector if necessary
+                if I_maxIndex > numelA
+                    if numelA == 0
+                        A = LinProp(zeros(1, I_maxIndex));
                         if B.IsComplex
-                            A2 = complex(A2);
+                            A = complex(A);
                         end
-                        if numel(A) == 0
-                            A = A2;
-                        else
-                            % Copy over existing values from A to A2...
-                            A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
-                        end
-                    end
-
-                    % Remove trailing singleton dimensions that might have been
-                    % addressed. These might actually not exist if the
-                    % subscript used was 1.
-                    while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
-                        I(end) = [];
-                    end
-
-                    % Call core library functions to copy values
-                    am = LinProp.Convert2UncArray(A);
-                    bm = LinProp.Convert2UncArray(B);
-                    dest_index = LinProp.IndexMatrix(I);
-
-                    if isscalar(B)
-                        am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
+                    elseif isrow(A)
+                        A = [A, LinProp(zeros(1, I_maxIndex-numelA))];
+                    elseif iscolumn(A)
+                        A = [A; LinProp(zeros(I_maxIndex-numelA, 1))];
                     else
-                        src_subs = arrayfun(@(x) 1:x, size(B), 'UniformOutput', false);
-                        src_index  = LinProp.IndexMatrix(src_subs);
-
-                        am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));
+                        error('Attempt to grow array along ambiguous dimension.');
                     end
+                end
 
-                    C = LinProp.Convert2LinProp(am);
-                    return;
+                % Call core library functions to copy values
+                am = LinProp.Convert2UncArray(A);
+                bm = LinProp.Convert2UncArray(B);
+                dest_index = LinProp.IndexMatrix(I);
+
+                if isscalar(B)
+                    am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
+                else
+                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
+                end
+
+                C = LinProp.Convert2LinProp(am);
+                return;
+
+            % Or subscript indexing / partial linear indexing
+            else
+
+                if dimI < ndims(A)
+                    % partial linear indexing
+                    if max(I{end}) > prod(sizeA(dimI:end))
+                        error('Attempt to grow array along ambiguous dimension.');
+                    end
+                end
+
+                % Check dimensions
+                if ~isscalar(B)
+                    sizeI = cellfun(@numel, I);
+                    sizeB = size(B);
+
+                    sizeI_reduced = sizeI(sizeI > 1);
+                    sizeB_reduced = sizeB(sizeB > 1);
+                    if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
+                        error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
+                        strjoin(string(sizeI), '-by-'), ...
+                        strjoin(string(sizeB), '-by-'));
+                    end
 
                 end
+
+                % Expand A, if the addressed area is larger
+                if numel(I_maxIndex) > numel(sizeA)
+                    sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
+                end
+                sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
+                if any(I_maxIndex > sA_nI)
+                    A2 = LinProp(zeros(max(I_maxIndex, sA_nI)));
+                    if B.IsComplex
+                        A2 = complex(A2);
+                    end
+                    if numel(A) == 0
+                        A = A2;
+                    else
+                        % Copy over existing values from A to A2...
+                        A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
+                    end
+                end
+
+                % Remove trailing singleton dimensions that might have been
+                % addressed. These might actually not exist if the
+                % subscript used was 1.
+                while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
+                    I(end) = [];
+                end
+
+                % Call core library functions to copy values
+                am = LinProp.Convert2UncArray(A);
+                bm = LinProp.Convert2UncArray(B);
+                dest_index = LinProp.IndexMatrix(I);
+
+                if isscalar(B)
+                    am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
+                else
+                    src_subs = arrayfun(@(x) 1:x, size(B), 'UniformOutput', false);
+                    src_index  = LinProp.IndexMatrix(src_subs);
+
+                    am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));
+                end
+
+                C = LinProp.Convert2LinProp(am);
+                return;
+
             end
         end
         function n = numArgumentsFromSubscript(~, ~, ~)

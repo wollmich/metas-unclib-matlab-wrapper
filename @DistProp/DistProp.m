@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 02.09.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1122,22 +1122,6 @@ classdef DistProp
                 x = complex(x);
             end
             
-            dims = max(ndims(x), ndims(y));
-            sizeX = size(x, 1:dims);
-            sizeY = size(y, 1:dims);
-            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                error('Arrays have incompatible sizes for this operation.');
-            end
-            doRepX = sizeX ~= sizeY & sizeX == 1;
-            repX = ones(1, dims);
-            repX(doRepX) = sizeY(doRepX);
-            x = repmat(x, repX);
-            
-            doRepY = sizeY ~= sizeX & sizeY == 1;
-            repY = ones(1, dims);
-            repY(doRepY) = sizeX(doRepY);
-            y = repmat(y, repY);
-            
             if ~x.IsArray && ~y.IsArray
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1145,6 +1129,27 @@ classdef DistProp
             elseif ~x.IsArray && y.IsArray
                 z = DistProp(y.NetObject.RMultiply(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             end
         end

@@ -1122,22 +1122,6 @@ classdef MCProp
                 x = complex(x);
             end
             
-            dims = max(ndims(x), ndims(y));
-            sizeX = size(x, 1:dims);
-            sizeY = size(y, 1:dims);
-            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                error('Arrays have incompatible sizes for this operation.');
-            end
-            doRepX = sizeX ~= sizeY & sizeX == 1;
-            repX = ones(1, dims);
-            repX(doRepX) = sizeY(doRepX);
-            x = repmat(x, repX);
-            
-            doRepY = sizeY ~= sizeX & sizeY == 1;
-            repY = ones(1, dims);
-            repY(doRepY) = sizeX(doRepY);
-            y = repmat(y, repY);
-            
             if ~x.IsArray && ~y.IsArray
                 z = MCProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1145,6 +1129,27 @@ classdef MCProp
             elseif ~x.IsArray && y.IsArray
                 z = MCProp(y.NetObject.RMultiply(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = MCProp(x.NetObject.Multiply(y.NetObject));
             end
         end
@@ -1243,6 +1248,9 @@ classdef MCProp
         function y = angle(x)
             x = complex(x);
             y = MCProp(x.NetObject.Angle());
+        end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
         end
         function y = exp(x)
             y = MCProp(x.NetObject.Exp());

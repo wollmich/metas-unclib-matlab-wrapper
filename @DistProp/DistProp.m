@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1075,41 +1075,49 @@ classdef DistProp
             y = DistProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = DistProp(x);
-            y = DistProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = DistProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = DistProp([]);
             else
-                z = DistProp(x.NetObject.Add(y.NetObject));
+                x = DistProp(x);
+                y = DistProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = DistProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = DistProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = DistProp(x);
-            y = DistProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = DistProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = DistProp([]);
             else
-                z = DistProp(x.NetObject.Subtract(y.NetObject));
+                x = DistProp(x);
+                y = DistProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = DistProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = DistProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)
@@ -1122,22 +1130,6 @@ classdef DistProp
                 x = complex(x);
             end
             
-            dims = max(ndims(x), ndims(y));
-            sizeX = size(x, 1:dims);
-            sizeY = size(y, 1:dims);
-            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                error('Arrays have incompatible sizes for this operation.');
-            end
-            doRepX = sizeX ~= sizeY & sizeX == 1;
-            repX = ones(1, dims);
-            repX(doRepX) = sizeY(doRepX);
-            x = repmat(x, repX);
-            
-            doRepY = sizeY ~= sizeX & sizeY == 1;
-            repY = ones(1, dims);
-            repY(doRepY) = sizeX(doRepY);
-            y = repmat(y, repY);
-            
             if ~x.IsArray && ~y.IsArray
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1145,6 +1137,27 @@ classdef DistProp
             elseif ~x.IsArray && y.IsArray
                 z = DistProp(y.NetObject.RMultiply(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             end
         end
@@ -1243,6 +1256,9 @@ classdef DistProp
         function y = angle(x)
             x = complex(x);
             y = DistProp(x.NetObject.Angle());
+        end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
         end
         function y = exp(x)
             y = DistProp(x.NetObject.Exp());
@@ -1846,6 +1862,32 @@ classdef DistProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = DistProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = DistProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = DistProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = DistProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = DistProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = DistProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = DistProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = DistProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = DistProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -1075,41 +1075,49 @@ classdef MCProp
             y = MCProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = MCProp(x);
-            y = MCProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = MCProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = MCProp([]);
             else
-                z = MCProp(x.NetObject.Add(y.NetObject));
+                x = MCProp(x);
+                y = MCProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = MCProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = MCProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = MCProp(x);
-            y = MCProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = MCProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = MCProp([]);
             else
-                z = MCProp(x.NetObject.Subtract(y.NetObject));
+                x = MCProp(x);
+                y = MCProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = MCProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = MCProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)
@@ -1122,22 +1130,6 @@ classdef MCProp
                 x = complex(x);
             end
             
-            dims = max(ndims(x), ndims(y));
-            sizeX = size(x, 1:dims);
-            sizeY = size(y, 1:dims);
-            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                error('Arrays have incompatible sizes for this operation.');
-            end
-            doRepX = sizeX ~= sizeY & sizeX == 1;
-            repX = ones(1, dims);
-            repX(doRepX) = sizeY(doRepX);
-            x = repmat(x, repX);
-            
-            doRepY = sizeY ~= sizeX & sizeY == 1;
-            repY = ones(1, dims);
-            repY(doRepY) = sizeX(doRepY);
-            y = repmat(y, repY);
-            
             if ~x.IsArray && ~y.IsArray
                 z = MCProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1145,6 +1137,27 @@ classdef MCProp
             elseif ~x.IsArray && y.IsArray
                 z = MCProp(y.NetObject.RMultiply(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = MCProp(x.NetObject.Multiply(y.NetObject));
             end
         end
@@ -1243,6 +1256,9 @@ classdef MCProp
         function y = angle(x)
             x = complex(x);
             y = MCProp(x.NetObject.Angle());
+        end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
         end
         function y = exp(x)
             y = MCProp(x.NetObject.Exp());
@@ -1846,6 +1862,32 @@ classdef MCProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = MCProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = MCProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = MCProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = MCProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = MCProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = MCProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = MCProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = MCProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = MCProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

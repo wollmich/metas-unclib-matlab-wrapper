@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 12.08.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1098,41 +1098,49 @@ classdef LinProp
             y = LinProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = LinProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = LinProp([]);
             else
-                z = LinProp(x.NetObject.Add(y.NetObject));
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = LinProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = LinProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = LinProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = LinProp([]);
             else
-                z = LinProp(x.NetObject.Subtract(y.NetObject));
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = LinProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = LinProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)
@@ -1145,22 +1153,6 @@ classdef LinProp
                 x = complex(x);
             end
             
-            dims = max(ndims(x), ndims(y));
-            sizeX = size(x, 1:dims);
-            sizeY = size(y, 1:dims);
-            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                error('Arrays have incompatible sizes for this operation.');
-            end
-            doRepX = sizeX ~= sizeY & sizeX == 1;
-            repX = ones(1, dims);
-            repX(doRepX) = sizeY(doRepX);
-            x = repmat(x, repX);
-            
-            doRepY = sizeY ~= sizeX & sizeY == 1;
-            repY = ones(1, dims);
-            repY(doRepY) = sizeX(doRepY);
-            y = repmat(y, repY);
-            
             if ~x.IsArray && ~y.IsArray
                 z = LinProp(x.NetObject.Multiply(y.NetObject));
             elseif x.IsArray && ~y.IsArray
@@ -1168,6 +1160,27 @@ classdef LinProp
             elseif ~x.IsArray && y.IsArray
                 z = LinProp(y.NetObject.RMultiply(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = LinProp(x.NetObject.Multiply(y.NetObject));
             end
         end
@@ -1266,6 +1279,9 @@ classdef LinProp
         function y = angle(x)
             x = complex(x);
             y = LinProp(x.NetObject.Angle());
+        end
+        function q = unwrap(p, varargin)
+            q = p + unwrap(double(p), varargin{:}) - double(p);
         end
         function y = exp(x)
             y = LinProp(x.NetObject.Exp());
@@ -1869,6 +1885,32 @@ classdef LinProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = LinProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = LinProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = LinProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = LinProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = LinProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = LinProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = LinProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = LinProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = LinProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

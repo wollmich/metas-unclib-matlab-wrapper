@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 02.09.2021
+% Dion Timmermann PTB - 03.09.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -1854,6 +1854,32 @@ classdef MCProp
             end
             v = t.BinaryDeserializeFromByteArray(bin.data(:));
             obj = MCProp(v);
+        end
+        % Support for array creation functions.
+        % See: https://www.mathworks.com/help/releases/R2021a/matlab/matlab_oop/class-support-for-array-creation-functions.html
+        function x = zeros(varargin)
+            x = MCProp(zeros(varargin{:}));
+        end
+        function x = ones(varargin)
+            x = MCProp(ones(varargin{:}));
+        end
+        function x = eye(varargin)
+            x = MCProp(eye(varargin{:}));
+        end
+        function x = nan(varargin)
+            x = MCProp(nan(varargin{:}));
+        end
+        function x = inf(varargin)
+            x = MCProp(inf(varargin{:}));
+        end
+        function x = rand(varargin)
+            x = MCProp(rand(varargin{:}));
+        end
+        function x = randi(varargin)
+            x = MCProp(randi(varargin{:}));
+        end
+        function x = randn(varargin)
+            x = MCProp(randn(varargin{:}));
         end
     end
     methods(Static = true, Access = private)

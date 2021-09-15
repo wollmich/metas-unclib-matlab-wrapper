@@ -1075,41 +1075,49 @@ classdef MCProp
             y = MCProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = MCProp(x);
-            y = MCProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = MCProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = MCProp([]);
             else
-                z = MCProp(x.NetObject.Add(y.NetObject));
+                x = MCProp(x);
+                y = MCProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = MCProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = MCProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = MCProp(x);
-            y = MCProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = MCProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = MCProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = MCProp([]);
             else
-                z = MCProp(x.NetObject.Subtract(y.NetObject));
+                x = MCProp(x);
+                y = MCProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = MCProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = MCProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = MCProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)

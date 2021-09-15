@@ -1075,41 +1075,49 @@ classdef LinProp
             y = LinProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = LinProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = LinProp([]);
             else
-                z = LinProp(x.NetObject.Add(y.NetObject));
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = LinProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = LinProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = LinProp(x);
-            y = LinProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = LinProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = LinProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = LinProp([]);
             else
-                z = LinProp(x.NetObject.Subtract(y.NetObject));
+                x = LinProp(x);
+                y = LinProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = LinProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = LinProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = LinProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)

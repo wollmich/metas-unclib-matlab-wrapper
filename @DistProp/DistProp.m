@@ -1075,41 +1075,49 @@ classdef DistProp
             y = DistProp(x.NetObject.Negative());
         end
         function z = plus(x,y)
-            x = DistProp(x);
-            y = DistProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.Add(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.LAdd(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = DistProp(y.NetObject.RAdd(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = DistProp([]);
             else
-                z = DistProp(x.NetObject.Add(y.NetObject));
+                x = DistProp(x);
+                y = DistProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.Add(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.LAdd(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = DistProp(y.NetObject.RAdd(x.NetObject));
+                else
+                    z = DistProp(x.NetObject.Add(y.NetObject));
+                end
             end
         end
         function z = minus(x,y)
-            x = DistProp(x);
-            y = DistProp(y);
-            if x.IsComplex && ~y.IsComplex
-                y = complex(y);
-            end
-            if ~x.IsComplex && y.IsComplex
-                x = complex(x);
-            end
-            if ~x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.Subtract(y.NetObject));
-            elseif x.IsArray && ~y.IsArray
-                z = DistProp(x.NetObject.LSubtract(y.NetObject));
-            elseif ~x.IsArray && y.IsArray
-                z = DistProp(y.NetObject.RSubtract(x.NetObject));
+            if numel(x) == 0 && numel(y) == 0
+                z = DistProp([]);
             else
-                z = DistProp(x.NetObject.Subtract(y.NetObject));
+                x = DistProp(x);
+                y = DistProp(y);
+                if x.IsComplex && ~y.IsComplex
+                    y = complex(y);
+                end
+                if ~x.IsComplex && y.IsComplex
+                    x = complex(x);
+                end
+                if ~x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.Subtract(y.NetObject));
+                elseif x.IsArray && ~y.IsArray
+                    z = DistProp(x.NetObject.LSubtract(y.NetObject));
+                elseif ~x.IsArray && y.IsArray
+                    z = DistProp(y.NetObject.RSubtract(x.NetObject));
+                else
+                    z = DistProp(x.NetObject.Subtract(y.NetObject));
+                end
             end
         end
         function z = times(x,y)

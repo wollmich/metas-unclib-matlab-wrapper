@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 03.09.2021
+% Dion Timmermann PTB - 16.09.2021
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -630,16 +630,39 @@ classdef MCProp
                     I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
                 end
             end
-            I_maxIndex = cellfun(@(x) double(max(x)), I);
+            
+            I_isempty = cellfun(@isempty, I);
+            I_maxIndex = zeros(size(I));
+            I_maxIndex(~I_isempty) = cellfun(@(x) double(max(x)), I(~I_isempty));
+            
+            if any(I_isempty) && numelA == 0
+                if numel(B) <= 1
+                    s = I_maxIndex;
+                    if numel(s) < 2
+                        if ~isempty(B)
+                            s = [s zeros(1,2-numel(s))];
+                        else
+                            s = [ones(1,2-numel(s)) s];
+                        end
+                    else
+                        lastNonSingletonDimension = find(s~=1, 1, 'last');
+                        s = s(1:max(2, lastNonSingletonDimension));
+                    end
+                    C = reshape(MCProp([]), s);
+                    return;
+                else 
+                    error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                end
+            end
             
             % Linear indexing
             if dimI == 1
                 % Linear indexing follows some specific rules
-                
+
                 if ~isscalar(B) && numel(I{1}) ~= numel(B)
                     error('Unable to perform assignment because the left and right sides have a different number of elements.');
                 end
-                
+
                 % Grow vector if necessary
                 if I_maxIndex > numelA
                     if numelA == 0
@@ -655,7 +678,7 @@ classdef MCProp
                         error('Attempt to grow array along ambiguous dimension.');
                     end
                 end
-                
+
                 % Call core library functions to copy values
                 am = MCProp.Convert2UncArray(A);
                 bm = MCProp.Convert2UncArray(B);
@@ -666,25 +689,25 @@ classdef MCProp
                 else
                     am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
                 end
-                
+
                 C = MCProp.Convert2MCProp(am);
                 return;
-                
+
             % Or subscript indexing / partial linear indexing
             else
-  
+
                 if dimI < ndims(A)
                     % partial linear indexing
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
                     end
                 end
-                
+
                 % Check dimensions
                 if ~isscalar(B)
                     sizeI = cellfun(@numel, I);
                     sizeB = size(B);
-                    
+
                     sizeI_reduced = sizeI(sizeI > 1);
                     sizeB_reduced = sizeB(sizeB > 1);
                     if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
@@ -692,9 +715,9 @@ classdef MCProp
                         strjoin(string(sizeI), '-by-'), ...
                         strjoin(string(sizeB), '-by-'));
                     end
-                    
+
                 end
-                    
+
                 % Expand A, if the addressed area is larger
                 if numel(I_maxIndex) > numel(sizeA)
                     sizeA(end+1:numel(I_maxIndex)) = 0; % Expand size vector for A, if nI is larger
@@ -712,14 +735,14 @@ classdef MCProp
                         A = subsasgn(A2, substruct('()', arrayfun(@(x) (1:x), size(A), 'UniformOutput', false)), A);
                     end
                 end
-                
+
                 % Remove trailing singleton dimensions that might have been
                 % addressed. These might actually not exist if the
                 % subscript used was 1.
                 while numel(I) > 2 && numel(I{end}) == 1 && I{end} == 1
                     I(end) = [];
                 end
-                
+
                 % Call core library functions to copy values
                 am = MCProp.Convert2UncArray(A);
                 bm = MCProp.Convert2UncArray(B);
@@ -738,7 +761,6 @@ classdef MCProp
                 return;
 
             end
-               
         end
         function n = numArgumentsFromSubscript(~, ~, ~)
             % Number of arguments returned by subsref and required by subsasgn. 

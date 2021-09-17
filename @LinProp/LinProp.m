@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 03.09.2021
+% Dion Timmermann PTB - 17.09.2021
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -630,7 +630,30 @@ classdef LinProp
                     I{dimI} = 1:(numelA/prod(sizeA(1 : (dimI-1))));   
                 end
             end
-            I_maxIndex = cellfun(@(x) double(max(x)), I);
+            
+            I_isempty = cellfun(@isempty, I);
+            I_maxIndex = zeros(size(I));
+            I_maxIndex(~I_isempty) = cellfun(@(x) double(max(x)), I(~I_isempty));
+
+            if any(I_isempty) && numelA == 0
+                if numel(B) <= 1
+                    s = I_maxIndex;
+                    if numel(s) < 2
+                        if ~isempty(B)
+                            s = [s zeros(1,2-numel(s))];
+                        else
+                            s = [ones(1,2-numel(s)) s];
+                        end
+                    else
+                        lastNonSingletonDimension = find(s~=1, 1, 'last');
+                        s = s(1:max(2, lastNonSingletonDimension));
+                    end
+                    C = reshape(LinProp([]), s);
+                    return;
+                else 
+                    error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
+                end
+            end
             
             % Linear indexing
             if dimI == 1
@@ -678,6 +701,15 @@ classdef LinProp
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
                     end
+                else
+                    % Ignore empty and singleton dimensions that have been
+                    % indexed but do not exist anyways.
+                    I_issingleton = cellfun(@(x) all(x == 1), I);
+                    I_lastRelevant = [find(not(I_isempty | I_issingleton), 1, 'last') 2];
+                    I_lastRelevant = I_lastRelevant(1);
+                    I = I(1:min(dimI, max(numel(sizeA), I_lastRelevant)));
+                    dimI = numel(I);
+                    I_maxIndex = I_maxIndex(1:dimI);
                 end
                 
                 % Check dimensions
@@ -1935,12 +1967,12 @@ classdef LinProp
             c.InitDblReIm(real(d), imag(d));
         end        
         function a = Double2Array(d)
+            s = size(d);
+            s = int32(s(:));
             if numel(d) == 0
                 a = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
-                a.Init2d(0, 0);
+                a.InitNd(s);
             else
-                s = size(d);
-                s = int32(s(:));
                 d2 = d(:);
                 if ~isreal(d)
                     a = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.Core.Number'});

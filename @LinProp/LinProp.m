@@ -537,6 +537,9 @@ classdef LinProp
                 error('Array indices must be positive integers or logical values.');
             end
             
+            sizeA = size(A);
+            numelA = prod(sizeA);
+            
             % Special case of null assignment to remove elements
             if isempty(B) && isa(B, 'double')
                 if sum(~strcmp(I, ':')) > 1
@@ -549,7 +552,7 @@ classdef LinProp
                         else
                             S.subs{1} = true(size(A));
                             S.subs{1}(I{1})= false;
-                            if isvector(A)
+                            if sum(sizeA > 1) == 1 % Is vector for arbitrary ndims
                                 C = subsref(A, S);
                             else
                                 C = subsref(A, S)';
@@ -582,8 +585,6 @@ classdef LinProp
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address
             % all following dimensions.
-            sizeA = size(A);
-            numelA = prod(sizeA);
             if numelA == 0
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
@@ -815,9 +816,9 @@ classdef LinProp
                 else
 
                     sizeA = size(A);
-                    isvectorA = numel(sizeA) == 2 && any(sizeA == 1);
+                    isvectorA = sum(sizeA > 1) == 1;
                     src_subs = S(1).subs;
-                    output_shape = [];
+                    output_shape = {};
 
                     % Convert logical indexes to subscripts
                     isLogicalIndex = cellfun(@islogical, src_subs);
@@ -828,7 +829,7 @@ classdef LinProp
                     % output has the shape of the matrix. This does not apply to
                     % logical indexes.
                     if ni == 1 && ~isvector(src_subs{1})
-                        output_shape = size(src_subs{1});   % Save shape of output for later.
+                        output_shape = num2cell(size(src_subs{1}));   % Save shape of output for later.
                         src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
                     elseif ni > 1
                         % If subscript indexing is used, interpret every
@@ -860,8 +861,9 @@ classdef LinProp
                         % B has the same shape as A. 
                         % What is not mentioned in the documentation is that this
                         % only applies if the argument is not ':'.
-                        if sizeA(2) > 1 && ~strcmp(S(1).subs{1}, ':')
-                            output_shape = [1 numel(src_subs{1})];
+                        if ~strcmp(S(1).subs{1}, ':') && isempty(output_shape)
+                            output_shape = num2cell(sizeA);
+                            output_shape(sizeA > 1) = {[]};
                         end
                     else
                         sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
@@ -872,13 +874,13 @@ classdef LinProp
                                 % This is a special case we have to address
                                 % later, or we have to use SetItemsNd instead of SetItems1d
                                 sizeAnew = [1 sizeAnew(1)];
-                                output_shape  = [1 numel(src_subs{1})];
+                                output_shape  = num2cell([1 numel(src_subs{1})]);
                             end
                         end
                         if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
                             A = reshape(A, sizeAnew);
                             sizeA = sizeAnew;
-                            isvectorA = (numel(sizeA) == 2 && any(sizeA == 1));
+                            isvectorA = sum(sizeA > 1) == 1;
                         end
                     end
 
@@ -929,7 +931,7 @@ classdef LinProp
 
                     % Corect shape of B
                     if ~isempty(output_shape)
-                        B = reshape(B, output_shape);
+                        B = reshape(B, output_shape{:});
                     else
                         sizeB = size(B);
                         if numel(sizeB) > 2

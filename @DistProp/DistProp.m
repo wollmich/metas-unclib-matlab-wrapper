@@ -701,6 +701,15 @@ classdef DistProp
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
                     end
+                else
+                    % Ignore empty and singleton dimensions that have been
+                    % indexed but do not exist anyways.
+                    I_issingleton = cellfun(@(x) all(x == 1), I);
+                    I_lastRelevant = [find(not(I_isempty | I_issingleton), 1, 'last') 2];
+                    I_lastRelevant = I_lastRelevant(1);
+                    I = I(1:min(dimI, max(numel(sizeA), I_lastRelevant)));
+                    dimI = numel(I);
+                    I_maxIndex = I_maxIndex(1:dimI);
                 end
 
                 % Check dimensions

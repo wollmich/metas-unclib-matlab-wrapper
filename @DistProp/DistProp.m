@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 03.09.2021
+% Dion Timmermann PTB - 17.09.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1935,12 +1935,12 @@ classdef DistProp
             c.InitDblReIm(real(d), imag(d));
         end        
         function a = Double2Array(d)
+            s = size(d);
+            s = int32(s(:));
             if numel(d) == 0
                 a = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
-                a.Init2d(0, 0);
+                a.InitNd(s);
             else
-                s = size(d);
-                s = int32(s(:));
                 d2 = d(:);
                 if ~isreal(d)
                     a = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.Core.Number'});

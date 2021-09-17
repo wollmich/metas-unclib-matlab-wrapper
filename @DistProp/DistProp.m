@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.4.9
 % Michael Wollensack METAS - 05.08.2021
-% Dion Timmermann PTB - 17.09.2021
+% Dion Timmermann PTB - 16.09.2021
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -279,9 +279,9 @@ classdef DistProp
             else
                 if obj.IsComplex
                     sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' Â± ' num2str(get_stdunc(real(obj)), df) ')'];       
+                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
                     simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' Â± ' num2str(get_stdunc(imag(obj)), df) ')'];
+                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
                     if (get_value(imag(obj)) < 0)
                         s = [sreal ' - ' simag 'i'];
                     else
@@ -289,7 +289,7 @@ classdef DistProp
                     end
                 else        
                     s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' Â± ' num2str(get_stdunc(obj), df) ')'];
+                         ' ± ' num2str(get_stdunc(obj), df) ')'];
                 end    
                 if (get_value(real(obj)) < 0)
                     s = ['  -' s];
@@ -1966,12 +1966,12 @@ classdef DistProp
             c.InitDblReIm(real(d), imag(d));
         end        
         function a = Double2Array(d)
-            s = size(d);
-            s = int32(s(:));
             if numel(d) == 0
                 a = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
-                a.InitNd(s);
+                a.Init2d(0, 0);
             else
+                s = size(d);
+                s = int32(s(:));
                 d2 = d(:);
                 if ~isreal(d)
                     a = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.Core.Number'});

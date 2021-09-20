@@ -48,9 +48,9 @@ f.Show();
 f.Activate();
 
 % Create a hidden figure and add a callback that is executed on close all.
-% Close the form window when the hidden window is closed by close all.
+% Close the form window when the hidden figure is closed by close all.
 fig  = figure('visible','off');
-fig.UserData = 'Invisible Figure to catch ''close all'' and trigger closing of the unc_budget window.';
+fig.UserData = 'Invisible figure to catch ''close all'' and trigger closing of the unc_budget window.';
 fig.CloseRequestFcn = {@closeRequest, f};
 end
 

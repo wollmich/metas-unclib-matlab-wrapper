@@ -45,3 +45,4 @@ f.Size.Width = 640;
 f.Size.Height = 480;
 f.Controls.Add(c);
 f.Show();
+f.Activate();

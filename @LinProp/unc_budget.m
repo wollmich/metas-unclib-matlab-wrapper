@@ -56,6 +56,8 @@ fig.CloseRequestFcn = {@closeRequest, f};
 set(0, 'CurrentFigure', last_current_figure);
 end
 
-function closeRequest(~, ~, f)
-     f.Close();
+function closeRequest(fig, ~, form)
+% Closes both the Windows.Form and the hidden matlab figure
+     form.Close();
+     delete(fig);
 end

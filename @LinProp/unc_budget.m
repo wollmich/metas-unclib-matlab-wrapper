@@ -1,5 +1,5 @@
 % LinProp Uncertainty Budget
-% Michael Wollensack METAS - 08.08.2017
+% Michael Wollensack METAS - 20.09.2021
 
 function unc_budget(x, varargin)
 
@@ -49,11 +49,15 @@ f.Activate();
 
 % Create a hidden figure and add a callback that is executed on close all.
 % Close the form window when the hidden figure is closed by close all.
-fig  = figure('visible','off');
+last_current_figure = get(0, 'CurrentFigure');
+fig = figure('visible','off');
 fig.UserData = 'Invisible figure to catch ''close all'' and trigger closing of the unc_budget window.';
 fig.CloseRequestFcn = {@closeRequest, f};
+set(0, 'CurrentFigure', last_current_figure);
 end
 
-function closeRequest(~, ~, f)
-     f.Close();
+function closeRequest(fig, ~, form)
+% Closes both the Windows.Form and the hidden matlab figure
+    form.Close();
+    delete(fig);
 end

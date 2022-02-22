@@ -1211,6 +1211,27 @@ classdef DistProp
             elseif ~x.IsArray && y.IsArray
                 z = DistProp(y.NetObject.RDivide(x.NetObject));
             else
+                
+                dims = max(ndims(x), ndims(y));
+                sizeX = size(x, 1:dims);
+                sizeY = size(y, 1:dims);
+                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                    error('Arrays have incompatible sizes for this operation.');
+                end
+                doRepX = sizeX ~= sizeY & sizeX == 1;
+                if any(doRepX)
+                    repX = ones(1, dims);
+                    repX(doRepX) = sizeY(doRepX);
+                    x = repmat(x, repX);
+                end
+
+                doRepY = sizeY ~= sizeX & sizeY == 1;
+                if any(doRepY)
+                    repY = ones(1, dims);
+                    repY(doRepY) = sizeX(doRepY);
+                    y = repmat(y, repY);
+                end
+                
                 z = DistProp(x.NetObject.Divide(y.NetObject));
             end
         end

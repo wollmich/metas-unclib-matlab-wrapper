@@ -38,7 +38,7 @@
 % LinProp Input (RealUncNumber)
 % a = LinProp(value, standard_unc, idof, id, description)
 
-classdef LinProp
+classdef LinProp < matlab.mixin.CustomDisplay
     properties
         NetObject
     end
@@ -256,57 +256,6 @@ classdef LinProp
                     obj.NetObject.Reshape(int32([obj.NetObject.numel 1]));
                 end
             end 
-        end
-        function display(obj)
-            name = inputname(1);
-            df = '%g'; %get(0, 'Format');
-            ds = get(0, 'FormatSpacing');
-            if obj.IsArray
-                if isequal(ds, 'compact')
-                    disp([name,'.value = '])
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(get_stdunc(obj))
-                else
-                    disp(' ');
-                    disp([name,'.value = '])
-                    disp(' ');
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(' ');
-                    disp(get_stdunc(obj))        
-                end    
-            else
-                if obj.IsComplex
-                    sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
-                    simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
-                    if (get_value(imag(obj)) < 0)
-                        s = [sreal ' - ' simag 'i'];
-                    else
-                        s = [sreal ' + ' simag 'i'];
-                    end
-                else        
-                    s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' ± ' num2str(get_stdunc(obj), df) ')'];
-                end    
-                if (get_value(real(obj)) < 0)
-                    s = ['  -' s];
-                else
-                    s = ['   ' s];
-                end
-                if isequal(ds, 'compact')
-                    disp([name,' = '])
-                    disp(s)
-                else
-                    disp(' ');
-                    disp([name,' = '])
-                    disp(' ');
-                    disp(s)
-                    disp(' ');
-                end    
-            end
         end
         function o = copy(obj)
             if obj.IsArray
@@ -1797,6 +1746,160 @@ classdef LinProp
             bin.complex = obj.IsComplex;
         end
     end
+    methods(Access = protected)
+        displayScalarObject(obj)
+        getFooter(obj)
+        function displayNonScalarObject(obj)
+            value = get_value(obj);
+            stdunc = get_stdunc(obj);
+            
+            dimstr = matlab.mixin.CustomDisplay.convertDimensionsToString(obj);
+            name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+            fprintf('    %s %s:\n\n', dimstr, name);
+            
+            if ismatrix(value)
+                LinProp.printPage(value, stdunc);
+            else
+                fprintf('\b'); % Remove last line break.
+                sizeObj = size(value);
+                sizeRes = sizeObj(3:end);
+                pageSubs = cell(1, numel(sizeRes));
+                for ii = 1:prod(sizeRes)
+                    [pageSubs{:}] = ind2sub(sizeRes,ii);
+
+                    fprintf('\n(:,:,%s) =\n\n', strjoin(string(pageSubs), ','));
+                    LinProp.printPage(value(:, :, pageSubs{:}), stdunc(:, :, pageSubs{:}));
+                end
+            end
+            
+            stack = dbstack();
+            if numel(stack) == 1
+                methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
+                fprintf('Show %s.\n', methodsStr);
+            end
+            
+        end
+        
+    end
+    methods(Static, Access = protected)
+        function printPage(value, stdunc)
+
+            wSize = matlab.desktop.commandwindow.size;
+            commandWindowWidth = wSize(1);
+
+            nColumns = size(value, 2);
+            nRows = size(value, 1);
+            spacing = 4;
+            columns = cell(1, nColumns);
+            for ii = 1:nColumns
+                columns{ii} = [repmat(' ', spacing, nRows); LinProp.toUncCharColumn(value(:, ii), stdunc(:, ii))];
+            end
+            columnWidths = cellfun(@(x) size(x, 1), columns);
+
+            startColumn = 1;
+            while startColumn <= nColumns
+                endColumn = startColumn;
+                while endColumn < nColumns
+                    if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
+                        endColumn = endColumn + 1;
+                    else
+                        break
+                    end
+                end
+
+                if not(startColumn == 1 && endColumn == nColumns)
+                    if startColumn == endColumn
+                        fprintf('  Column %i\n', startColumn);
+                    else
+                        fprintf('  Columns %i through %i\n', startColumn, endColumn);
+                    end
+                end
+
+                indent = 0;
+                text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
+                text(end, :) = newline;
+                offset = indent+1;
+
+                for ii = startColumn:endColumn
+                    text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
+                    offset = offset + columnWidths(ii);
+                end
+
+                fprintf(text);
+                fprintf('\n');
+
+                startColumn = endColumn + 1;
+
+            end
+
+        end
+        function column = toUncCharColumn(value, stdunc)
+            
+            if ~isreal(value)
+                columnReal = LinProp.toUncPartCharColumn(real(value), real(stdunc), 1, false);
+                columnImag = LinProp.toUncPartCharColumn(imag(value), imag(stdunc), 3, true);
+                
+                column = [...
+                    columnReal; ...
+                    columnImag; ...
+                    repmat(('i')', 1, numel(value)); ...
+                ];
+            else
+                column = LinProp.toUncPartCharColumn(value, stdunc, 1, false);
+            end
+            
+        end
+        function column = toUncPartCharColumn(value, stdunc, signSpacing, showPlus)
+
+            n = numel(value);
+            
+            signs = repmat(' ', signSpacing, n);
+            signs(ceil(signSpacing/2), value < 0) = '-';
+            if showPlus
+                % not() is used so nan also produces a +
+                signs(ceil(signSpacing/2), not(value < 0)) = '+';
+            end
+            
+            column = [...
+                signs; ...
+                repmat(('(')', 1, n); ...
+                LinProp.toCharColumn(abs(value)); ...
+                repmat((' ± ')', 1, n); ...
+                LinProp.toCharColumn(stdunc); ...
+                repmat((')')', 1, n); ...
+            ];
+
+        end
+        function column = toCharColumn(number)
+
+            n = numel(number);
+
+            % We first set a field width that definitely is large enough
+            % for all numbers, then remove trailing spaces
+            switch get(0, 'Format')
+                case 'shortE'
+                    format = '%15.4e';
+                case 'longE'
+                    format = '%25.15e';
+                case 'long'
+                    format = '%25.15g';
+                otherwise % Including short
+                    format = '%15.4g';
+            end
+            
+            column = sprintf(format, number);
+            column = reshape(column, [], n);    % Make matrix, one number per row.
+
+            firstNonSpace = find(~all(isspace(column), 2), 1);
+            if isempty(firstNonSpace)
+                column = repmat(newline, 1, n);
+            else
+                column = column(firstNonSpace:end, :);
+            end
+
+        end
+    end
+
     methods(Access = private)
         function l = ToUncList(obj)
             temp = Metas.UncLib.LinProp.UncList();

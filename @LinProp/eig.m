@@ -27,7 +27,7 @@ n2 = n(2);
 
 if (length(varargin) == 0)
     if (n1 ~= n2)
-        throw('Matrix must be square');
+        error('Matrix must be square');
     end
     if (~isComplex)
         symmetric = true;

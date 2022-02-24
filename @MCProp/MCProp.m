@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.5.0
 % Michael Wollensack METAS - 17.09.2021
-% Dion Timmermann PTB - 17.09.2021
+% Dion Timmermann PTB - 24.02.2022
 %
 % MCProp Const:
 % a = MCProp(value)

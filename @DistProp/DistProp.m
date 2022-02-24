@@ -1127,6 +1127,7 @@ classdef DistProp
                 elseif ~x.IsArray && y.IsArray
                     z = DistProp(y.NetObject.RAdd(x.NetObject));
                 else
+                    [x, y] = DistProp.replicateSingletonDimensions(x, y);
                     z = DistProp(x.NetObject.Add(y.NetObject));
                 end
             end
@@ -1150,6 +1151,7 @@ classdef DistProp
                 elseif ~x.IsArray && y.IsArray
                     z = DistProp(y.NetObject.RSubtract(x.NetObject));
                 else
+                    [x, y] = DistProp.replicateSingletonDimensions(x, y);
                     z = DistProp(x.NetObject.Subtract(y.NetObject));
                 end
             end
@@ -1171,27 +1173,7 @@ classdef DistProp
             elseif ~x.IsArray && y.IsArray
                 z = DistProp(y.NetObject.RMultiply(x.NetObject));
             else
-                
-                dims = max(ndims(x), ndims(y));
-                sizeX = size(x, 1:dims);
-                sizeY = size(y, 1:dims);
-                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                    error('Arrays have incompatible sizes for this operation.');
-                end
-                doRepX = sizeX ~= sizeY & sizeX == 1;
-                if any(doRepX)
-                    repX = ones(1, dims);
-                    repX(doRepX) = sizeY(doRepX);
-                    x = repmat(x, repX);
-                end
-
-                doRepY = sizeY ~= sizeX & sizeY == 1;
-                if any(doRepY)
-                    repY = ones(1, dims);
-                    repY(doRepY) = sizeX(doRepY);
-                    y = repmat(y, repY);
-                end
-                
+                [x, y] = DistProp.replicateSingletonDimensions(x, y);
                 z = DistProp(x.NetObject.Multiply(y.NetObject));
             end
         end
@@ -1211,27 +1193,7 @@ classdef DistProp
             elseif ~x.IsArray && y.IsArray
                 z = DistProp(y.NetObject.RDivide(x.NetObject));
             else
-                
-                dims = max(ndims(x), ndims(y));
-                sizeX = size(x, 1:dims);
-                sizeY = size(y, 1:dims);
-                if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
-                    error('Arrays have incompatible sizes for this operation.');
-                end
-                doRepX = sizeX ~= sizeY & sizeX == 1;
-                if any(doRepX)
-                    repX = ones(1, dims);
-                    repX(doRepX) = sizeY(doRepX);
-                    x = repmat(x, repX);
-                end
-
-                doRepY = sizeY ~= sizeX & sizeY == 1;
-                if any(doRepY)
-                    repY = ones(1, dims);
-                    repY(doRepY) = sizeX(doRepY);
-                    y = repmat(y, repY);
-                end
-                
+                [x, y] = DistProp.replicateSingletonDimensions(x, y);
                 z = DistProp(x.NetObject.Divide(y.NetObject));
             end
         end
@@ -1946,6 +1908,27 @@ classdef DistProp
         end
     end
     methods(Static = true, Access = private)
+        function [x, y] = replicateSingletonDimensions(x, y)
+            dims = max(ndims(x), ndims(y));
+            sizeX = size(x, 1:dims);
+            sizeY = size(y, 1:dims);
+            if any(sizeX ~= sizeY & sizeX ~= 1 & sizeY ~= 1)
+                throwAsCaller(MException('MATLAB:sizeDimensionsMustMatch', 'Arrays have incompatible sizes for this operation.'));
+            end
+            doRepX = sizeX ~= sizeY & sizeX == 1;
+            if any(doRepX)
+                repX = ones(1, dims);
+                repX(doRepX) = sizeY(doRepX);
+                x = repmat(x, repX);
+            end
+
+            doRepY = sizeY ~= sizeX & sizeY == 1;
+            if any(doRepY)
+                repY = ones(1, dims);
+                repY(doRepY) = sizeX(doRepY);
+                y = repmat(y, repY);
+            end
+        end
         function h = UncHelper()
             h = NET.createGeneric('Metas.UncLib.Core.Unc.GenericUnc', {'Metas.UncLib.DistProp.UncList', 'Metas.UncLib.DistProp.UncNumber'});
         end

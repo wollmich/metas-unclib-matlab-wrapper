@@ -1745,6 +1745,12 @@ classdef LinProp < matlab.mixin.CustomDisplay
             bin.array = obj.IsArray;
             bin.complex = obj.IsComplex;
         end
+        function displayInFormat(obj, useFormat)
+            oldFormat = get(0, 'Format');
+            format(useFormat);
+            display(obj);
+            format(oldFormat);
+        end
     end
     methods(Access = protected)
         displayScalarObject(obj)
@@ -1775,6 +1781,13 @@ classdef LinProp < matlab.mixin.CustomDisplay
             stack = dbstack();
             if numel(stack) == 1
                 methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
+
+                if startsWith(get(0, 'Format'), 'long')
+                    methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format short', inputname(1), class(obj), 'short'), ', ', methodsStr];
+                else
+                    methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format long', inputname(1), class(obj), 'long'), ', ', methodsStr];
+                end
+                
                 fprintf('Show %s.\n', methodsStr);
             end
             
@@ -1782,6 +1795,23 @@ classdef LinProp < matlab.mixin.CustomDisplay
         
     end
     methods(Static, Access = protected)
+        function link=getMethodLink(method, text, varName, class, parameter)
+
+            if nargin < 3
+                parameterStr = '';
+            else
+                parameterStr = sprintf(', ''%s''', parameter);
+            end
+
+            link = sprintf(['matlab:if exist(''%s'', ''var'')&&isa(%s, ''%s''), ', ...
+                '%s(%s%s); ', ...
+                'else, ', ...
+                'fprintf(''Unable to display variable. %s refers to a deleted object.\\n''), ', ...
+                'end'], ...
+                varName,varName,class,method,varName,parameterStr,varName);
+
+            link = sprintf('<a href="%s">%s</a>', link, text);
+        end
         function printPage(value, stdunc)
 
             wSize = matlab.desktop.commandwindow.size;

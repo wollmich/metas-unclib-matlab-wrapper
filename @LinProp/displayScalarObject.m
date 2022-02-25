@@ -6,31 +6,21 @@ function displayScalarObject(obj)
     
     if numel(stack) == 1
         if obj.IsComplex
-            linkStrReal = sprintf('<a href="%s">Budget of real part</a>',getBudgetLink(inputname(1), class(obj), 'real'));
-            linkStrImag = sprintf('<a href="%s">Budget or imag part</a>',getBudgetLink(inputname(1), class(obj), 'imag'));
+            linkStrReal = LinProp.getMethodLink('displayBudget', 'Budget of real part', inputname(1), class(obj), 'real');
+            linkStrImag = LinProp.getMethodLink('displayBudget', 'Budget or imag part', inputname(1), class(obj), 'imag');
             linkStr = [linkStrReal, ', ', linkStrImag];
         else
-            linkStr = sprintf('<a href="%s">Budget</a>',getBudgetLink(inputname(1), class(obj), ''));
+            linkStr = LinProp.getMethodLink('displayBudget', 'Budget', inputname(1), class(obj), '');
         end
-
+        
         methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
 
+        if startsWith(get(0, 'Format'), 'long')
+            methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format short', inputname(1), class(obj), 'short'), ', ', methodsStr];
+        else
+            methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format long', inputname(1), class(obj), 'long'), ', ', methodsStr];
+        end
+        
         fprintf('Show %s, %s.\n',linkStr, methodsStr);
     end
-end
-
-function link=getBudgetLink(varName, class, part)
-
-    if nargin < 3
-        partStr = '';
-    else
-        partStr = sprintf(', ''%s''', part);
-    end
-
-    link=sprintf(['matlab:if exist(''%s'', ''var'')&&isa(%s, ''%s''), ', ...
-        'displayBudget(%s%s); ', ...
-        'else, ', ...
-        'fprintf(''Unable to display budget. %s refers to a deleted object.\\n''), ', ...
-        'end'], ...
-        varName,varName,class,varName,partStr,varName);
 end

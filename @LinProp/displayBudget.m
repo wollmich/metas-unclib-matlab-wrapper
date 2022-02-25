@@ -42,7 +42,7 @@ function displayBudget(obj, part)
     componenent = LinProp.toCharColumn(componenent);
     componenent = reshape(componenent, [], nTableRows);
 
-    percentage = sprintf('%3.2f%%\n', percentage);
+    percentage = sprintf('%6.2f%%\n', percentage);
     percentage = reshape(percentage, [], nTableRows);
 
     spacing = 4;

@@ -1747,9 +1747,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
         end
         function displayInFormat(obj, useFormat)
             oldFormat = get(0, 'Format');
-            format(useFormat);
-            display(obj);
-            format(oldFormat);
+            evalin('caller', sprintf('format(''%s'');', useFormat));
+            evalin('caller', sprintf('display(%s);', inputname(1)));
+            evalin('caller', sprintf('format(''%s'');', oldFormat));
         end
     end
     methods(Access = protected)

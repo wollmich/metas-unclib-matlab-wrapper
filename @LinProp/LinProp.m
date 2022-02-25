@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.LinProp V2.5.0
-% Michael Wollensack METAS - 17.09.2021
+% Metas.UncLib.Matlab.LinProp V2.5.3
+% Michael Wollensack METAS - 25.02.2022
 % Dion Timmermann PTB - 24.02.2022
 %
 % LinProp Const:

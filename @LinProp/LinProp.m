@@ -1783,9 +1783,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
 
                 if startsWith(get(0, 'Format'), 'long')
-                    methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format short', inputname(1), class(obj), 'short'), ', ', methodsStr];
+                    methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''short'')', 'in Format short', inputname(1), class(obj)), ', ', methodsStr];
                 else
-                    methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format long', inputname(1), class(obj), 'long'), ', ', methodsStr];
+                    methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''long'')', 'in Format long', inputname(1), class(obj)), ', ', methodsStr];
                 end
                 
                 fprintf('Show %s.\n', methodsStr);
@@ -1795,20 +1795,16 @@ classdef LinProp < matlab.mixin.CustomDisplay
         
     end
     methods(Static, Access = protected)
-        function link=getMethodLink(method, text, varName, class, parameter)
+        function link=getMethodLink(method, text, varName, class)
 
-            if nargin < 3
-                parameterStr = '';
-            else
-                parameterStr = sprintf(', ''%s''', parameter);
-            end
-
+            methodCall = sprintf(method, varName);
+                
             link = sprintf(['matlab:if exist(''%s'', ''var'')&&isa(%s, ''%s''), ', ...
-                '%s(%s%s); ', ...
+                '%s; ', ...
                 'else, ', ...
                 'fprintf(''Unable to display variable. %s refers to a deleted object.\\n''), ', ...
                 'end'], ...
-                varName,varName,class,method,varName,parameterStr,varName);
+                varName,varName,class,methodCall,varName);
 
             link = sprintf('<a href="%s">%s</a>', link, text);
         end
@@ -1908,13 +1904,13 @@ classdef LinProp < matlab.mixin.CustomDisplay
             % for all numbers, then remove trailing spaces
             switch get(0, 'Format')
                 case 'shortE'
-                    format = '%15.4e';
+                    format = '%17.4e';
                 case 'longE'
-                    format = '%25.15e';
+                    format = '%27.15e';
                 case 'long'
-                    format = '%25.15g';
+                    format = '%27.15g';
                 otherwise % Including short
-                    format = '%15.4g';
+                    format = '%17.4g';
             end
             
             column = sprintf(format, number);

@@ -6,19 +6,19 @@ function displayScalarObject(obj)
     
     if numel(stack) == 1
         if obj.IsComplex
-            linkStrReal = LinProp.getMethodLink('displayBudget', 'Budget of real part', inputname(1), class(obj), 'real');
-            linkStrImag = LinProp.getMethodLink('displayBudget', 'Budget or imag part', inputname(1), class(obj), 'imag');
+            linkStrReal = LinProp.getMethodLink('displayContributions(%s, ''real'')', 'Contributions of real part', inputname(1), class(obj));
+            linkStrImag = LinProp.getMethodLink('displayContributions(%s, ''imag'')', '... imag part', inputname(1), class(obj));
             linkStr = [linkStrReal, ', ', linkStrImag];
         else
-            linkStr = LinProp.getMethodLink('displayBudget', 'Budget', inputname(1), class(obj), '');
+            linkStr = LinProp.getMethodLink('displayContributions(%s)', 'Contributions', inputname(1), class(obj));
         end
         
         methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
 
         if startsWith(get(0, 'Format'), 'long')
-            methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format short', inputname(1), class(obj), 'short'), ', ', methodsStr];
+            methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''short'')', 'in Format short', inputname(1), class(obj)), ', ', methodsStr];
         else
-            methodsStr = [LinProp.getMethodLink('displayInFormat', 'in Format long', inputname(1), class(obj), 'long'), ', ', methodsStr];
+            methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''long'')', 'in Format long', inputname(1), class(obj)), ', ', methodsStr];
         end
         
         fprintf('Show %s, %s.\n',linkStr, methodsStr);

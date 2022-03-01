@@ -1764,7 +1764,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
             fprintf('    %s %s:\n\n', dimstr, name);
             
             if ismatrix(value)
-                LinProp.printPage(value, stdunc);
+                LinProp.printPage(value, stdunc, obj.IsComplex);
             else
                 fprintf('\b'); % Remove last line break.
                 sizeObj = size(value);
@@ -1774,7 +1774,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
                     [pageSubs{:}] = ind2sub(sizeRes,ii);
 
                     fprintf('\n(:,:,%s) =\n\n', strjoin(string(pageSubs), ','));
-                    LinProp.printPage(value(:, :, pageSubs{:}), stdunc(:, :, pageSubs{:}));
+                    LinProp.printPage(value(:, :, pageSubs{:}), stdunc(:, :, pageSubs{:}), obj.IsComplex);
                 end
             end
             
@@ -1808,7 +1808,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
 
             link = sprintf('<a href="%s">%s</a>', link, text);
         end
-        function printPage(value, stdunc)
+        function printPage(value, stdunc, isComplex)
 
             wSize = matlab.desktop.commandwindow.size;
             commandWindowWidth = wSize(1);
@@ -1818,7 +1818,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
             spacing = 4;
             columns = cell(1, nColumns);
             for ii = 1:nColumns
-                columns{ii} = [repmat(' ', spacing, nRows); LinProp.toUncCharColumn(value(:, ii), stdunc(:, ii))];
+                columns{ii} = [repmat(' ', spacing, nRows); LinProp.toUncCharColumn(value(:, ii), stdunc(:, ii), isComplex)];
             end
             columnWidths = cellfun(@(x) size(x, 1), columns);
 
@@ -1859,9 +1859,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
             end
 
         end
-        function column = toUncCharColumn(value, stdunc)
+        function column = toUncCharColumn(value, stdunc, isComplex)
             
-            if ~isreal(value)
+            if isComplex
                 columnReal = LinProp.toUncPartCharColumn(real(value), real(stdunc), 1, false);
                 columnImag = LinProp.toUncPartCharColumn(imag(value), imag(stdunc), 3, true);
                 

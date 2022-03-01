@@ -1,6 +1,6 @@
 function displayScalarObject(obj)
     name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
-    fprintf('    %s:\n    %s\n\n', name, LinProp.toUncCharColumn(get_value(obj), get_stdunc(obj)));
+    fprintf('    %s:\n    %s\n\n', name, LinProp.toUncCharColumn(get_value(obj), get_stdunc(obj), obj.IsComplex));
     
     stack = dbstack();
     

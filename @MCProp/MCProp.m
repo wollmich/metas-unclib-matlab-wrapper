@@ -51,7 +51,6 @@ classdef MCProp
     methods
         function obj = MCProp(varargin)
             UncPropLoadNETAssemblies('MCProp');
-            h = MCProp.UncHelper();
             switch nargin
                 case 1
                     switch class(varargin{1})
@@ -69,6 +68,7 @@ classdef MCProp
                                     obj.NetObject = Metas.UncLib.MCProp.UncNumber(real(varargin{1}));
                                 end
                             else
+                                h = MCProp.UncHelper();
                                 v = MCProp.Double2Array(varargin{1});
                                 if ~isreal(varargin{1})
                                     % ComplexUncArray
@@ -96,6 +96,7 @@ classdef MCProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber
+                                h = MCProp.UncHelper();
                                 v = MCProp.Double2ComplexNumber(varargin{1});
                                 cv = MCProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, 0);
@@ -104,6 +105,7 @@ classdef MCProp
                                 obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2});
                             end
                         else
+                            h = MCProp.UncHelper();
                             v = MCProp.Double2Array(varargin{1});
                             cv = MCProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -126,6 +128,7 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -157,6 +160,7 @@ classdef MCProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber (Description)
+                                h = MCProp.UncHelper();
                                 v = MCProp.Double2ComplexNumber(varargin{1});
                                 cv = MCProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
@@ -165,6 +169,7 @@ classdef MCProp
                                 obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2}, 0, UncInputId(), sprintf(varargin{3}));
                             end
                         else
+                            h = MCProp.UncHelper();
                             v = MCProp.Double2Array(varargin{1});
                             cv = MCProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -178,6 +183,7 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -213,6 +219,7 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char') && isa(varargin{4}, 'double')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})

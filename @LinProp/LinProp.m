@@ -51,7 +51,6 @@ classdef LinProp
     methods
         function obj = LinProp(varargin)
             UncPropLoadNETAssemblies('LinProp');
-            h = LinProp.UncHelper();
             switch nargin
                 case 1
                     switch class(varargin{1})
@@ -69,6 +68,7 @@ classdef LinProp
                                     obj.NetObject = Metas.UncLib.LinProp.UncNumber(real(varargin{1}));
                                 end
                             else
+                                h = LinProp.UncHelper();
                                 v = LinProp.Double2Array(varargin{1});
                                 if ~isreal(varargin{1})
                                     % ComplexUncArray
@@ -96,6 +96,7 @@ classdef LinProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber
+                                h = LinProp.UncHelper();
                                 v = LinProp.Double2ComplexNumber(varargin{1});
                                 cv = LinProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, 0);
@@ -104,6 +105,7 @@ classdef LinProp
                                 obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2});
                             end
                         else
+                            h = LinProp.UncHelper();
                             v = LinProp.Double2Array(varargin{1});
                             cv = LinProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -126,6 +128,7 @@ classdef LinProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = LinProp.UncHelper();
                                 s = LinProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -157,6 +160,7 @@ classdef LinProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber (Description)
+                                h = LinProp.UncHelper();
                                 v = LinProp.Double2ComplexNumber(varargin{1});
                                 cv = LinProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
@@ -165,6 +169,7 @@ classdef LinProp
                                 obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, 0, UncInputId(), sprintf(varargin{3}));
                             end
                         else
+                            h = LinProp.UncHelper();
                             v = LinProp.Double2Array(varargin{1});
                             cv = LinProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -178,6 +183,7 @@ classdef LinProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = LinProp.UncHelper();
                                 s = LinProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -213,6 +219,7 @@ classdef LinProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char') && isa(varargin{4}, 'double')
                         switch lower(varargin{2})
                             case 'samples'
+                                h = LinProp.UncHelper();
                                 s = LinProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})

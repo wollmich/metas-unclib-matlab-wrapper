@@ -50,7 +50,8 @@ classdef DistProp
     end
     methods
         function obj = DistProp(varargin)
-            UncPropLoadNETAssemblies('DistProp');
+            % The assemblies are guaranteed to be loaded through the
+            % constant UncHelper property.
             switch nargin
                 case 1
                     switch class(varargin{1})
@@ -68,14 +69,13 @@ classdef DistProp
                                     obj.NetObject = Metas.UncLib.DistProp.UncNumber(real(varargin{1}));
                                 end
                             else
-                                h = DistProp.UncHelper();
                                 v = DistProp.Double2Array(varargin{1});
                                 if ~isreal(varargin{1})
                                     % ComplexUncArray
-                                    obj.NetObject = h.ComplexUncNArray(v);
+                                    obj.NetObject = DistProp.UncHelper.ComplexUncNArray(v);
                                 else
                                     % RealUncArray
-                                    obj.NetObject = h.RealUncNArray(v);
+                                    obj.NetObject = DistProp.UncHelper.RealUncNArray(v);
                                 end
                             end
                         case 'Metas.UncLib.DistProp.UncNumber'
@@ -96,24 +96,22 @@ classdef DistProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber
-                                h = DistProp.UncHelper();
                                 v = DistProp.Double2ComplexNumber(varargin{1});
                                 cv = DistProp.Double2Array(varargin{2});
-                                obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, 0);
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNumber(v, cv.Matrix, 0);
                             else
                                 % RealUncNumber
                                 obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2});
                             end
                         else
-                            h = DistProp.UncHelper();
                             v = DistProp.Double2Array(varargin{1});
                             cv = DistProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
                                 % ComplexUncArray
-                                obj.NetObject = h.ComplexUncNArray(v, cv.Matrix, 0);
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNArray(v, cv.Matrix, 0);
                             else
                                 % RealUncArray
-                                obj.NetObject = h.RealUncNArray(v, cv.Matrix, 0);
+                                obj.NetObject = DistProp.UncHelper.RealUncNArray(v, cv.Matrix, 0);
                             end
                         end
                     elseif isa(varargin{1}, 'char') && isa(varargin{2}, 'char')
@@ -128,23 +126,22 @@ classdef DistProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = DistProp.UncHelper();
                                 s = DistProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector);
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromSamples(s.Vector);
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector);
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromSamples(s.Vector);
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix);
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix);
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix);
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix);
                                     end
                                 end
                             otherwise
@@ -160,46 +157,43 @@ classdef DistProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber (Description)
-                                h = DistProp.UncHelper();
                                 v = DistProp.Double2ComplexNumber(varargin{1});
                                 cv = DistProp.Double2Array(varargin{2});
-                                obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             else
                                 % RealUncNumber (Description)
                                 obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, 0, UncInputId(), sprintf(varargin{3}));
                             end
                         else
-                            h = DistProp.UncHelper();
                             v = DistProp.Double2Array(varargin{1});
                             cv = DistProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
                                 % ComplexUncArray (Description)
-                                obj.NetObject = h.ComplexUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             else
                                 % RealUncArray (Description)
-                                obj.NetObject = h.RealUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = DistProp.UncHelper.RealUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             end
                         end
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = DistProp.UncHelper();
                                 s = DistProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
                                     end
                                 end
                             otherwise
@@ -219,23 +213,22 @@ classdef DistProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char') && isa(varargin{4}, 'double')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = DistProp.UncHelper();
                                 s = DistProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     end
                                 end
                             otherwise
@@ -1043,53 +1036,44 @@ classdef DistProp
             o = obj.NetObject;
         end
         function d = get_value(obj)
-            h = DistProp.UncHelper(); 
-            d = DistProp.Convert2Double(h.GetValue(obj.NetObject));
+            d = DistProp.Convert2Double(DistProp.UncHelper.GetValue(obj.NetObject));
         end
         function d = get_stdunc(obj)
-            h = DistProp.UncHelper(); 
-            d = DistProp.Convert2Double(h.GetStdUnc(obj.NetObject));
+            d = DistProp.Convert2Double(DistProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
-            h = DistProp.UncHelper(); 
-            d = DistProp.Convert2Double(h.GetIDof(obj.NetObject));
+            d = DistProp.Convert2Double(DistProp.UncHelper.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)
-            h = DistProp.UncHelper(); 
-            d = DistProp.Convert2Double(h.GetFcnValue(obj.NetObject));
+            d = DistProp.Convert2Double(DistProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
             l = ToUncList(obj);
-            h = DistProp.UncHelper();
-            temp = h.GetCoverageInterval(l, p);
+            temp = DistProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             d = DistProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
-            h = DistProp.UncHelper(); 
-            d = DistProp.Convert2Double(h.GetMoment(obj.NetObject, int32(n)));
+            d = DistProp.Convert2Double(DistProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
             l = ToUncList(obj);
-            h = DistProp.UncHelper();
-            temp = h.GetCorrelation(l);
+            temp = DistProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = DistProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
             l = ToUncList(obj);
-            h = DistProp.UncHelper();
-            temp = h.GetCovariance(l);
+            temp = DistProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = DistProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
             l = ToUncList(obj);
-            h = DistProp.UncHelper();
-            temp = h.GetJacobi(l);
+            temp = DistProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = DistProp.Convert2Double(array);
@@ -1097,8 +1081,7 @@ classdef DistProp
         function c = get_jacobi2(x, y)
             x2 = ToUncList(x);
             y2 = ToUncList(y);
-            h = DistProp.UncHelper();
-            temp = h.GetJacobi2(x2, y2);
+            temp = DistProp.UncHelper.GetJacobi2(x2, y2);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = DistProp.Convert2Double(array);
@@ -1106,8 +1089,7 @@ classdef DistProp
         function c = get_unc_component(x, y)
             x2 = ToUncList(x);
             y2 = ToUncList(y);
-            h = DistProp.UncHelper();
-            temp = h.GetUncComponent(x2, y2);
+            temp = DistProp.UncHelper.GetUncComponent(x2, y2);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = DistProp.Convert2Double(array);
@@ -1920,6 +1902,9 @@ classdef DistProp
             x = DistProp(randn(varargin{:}));
         end
     end
+    properties (Constant, Access = private)
+        UncHelper = DistProp.UncHelperFactory();
+    end
     methods(Static = true, Access = private)
         function [x, y] = replicateSingletonDimensions(x, y)
             dims = max(ndims(x), ndims(y));
@@ -1942,7 +1927,8 @@ classdef DistProp
                 y = repmat(y, repY);
             end
         end
-        function h = UncHelper()
+        function h = UncHelperFactory()
+            UncPropLoadNETAssemblies('DistProp');
             h = NET.createGeneric('Metas.UncLib.Core.Unc.GenericUnc', {'Metas.UncLib.DistProp.UncList', 'Metas.UncLib.DistProp.UncNumber'});
         end
         function l = LinAlg(complex)

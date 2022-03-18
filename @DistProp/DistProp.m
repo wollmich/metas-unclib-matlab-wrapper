@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 24.02.2022
+% Dion Timmermann PTB - 18.03.2022
 %
 % DistProp Const:
 % a = DistProp(value)

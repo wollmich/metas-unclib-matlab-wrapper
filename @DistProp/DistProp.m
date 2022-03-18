@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 14.03.2022
+% Dion Timmermann PTB - 18.03.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -385,7 +385,8 @@ classdef DistProp
             
             % Write size of all dimensions to s.
             if DistProp.IsArrayNet(obj.NetObject)
-                s = double(obj.NetObject.size);
+                netSize = obj.NetObject.size; % Using a temp variable saves a lot of time.
+                s = double(netSize);
             else
                 s = [1 1];
             end

@@ -1791,8 +1791,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
             end
             
-            [~, I] = dbstack();
-            if I == 1
+            stack = dbstack();
+            if numel(stack) == 1
                 methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
 
                 if startsWith(get(0, 'Format'), 'long')

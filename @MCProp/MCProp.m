@@ -1,6 +1,6 @@
-% Metas.UncLib.Matlab.MCProp V2.5.3
-% Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 14.03.2022
+% Metas.UncLib.Matlab.MCProp V2.5.0
+% Michael Wollensack METAS - 17.09.2021
+% Dion Timmermann PTB - 24.02.2022
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -51,6 +51,7 @@ classdef MCProp
     methods
         function obj = MCProp(varargin)
             UncPropLoadNETAssemblies('MCProp');
+            h = MCProp.UncHelper();
             switch nargin
                 case 1
                     switch class(varargin{1})
@@ -68,7 +69,6 @@ classdef MCProp
                                     obj.NetObject = Metas.UncLib.MCProp.UncNumber(real(varargin{1}));
                                 end
                             else
-                                h = MCProp.UncHelper();
                                 v = MCProp.Double2Array(varargin{1});
                                 if ~isreal(varargin{1})
                                     % ComplexUncArray
@@ -96,7 +96,6 @@ classdef MCProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber
-                                h = MCProp.UncHelper();
                                 v = MCProp.Double2ComplexNumber(varargin{1});
                                 cv = MCProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, 0);
@@ -105,7 +104,6 @@ classdef MCProp
                                 obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2});
                             end
                         else
-                            h = MCProp.UncHelper();
                             v = MCProp.Double2Array(varargin{1});
                             cv = MCProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -128,7 +126,6 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -160,7 +157,6 @@ classdef MCProp
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
                                 % ComplexUncNumber (Description)
-                                h = MCProp.UncHelper();
                                 v = MCProp.Double2ComplexNumber(varargin{1});
                                 cv = MCProp.Double2Array(varargin{2});
                                 obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
@@ -169,7 +165,6 @@ classdef MCProp
                                 obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2}, 0, UncInputId(), sprintf(varargin{3}));
                             end
                         else
-                            h = MCProp.UncHelper();
                             v = MCProp.Double2Array(varargin{1});
                             cv = MCProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
@@ -183,7 +178,6 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -219,7 +213,6 @@ classdef MCProp
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char') && isa(varargin{4}, 'double')
                         switch lower(varargin{2})
                             case 'samples'
-                                h = MCProp.UncHelper();
                                 s = MCProp.Double2Array(varargin{1});
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
@@ -391,51 +384,45 @@ classdef MCProp
             %
             
             % Write size of all dimensions to s.
-            if MCProp.IsArrayNet(obj.NetObject)
+            if obj.IsArray
                 s = double(obj.NetObject.size);
             else
                 s = [1 1];
             end
             
             % Write all requested dimensions to dims
-            if nargin == 1
-                % Special case for nargout ~= length(s) if no dims were specificed 
-                if nargout > 1
-                    if nargout > length(s)
-                        s(end+1:nargout) = 1;
-                    elseif nargout < length(s)
-                        s = [s(1:nargout-1) prod(s(nargout:end))];
+            switch (numel(varargin))
+                case 0
+                    dims = 1:length(s);
+                case 1
+                    dims = varargin{1};
+                otherwise
+                    if any(cellfun(@(x) ~isscalar(x) || ~isnumeric(x), varargin))
+                        error('Dimension argument must be a positive integer scalar within indexing range.');
                     end
+                    dims = cellfun(@(x) x, varargin);
+            end
+            
+            % Check if requested dims are valid
+            if any(dims < 1 | ceil(dims) ~= dims | isinf(dims))
+                error('Dimension argument must be a positive integer scalar or a vector of positive integers.'); 
+            end
+            
+            % Add singleton dimensions and reduce s to selected dims
+            s = [s ones(1, max(dims)-length(s))];
+            s = s(dims);
+            
+            % Special case for nargout ~= length(s) if no dims were specificed 
+            if numel(varargin) == 0 && nargout > 1
+                if nargout > length(s)
+                    s(end+1:nargout) = 1;
+                elseif nargout < length(s)
+                    s = [s(1:nargout-1) prod(s(nargout:end))];
                 end
-            elseif nargin == 2
-                dims = varargin{1};
-
-                % Check if requested dims are valid
-                if any(dims < 1 | ceil(dims) ~= dims | isinf(dims))
-                    error('Dimension argument must be a positive integer scalar or a vector of positive integers.'); 
-                end
-
-                % Add singleton dimensions and reduce s to selected dims
-                s = [s ones(1, max(dims)-length(s))];
-                s = s(dims);
-            else
-                if any(cellfun(@(x) ~isscalar(x) || ~isnumeric(x), varargin))
-                    error('Dimension argument must be a positive integer scalar within indexing range.');
-                end
-                dims = cell2mat(varargin);
-
-                % Check if requested dims are valid
-                if any(dims < 1 | ceil(dims) ~= dims | isinf(dims))
-                    error('Dimension argument must be a positive integer scalar or a vector of positive integers.'); 
-                end
-
-                % Add singleton dimensions and reduce s to selected dims
-                s = [s ones(1, max(dims)-length(s))];
-                s = s(dims);
             end
             
             if nargout == 0 || nargout == 1
-                varargout = {s};
+                varargout{1} = s;
             elseif nargout == numel(s)
                 varargout = num2cell(s);
             else
@@ -2059,17 +2046,17 @@ classdef MCProp
                 temp = temp*s(i2); 
             end
         end
-        function TF = IsComplexNet(x)
-            TF = isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*MCProp*UncNumber>') || ...
-                 isa(x, 'Metas.UncLib.Core.Complex<Metas*UncLib*MCProp*UncNumber>') || ...
-                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*Core*Number>') || ...
-                 isa(x, 'Metas.UncLib.Core.Complex<Metas*UncLib*Core*Number>');
+        function b = IsComplexNet(x)
+            b = (isa(x, 'Metas.UncLib.Core.Complex<Metas*UncLib*Core*Number>') | ...
+                 isa(x, 'Metas.UncLib.Core.Complex<Metas*UncLib*MCProp*UncNumber>') | ...
+                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*Core*Number>') | ...
+                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*MCProp*UncNumber>'));
         end
-        function TF = IsArrayNet(x)
-            TF = isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*MCProp*UncNumber>') || ...
-                 isa(x, 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*MCProp*UncNumber>') || ...
-                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*Core*Number>') || ...
-                 isa(x, 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*Core*Number>');
+        function b = IsArrayNet(x)
+            b = (isa(x, 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*Core*Number>') | ...
+                 isa(x, 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*MCProp*UncNumber>') | ...
+                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*Core*Number>') | ...
+                 isa(x, 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*MCProp*UncNumber>'));
         end
         function obj = XmlString2MCProp(s)
             UncPropLoadNETAssemblies('MCProp');

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 18.03.2022
+% Dion Timmermann PTB - 22.03.2022
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -540,6 +540,8 @@ classdef MCProp
                 end
             end
             
+            newA = strcmp(class(A), 'double'); %#ok<STISA>
+            
             sizeA = size(A);
             numelA = prod(sizeA);
             sizeB = size(B);
@@ -595,7 +597,7 @@ classdef MCProp
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address
             % all following dimensions.
-            if numelA == 0
+            if all(sizeA == 0)
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
                 if numel(sizeB) ~= sum(cellfun(@numel, I)>1 | strcmp(I, ':'))    % Singleton dimensions of B are ignored, except the dimensions already match.
@@ -651,14 +653,15 @@ classdef MCProp
                 end
             end
 
+            % Assignment of no elements to an empty/new object.
             if any(I_isempty) && numelA == 0
                 if numelB <= 1
                     s = I_maxIndex;
                     if numel(s) < 2
-                        if ~isemptyB
-                            s = [s zeros(1,2-numel(s))];
-                        else
+                        if isemptyB && newA
                             s = [ones(1,2-numel(s)) s];
+                        else
+                            s = [s zeros(1,2-numel(s))];
                         end
                     else
                         lastNonSingletonDimension = find(s~=1, 1, 'last');
@@ -669,10 +672,9 @@ classdef MCProp
                 else 
                     error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                 end
-            end
             
             % Linear indexing
-            if dimI == 1
+            elseif dimI == 1
                 % Linear indexing follows some specific rules
                 
                 if ~isscalarB && numel(I{1}) ~= numelB
@@ -736,9 +738,9 @@ classdef MCProp
                         I_numel(ii) = numel(I{ii});
                     end
                     
-                    sizeI_reduced = I_numel(I_numel > 1);
-                    sizeB_reduced = sizeB(sizeB > 1);
-                    if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
+                    sizeI_reduced = I_numel(I_numel ~= 1);
+                    sizeB_reduced = sizeB(sizeB ~= 1);
+                    if ~isequal(sizeI_reduced, sizeB_reduced) && not(any(I_numel == 0) && any(sizeB == 0))
                         error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
                         strjoin(string(I_numel), '-by-'), ...
                         strjoin(string(sizeB), '-by-'));

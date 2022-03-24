@@ -1799,7 +1799,7 @@ classdef MCProp < matlab.mixin.CustomDisplay
             evalin('caller', sprintf('format(''%s'');', oldFormat));
         end
     end
-    methods(Access = protected)
+    methods(Hidden, Access = protected)
         function displayScalarObject(obj)
             
             % If getDetailedFooter returns an empty string, we are in an
@@ -1849,7 +1849,7 @@ classdef MCProp < matlab.mixin.CustomDisplay
         end
         displayFooter(obj, inputname) % This function is different for MCProp
     end
-    methods(Static, Access = protected)
+    methods(Static, Access = private)
         function printPage(value, stdunc, isComplex)
             % Helper function for displayNonScalarObject(). Prints one page
             % (2D slice) of a matrix.

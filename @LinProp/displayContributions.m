@@ -35,7 +35,8 @@ function displayContributions(obj, part)
             fprintf('\n  Variable %s has %i uncertainty contributions.\n', sprintf(varCall, varName), obj.NetObject.Dependencies.Length);
     end
     
-    if exist('LoadVnaTools', 'file')
+    if exist('LoadVNATools', 'file')
+        LoadVNATools();
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject, @Metas.Vna.Data.UncIdDefs.GetInfluenceInfo2);
     else
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject);
@@ -109,6 +110,16 @@ function displayContributions(obj, part)
     fprintf('%s\n', text);
     
     methodCall = sprintf('unc_budget(%s)', varCall);
-    fprintf('%s.\n', LinProp.getMethodLink(methodCall, 'Open full budget', varName, class(obj)));
+    fprintf('%s.\n', methodLink(methodCall, 'Open full budget', varName, class(obj)));
     
+end
+
+function link = methodLink(method, text, varName, class)
+
+    methodCall = sprintf(method, varName);
+
+    link = sprintf('matlab:if exist(''%s'', ''var'')&&isa(%s, ''%s''), %s; else, fprintf(''Unable to display variable. %s refers to a deleted object.\\n''), end', ...
+        varName, varName, class, methodCall, varName);
+
+    link = sprintf('<a href="%s">%s</a>', link, text);
 end

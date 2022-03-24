@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 22.03.2022
+% Dion Timmermann PTB - 24.03.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -38,7 +38,7 @@
 % DistProp Input (RealUncNumber)
 % a = DistProp(value, standard_unc, idof, id, description)
 
-classdef DistProp
+classdef DistProp < matlab.mixin.CustomDisplay
     properties
         NetObject
     end
@@ -256,57 +256,6 @@ classdef DistProp
                     obj.NetObject.Reshape(int32([obj.NetObject.numel 1]));
                 end
             end 
-        end
-        function display(obj)
-            name = inputname(1);
-            df = '%g'; %get(0, 'Format');
-            ds = get(0, 'FormatSpacing');
-            if obj.IsArray
-                if isequal(ds, 'compact')
-                    disp([name,'.value = '])
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(get_stdunc(obj))
-                else
-                    disp(' ');
-                    disp([name,'.value = '])
-                    disp(' ');
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(' ');
-                    disp(get_stdunc(obj))        
-                end    
-            else
-                if obj.IsComplex
-                    sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
-                    simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
-                    if (get_value(imag(obj)) < 0)
-                        s = [sreal ' - ' simag 'i'];
-                    else
-                        s = [sreal ' + ' simag 'i'];
-                    end
-                else        
-                    s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' ± ' num2str(get_stdunc(obj), df) ')'];
-                end    
-                if (get_value(real(obj)) < 0)
-                    s = ['  -' s];
-                else
-                    s = ['   ' s];
-                end
-                if isequal(ds, 'compact')
-                    disp([name,' = '])
-                    disp(s)
-                else
-                    disp(' ');
-                    disp([name,' = '])
-                    disp(' ');
-                    disp(s)
-                    disp(' ');
-                end    
-            end
         end
         function o = copy(obj)
             if obj.IsArray
@@ -1830,6 +1779,224 @@ classdef DistProp
             bin.complex = obj.IsComplex;
         end
     end
+    methods (Hidden, Access = public)
+        function displayInFormat(obj, useFormat) %#ok<INUSL> Used through inputname
+            % Function used to print a number in a different format than
+            % the one selected currently. 
+            %
+            % To make sure the correct variable name is shown, the function
+            % actually executed code in the caller workspace.
+            
+            oldFormat = get(0, 'Format');
+            evalin('caller', sprintf('format(''%s'');', useFormat));
+            evalin('caller', sprintf('display(%s);', inputname(1)));
+            evalin('caller', sprintf('format(''%s'');', oldFormat));
+        end
+    end
+    methods(Access = protected)
+        function displayScalarObject(obj)
+            
+            % If getDetailedFooter returns an empty string, we are in an
+            % environment that does not support links (like a pupup text 
+            % or the "Variables" window). In these environments the
+            % datatype and size are already shown, so we omit them.
+            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
+                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                fprintf('    %s:\n', name);
+            end
+            
+            fprintf('    %s\n\n', ...
+                DistProp.toUncCharColumn(get_value(obj), get_stdunc(obj), obj.IsComplex));
+
+            displayFooter(obj, inputname(1));
+        end
+        function displayNonScalarObject(obj)
+            value = get_value(obj);
+            stdunc = get_stdunc(obj);
+            
+            % If getDetailedFooter returns an empty string, we are in an
+            % environment that does not support links (like a pupup text 
+            % or the "Variables" window). In these environments the
+            % datatype and size are already shown, so we omit them.
+            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
+                dimstr = matlab.mixin.CustomDisplay.convertDimensionsToString(obj);
+                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                fprintf('    %s %s:\n', dimstr, name);
+            end
+            
+            if ismatrix(value)
+                DistProp.printPage(value, stdunc, obj.IsComplex);
+            else
+                % Print every page (2D slice) separately
+                sizeObj = size(value);
+                sizeRes = sizeObj(3:end);
+                pageSubs = cell(1, numel(sizeRes));
+                for ii = 1:prod(sizeRes)
+                    [pageSubs{:}] = ind2sub(sizeRes,ii);
+
+                    fprintf('\n(:,:,%s) =\n\n', strjoin(string(pageSubs), ','));
+                    DistProp.printPage(value(:, :, pageSubs{:}), stdunc(:, :, pageSubs{:}), obj.IsComplex);
+                end
+            end
+            
+            displayFooter(obj, inputname(1));
+        end
+        displayFooter(obj, inputname) % This function is different for DistProp
+    end
+    methods(Static, Access = protected)
+        function printPage(value, stdunc, isComplex)
+            % Helper function for displayNonScalarObject(). Prints one page
+            % (2D slice) of a matrix.
+            %
+            % Inputs:
+            %   value           2D mtrix nominal values to format
+            %   stdunc          2D mtrix of std unciertainties to format
+            %   isComplex       logical indicating if data are complex
+
+            wSize = matlab.desktop.commandwindow.size;
+            commandWindowWidth = wSize(1);
+
+            nColumns = size(value, 2);
+            nRows = size(value, 1);
+            spacing = 4;
+            columns = cell(1, nColumns);
+            for ii = 1:nColumns
+                columns{ii} = [repmat(' ', spacing, nRows); DistProp.toUncCharColumn(value(:, ii), stdunc(:, ii), isComplex)];
+            end
+            columnWidths = cellfun(@(x) size(x, 1), columns);
+
+            startColumn = 1;
+            while startColumn <= nColumns
+                endColumn = startColumn;
+                while endColumn < nColumns
+                    if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
+                        endColumn = endColumn + 1;
+                    else
+                        break
+                    end
+                end
+
+                if not(startColumn == 1 && endColumn == nColumns)
+                    if startColumn == endColumn
+                        fprintf('  Column %i\n', startColumn);
+                    else
+                        fprintf('  Columns %i through %i\n', startColumn, endColumn);
+                    end
+                end
+
+                indent = 0;
+                text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
+                text(end, :) = newline;
+                offset = indent+1;
+
+                for ii = startColumn:endColumn
+                    text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
+                    offset = offset + columnWidths(ii);
+                end
+
+                fprintf(text);
+                fprintf('\n');
+
+                startColumn = endColumn + 1;
+
+            end
+
+        end
+        function column = toUncCharColumn(value, stdunc, isComplex)
+            % Used to format a scalar or vector of DistProps as a char
+            % matrix with (value +/- stdunc) notation.
+            %
+            % Inputs:
+            %   value           vector of nominal values to format
+            %   stdunc          vector of std unciertainties to format
+            %   isComplex       logical indicating if data are complex
+            
+            if isComplex
+                columnReal = DistProp.toUncPartCharColumn(real(value), real(stdunc), 1, false);
+                columnImag = DistProp.toUncPartCharColumn(imag(value), imag(stdunc), 3, true);
+                
+                column = [...
+                    columnReal; ...
+                    columnImag; ...
+                    repmat(('i')', 1, numel(value)); ...
+                ];
+            else
+                column = DistProp.toUncPartCharColumn(value, stdunc, 1, false);
+            end
+            
+        end
+        function column = toUncPartCharColumn(value, stdunc, signSpacing, showPlus)
+            % Helper function for toUncCharColumn.
+            %
+            % Used to format a vector of non-complex DistProps as a char
+            % matrix with (value +/- stdunc) notation.
+            %
+            % Inputs:
+            %   value           vector of nominal values to format
+            %   stdunc          vector of std unciertainties to format
+            %   signSpacing     number of spaces before opening bracket.
+            %                   The sign of the nominal value is placed in
+            %                   these spaces, thus signSpacing must be >=1.
+            %   showPlus        if true, a '+' is inserted infront of
+            %                   entries with a non-negative value.
+
+            n = numel(value);
+            
+            signs = repmat(' ', signSpacing, n);
+            signs(ceil(signSpacing/2), value < 0) = '-';
+            if showPlus
+                % not() is used so nan also produces a +
+                signs(ceil(signSpacing/2), not(value < 0)) = '+';
+            end
+            
+            % The plus/minus sign coded as unicode number to precent
+            % problems with the encoding.
+            pm = sprintf(' \xB1 ');
+            
+            column = [...
+                signs; ...
+                repmat(('(')', 1, n); ...
+                DistProp.toCharColumn(abs(value)); ...
+                repmat(pm', 1, n); ...
+                DistProp.toCharColumn(stdunc); ...
+                repmat((')')', 1, n); ...
+            ];
+
+        end
+        function column = toCharColumn(number)
+            % Helper function for toUncPartCharColumn.
+            %
+            % Converts a vector of numbers into a char matrix contianing
+            % the numbers as right-aligned string representations.
+
+            n = numel(number);
+
+            % We first set a field width that definitely is large enough
+            % for all numbers, then remove trailing spaces
+            switch get(0, 'Format')
+                case 'shortE'
+                    format = '%17.4e';
+                case 'longE'
+                    format = '%27.15e';
+                case 'long'
+                    format = '%27.15g';
+                otherwise % Including short
+                    format = '%17.4g';
+            end
+            
+            column = sprintf(format, number);
+            column = reshape(column, [], n);    % Make matrix, one number per row.
+
+            firstNonSpace = find(~all(isspace(column), 2), 1);
+            if isempty(firstNonSpace)
+                column = repmat(newline, 1, n);
+            else
+                column = column(firstNonSpace:end, :);
+            end
+
+        end
+    end
+
     methods(Access = private)
         function l = ToUncList(obj)
             temp = Metas.UncLib.DistProp.UncList();

@@ -6,16 +6,6 @@ function displayFooter(obj, inputname)
 
     links = '';
 
-    if isscalar(obj)
-        if obj.IsComplex
-            linkStrReal = methodLink('displayContributions(%s, ''real'')', 'Contributions of real part', inputname, class(obj));
-            linkStrImag = methodLink('displayContributions(%s, ''imag'')', '... imag part', inputname, class(obj));
-            links = [linkStrReal, linkStrImag];
-        else
-            links = methodLink('displayContributions(%s)', 'Contributions', inputname, class(obj));
-        end
-    end
-
     if startsWith(get(0, 'Format'), 'long')
         links = [methodLink('displayInFormat(%s, ''short'')', 'in Format short', inputname, class(obj)), links];
     else

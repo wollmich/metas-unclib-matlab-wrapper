@@ -825,131 +825,154 @@ classdef DistProp
                     sizeA = size(A);
                     isvectorA = sum(sizeA > 1) == 1;
                     src_subs = S(1).subs;
-                    output_shape = {};
+                    sizeB = [];
 
                     % Convert logical indexes to subscripts
-                    isLogicalIndex = cellfun(@islogical, src_subs);
-                    src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
+                    for ii = 1:ni
+                        if islogical(src_subs{ii})
+                            src_subs{ii} = find(src_subs{ii});
+                        end
+                    end
 
                     % This is a very special case. If linear indexing is used, but
                     % the linear indexes are arranged in form of a matrix, the
                     % output has the shape of the matrix. This does not apply to
                     % logical indexes.
                     if ni == 1 && ~isvector(src_subs{1})
-                        output_shape = num2cell(size(src_subs{1}));   % Save shape of output for later.
+                        sizeB = int32(size(src_subs{1}));   % Save shape of output for later.
                         src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
-                    elseif ni > 1
-                        % If subscript indexing is used, interpret every
-                        % index as a vector. (This is necessary for repmat.)
-                        src_subs = cellfun(@(x) x(:), src_subs, 'UniformOutput', false);
-                    end
-
-                    % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-                    if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
-                        error('Array indices must be positive integers or logical values.');
                     end
 
                     sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
-                    % Replace ':' placeholders
+                    % Replace ':' placeholders and ensure indexes are integers.
                     % Note: The last dimension can always be used to address
                     % all following dimensions.
                     for ii = 1:(ni-1)  % Dimensions except the last one
                         if strcmp(src_subs{ii}, ':')
                             src_subs{ii} = 1:sizeA_extended(ii);
+                        else
+                            originalValue = src_subs{ii};
+                            src_subs{ii} = int32(src_subs{ii});
+                            if ~isequal(originalValue, double(src_subs{ii}))
+                                error('Array indices must be positive integers or logical values.');
+                            end
                         end
                     end
                     if strcmp(src_subs{ni}, ':') % Special case for last dimension
                         src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
+                    else
+                        originalValue = src_subs{ni};
+                        src_subs{ni} = int32(src_subs{ni});
+                        if ~isequal(originalValue, double(src_subs{ni}))
+                            error('Array indices must be positive integers or logical values.');
+                        end
                     end
 
-                    % Reshape A if (partial) linear indexing is used.
+                    % Handling (partial) linear indexing
                     if ni == 1 && isvectorA
-                        % Special case for shape of output, based on definition of subsref
-                        % B has the same shape as A. 
-                        % What is not mentioned in the documentation is that this
-                        % only applies if the argument is not ':'.
-                        if ~strcmp(S(1).subs{1}, ':') && isempty(output_shape)
-                            output_shape = num2cell(sizeA);
-                            output_shape(sizeA > 1) = {[]};
+                        % If A is a vector and indexed by a vector, the output has the same shape as A. 
+                        % This does not apply if the index is ':'.
+                        if ~strcmp(S(1).subs{1}, ':') && isempty(sizeB)
+                            sizeB = int32(sizeA);
+                            sizeB(sizeA > 1) = int32(numel(src_subs{1}));
                         end
                     else
+                        % Determine the size of A based on the used
+                        % indexing and reshape if necessary.
                         sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
                         if numel(sizeAnew) == 1
-                            if iscolumn(src_subs{1})
-                                sizeAnew = [sizeAnew(1) 1];
-                            else 
-                                % This is a special case we have to address
-                                % later, or we have to use SetItemsNd instead of SetItems1d
+                            % If linear indexing is used, the shape of the
+                            % output is determined by the shape of the index.
+                            if isrow(src_subs{1}) 
                                 sizeAnew = [1 sizeAnew(1)];
-                                output_shape  = num2cell([1 numel(src_subs{1})]);
+                                sizeB    = int32([1 numel(src_subs{1})]);
+                            else % src_subs{1} is a column vector or a matrix(!).
+                                sizeAnew = [sizeAnew(1) 1];
                             end
                         end
-                        if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                        if ~isequal(sizeAnew, sizeA)
                             A = reshape(A, sizeAnew);
                             sizeA = sizeAnew;
                             isvectorA = sum(sizeA > 1) == 1;
                         end
                     end
 
-                    % Test if indexes are in bounds
-                    if ni == 1 && isvectorA
-                        if any(src_subs{1} > numel(A))
-                            error('Index exceeds the number of array elements (%i).', numel(A));
+                    % If the size of B is not determined by some special
+                    % case above, calculate it now
+                    if isempty(sizeB)
+                        for ii = ni:-1:1
+                            sizeB(ii) = int32(numel(src_subs{ii}));
                         end
-                    else
-                        too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
-                        if any(too_large)
-                            error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
+                        % Trailing singleton dimensions are removed
+                        if numel(sizeB) > 2
+                            lastNonSingletonDimension = find(sizeB~=1, 1, 'last');
+                            if lastNonSingletonDimension < 2
+                                sizeB = sizeB(1:2);
+                            elseif ~isempty(lastNonSingletonDimension)
+                                sizeB = sizeB(1:lastNonSingletonDimension);
+                            end
                         end
                     end
+                    for ii = numel(sizeB):-1:1
+                        dest_subs{ii} = 1:sizeB(ii);
+                    end
 
-                    % Calculate size of output vector
-                    n = cellfun(@(x) numel(x), src_subs);
-                    dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
-
-                    % Extract values
+                    % Create the UncArrays and index matricies for copying
                     am = DistProp.Convert2UncArray(A);
                     src_index  = DistProp.IndexMatrix(src_subs);
                     dest_index = DistProp.IndexMatrix(dest_subs);
                     if A.IsComplex
                        bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
-                       bm.InitNd(int32(n(:)));
+                       bm.InitNd(sizeB);
                     else
                        bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.DistProp.UncNumber'});
-                       bm.InitNd(int32(n(:)));
+                       bm.InitNd(sizeB);
                     end
-                    if ni == 1
-                        bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
-                    else
-                        % Due to the reshape of A above, am.ndims should
-                        % always be larger than or equal to the number of
-                        % dimensions addressed with src_index. However, a
-                        % scalar can never have more than two dimsions,
-                        % which necessitates this special case.
-                        if am.ndims < size(src_index, 2)
-                            tmp = src_index(:, am.ndims+1:end) == 1;
-                            if all(tmp(:))
-                                src_index = src_index(:, 1:am.ndims);
+                    % If A is a scalar, the UncArray am will have at most 2
+                    % dimensions. If A was addressed with more than 2
+                    % dimensions, e.g. A(1, 1, 1), we simply ignore the
+                    % other dimensions. If the indices were anything other
+                    % than 1, A would have been reshaped above to not be a
+                    % scalar.
+                    if prod(sizeA) == 1 && ni > 2
+                        src_index = src_index(:, 1:2);
+                    end
+                    
+                    % Copy the selected elements
+                    try
+                        if prod(sizeB) == 1
+                            if ni == 1
+                                B = DistProp(am.GetItem1d(int32(src_index - 1)));
+                            else
+                                B = DistProp(am.GetItemNd(int32(src_index - 1)));
+                            end
+                        else
+                            % If we reach this point, A is guaranteed to be a
+                            % matrix.
+                            bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+                            B = DistProp(bm);
+                        end
+                    catch e
+                        
+                        % Some index was incorrect. Test the subscripts to print typical matlab error messages.
+                        if any(cellfun(@(v) any(isinf(v) | v <= 0), src_subs))
+                            error('Array indices must be positive integers or logical values.');
+                        end
+                        if ni == 1 && isvectorA
+                            if any(src_subs{1} > numel(A))
+                                error('Index exceeds the number of array elements (%i).', numel(A));
+                            end
+                        else
+                            too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
+                            if any(too_large)
+                                error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
                             end
                         end
-                        bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+                        
+                        % Oterhwise rethrow prior error (this should not happen).
+                        rethrow(e);
                     end
-                    B = DistProp.Convert2DistProp(bm);
-
-                    % Corect shape of B
-                    if ~isempty(output_shape)
-                        B = reshape(B, output_shape{:});
-                    else
-                        sizeB = size(B);
-                        if numel(sizeB) > 2
-                            lastNonSingletonDimension = find(n~=1, 1, 'last');
-                            if lastNonSingletonDimension < 2
-                                B = reshape(B, sizeB(1:2));
-                            else 
-                                B = reshape(B, sizeB(1:lastNonSingletonDimension));
-                            end
-                        end
-                    end
+                    
                 end
                 
                 % after S(1).type == '()' has been processed

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 18.03.2022
+% Dion Timmermann PTB - 22.03.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -535,20 +535,29 @@ classdef DistProp
             I = S.subs;
             dimI = numel(I);
             
-            % Convert logical indexes to subscripts
-            isLogicalIndex = cellfun(@islogical, I);
-            I(isLogicalIndex) = cellfun(@find, I(isLogicalIndex), 'UniformOutput', false);
-            
-            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~isLogicalIndex)))
-                error('Array indices must be positive integers or logical values.');
+            % Convert logical indexes to subscripts and check subscripts
+            for ii = dimI:-1:1
+                if islogical(I{ii})
+                    I{ii} = find(I{ii});
+                else
+                    v = I{ii}(:);
+                    if any(ceil(v)~=v | isinf(v) | v <= 0)
+                        error('Array indices must be positive integers or logical values.');
+                    end
+                end
             end
+            
+            newA = strcmp(class(A), 'double'); %#ok<STISA>
             
             sizeA = size(A);
             numelA = prod(sizeA);
+            sizeB = size(B);
+            numelB = prod(sizeB);
+            isemptyB = (numelB == 0);
+            isscalarB = (numelB == 1);
             
             % Special case of null assignment to remove elements
-            if isempty(B) && isa(B, 'double')
+            if isemptyB && isa(B, 'double')
                 if sum(~strcmp(I, ':')) > 1
                     error('A null assignment can have only one non-colon index.');
                 else
@@ -583,40 +592,43 @@ classdef DistProp
             if ~isa(B, 'DistProp')
                 B = DistProp(B);
             end
-            if A.IsComplex && ~B.IsComplex
+            isComplexA = A.IsComplex;
+            isComplexB = B.IsComplex;
+            isComplex = isComplexA || isComplexB;
+            if isComplexA && ~isComplexB
                 B = complex(B);
-            elseif ~A.IsComplex && B.IsComplex
+            elseif ~isComplexA && isComplexB
                 A = complex(A);
             end
             
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address
             % all following dimensions.
-            if numelA == 0
+            if all(sizeA == 0)
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
-                sizeB = size(B);
                 if numel(sizeB) ~= sum(cellfun(@numel, I)>1 | strcmp(I, ':'))    % Singleton dimensions of B are ignored, except the dimensions already match.
-                    sizeB = sizeB(sizeB>1);
-                    sizeB = [sizeB ones(1, numel(I)-numel(sizeB))];
+                    sizeB_reduced = sizeB(sizeB>1);
+                    sizeB_reduced = [sizeB_reduced ones(1, numel(I)-numel(sizeB_reduced))];
+                else
+                    sizeB_reduced = sizeB;
                 end
-                numelB = prod(sizeB);
                 tmpProd = 1;
                 idx = 1;
                 if any(strcmp(I, ':'))
-                    if dimI < sum(sizeB>1)
+                    if dimI < sum(sizeB_reduced>1)
                         error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                     end
                     for ii = 1:(dimI-1)  % Dimensions except the last one
                         if strcmp(I{ii}, ':')
-                            I{ii} = 1:sizeB(idx);
-                            tmpProd = tmpProd * sizeB(idx);
+                            I{ii} = 1:sizeB_reduced(idx);
+                            tmpProd = tmpProd * sizeB_reduced(idx);
                             idx = idx + 1;
                         elseif numel(I{ii}) > 1
-                            if numel(I{ii}) ~= sizeB(idx)
+                            if numel(I{ii}) ~= sizeB_reduced(idx)
                                 error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                             end
-                            tmpProd = tmpProd * sizeB(idx);
+                            tmpProd = tmpProd * sizeB_reduced(idx);
                             idx = idx + 1;
                         end
                     end
@@ -639,18 +651,24 @@ classdef DistProp
                 end
             end
             
-            I_isempty = cellfun(@isempty, I);
-            I_maxIndex = zeros(size(I));
-            I_maxIndex(~I_isempty) = cellfun(@(x) double(max(x)), I(~I_isempty));
+            for ii = numel(I):-1:1
+                I_isempty = isempty(I{ii});
+                if I_isempty
+                    I_maxIndex(ii) = 0;
+                else
+                    I_maxIndex(ii) = double(max(I{ii}));
+                end
+            end
 
+            % Assignment of no elements to an empty/new object.
             if any(I_isempty) && numelA == 0
-                if numel(B) <= 1
+                if numelB <= 1
                     s = I_maxIndex;
                     if numel(s) < 2
-                        if ~isempty(B)
-                            s = [s zeros(1,2-numel(s))];
-                        else
+                        if isemptyB && newA
                             s = [ones(1,2-numel(s)) s];
+                        else
+                            s = [s zeros(1,2-numel(s))];
                         end
                     else
                         lastNonSingletonDimension = find(s~=1, 1, 'last');
@@ -661,21 +679,20 @@ classdef DistProp
                 else 
                     error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                 end
-            end
             
             % Linear indexing
-            if dimI == 1
+            elseif dimI == 1
                 % Linear indexing follows some specific rules
                 
-                if ~isscalar(B) && numel(I{1}) ~= numel(B)
+                if ~isscalarB && numel(I{1}) ~= numelB
                     error('Unable to perform assignment because the left and right sides have a different number of elements.');
                 end
                 
                 % Grow vector if necessary
                 if I_maxIndex > numelA
                     if numelA == 0
-                        A = DistProp(zeros(1, I_maxIndex));
-                        if B.IsComplex
+                        A = zeros(1, I_maxIndex, 'DistProp');
+                        if isComplex
                             A = complex(A);
                         end
                     elseif isrow(A)
@@ -692,10 +709,10 @@ classdef DistProp
                 bm = DistProp.Convert2UncArray(B);
                 dest_index = DistProp.IndexMatrix(I);
 
-                if isscalar(B)
+                if isscalarB
                     am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
                 else
-                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
+                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numelB-1)));
                 end
                 
                 C = DistProp.Convert2DistProp(am);
@@ -704,7 +721,7 @@ classdef DistProp
             % Or subscript indexing / partial linear indexing
             else
   
-                if dimI < ndims(A)
+                if dimI < numel(sizeA)
                     % partial linear indexing
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
@@ -712,7 +729,9 @@ classdef DistProp
                 else
                     % Ignore empty and singleton dimensions that have been
                     % indexed but do not exist anyways.
-                    I_issingleton = cellfun(@(x) all(x == 1), I);
+                    for ii = dimI:-1:1
+                        I_issingleton(ii) = all(I{ii}(:) == 1);
+                    end
                     I_lastRelevant = [find(not(I_isempty | I_issingleton), 1, 'last') 2];
                     I_lastRelevant = I_lastRelevant(1);
                     I = I(1:min(dimI, max(numel(sizeA), I_lastRelevant)));
@@ -721,15 +740,16 @@ classdef DistProp
                 end
                 
                 % Check dimensions
-                if ~isscalar(B)
-                    sizeI = cellfun(@numel, I);
-                    sizeB = size(B);
+                if ~isscalarB
+                    for ii = dimI:-1:1
+                        I_numel(ii) = numel(I{ii});
+                    end
                     
-                    sizeI_reduced = sizeI(sizeI > 1);
-                    sizeB_reduced = sizeB(sizeB > 1);
-                    if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
+                    sizeI_reduced = I_numel(I_numel ~= 1);
+                    sizeB_reduced = sizeB(sizeB ~= 1);
+                    if ~isequal(sizeI_reduced, sizeB_reduced) && not(any(I_numel == 0) && any(sizeB == 0))
                         error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
-                        strjoin(string(sizeI), '-by-'), ...
+                        strjoin(string(I_numel), '-by-'), ...
                         strjoin(string(sizeB), '-by-'));
                     end
                     
@@ -742,7 +762,7 @@ classdef DistProp
                 sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
                 if any(I_maxIndex > sA_nI)
                     A2 = DistProp(zeros(max(I_maxIndex, sA_nI)));
-                    if B.IsComplex
+                    if isComplex
                         A2 = complex(A2);
                     end
                     if numel(A) == 0
@@ -765,10 +785,10 @@ classdef DistProp
                 bm = DistProp.Convert2UncArray(B);
                 dest_index = DistProp.IndexMatrix(I);
 
-                if isscalar(B)
+                if isscalarB
                     am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
                 else
-                    src_subs = arrayfun(@(x) 1:x, size(B), 'UniformOutput', false);
+                    src_subs = arrayfun(@(x) 1:x, sizeB, 'UniformOutput', false);
                     src_index  = DistProp.IndexMatrix(src_subs);
 
                     am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));

@@ -1,6 +1,6 @@
-% Metas.UncLib.Matlab.LinProp V2.5.0
-% Michael Wollensack METAS - 17.09.2021
-% Dion Timmermann PTB - 24.02.2022
+% Metas.UncLib.Matlab.LinProp V2.5.3
+% Michael Wollensack METAS - 25.02.2022
+% Dion Timmermann PTB - 22.03.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -50,8 +50,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
     end
     methods
         function obj = LinProp(varargin)
-            UncPropLoadNETAssemblies('LinProp');
-            h = LinProp.UncHelper();
+            % The assemblies are guaranteed to be loaded through the
+            % constant UncHelper property.
             switch nargin
                 case 1
                     switch class(varargin{1})
@@ -72,10 +72,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 v = LinProp.Double2Array(varargin{1});
                                 if ~isreal(varargin{1})
                                     % ComplexUncArray
-                                    obj.NetObject = h.ComplexUncNArray(v);
+                                    obj.NetObject = LinProp.UncHelper.ComplexUncNArray(v);
                                 else
                                     % RealUncArray
-                                    obj.NetObject = h.RealUncNArray(v);
+                                    obj.NetObject = LinProp.UncHelper.RealUncNArray(v);
                                 end
                             end
                         case 'Metas.UncLib.LinProp.UncNumber'
@@ -98,7 +98,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 % ComplexUncNumber
                                 v = LinProp.Double2ComplexNumber(varargin{1});
                                 cv = LinProp.Double2Array(varargin{2});
-                                obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, 0);
+                                obj.NetObject = LinProp.UncHelper.ComplexUncNumber(v, cv.Matrix, 0);
                             else
                                 % RealUncNumber
                                 obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2});
@@ -108,10 +108,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                             cv = LinProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
                                 % ComplexUncArray
-                                obj.NetObject = h.ComplexUncNArray(v, cv.Matrix, 0);
+                                obj.NetObject = LinProp.UncHelper.ComplexUncNArray(v, cv.Matrix, 0);
                             else
                                 % RealUncArray
-                                obj.NetObject = h.RealUncNArray(v, cv.Matrix, 0);
+                                obj.NetObject = LinProp.UncHelper.RealUncNArray(v, cv.Matrix, 0);
                             end
                         end
                     elseif isa(varargin{1}, 'char') && isa(varargin{2}, 'char')
@@ -130,18 +130,18 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector);
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNumberFromSamples(s.Vector);
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector);
+                                        obj.NetObject = LinProp.UncHelper.RealUncNumberFromSamples(s.Vector);
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix);
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix);
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix);
+                                        obj.NetObject = LinProp.UncHelper.RealUncNArrayFromSamples(s.Matrix);
                                     end
                                 end
                             otherwise
@@ -159,7 +159,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 % ComplexUncNumber (Description)
                                 v = LinProp.Double2ComplexNumber(varargin{1});
                                 cv = LinProp.Double2Array(varargin{2});
-                                obj.NetObject = h.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = LinProp.UncHelper.ComplexUncNumber(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             else
                                 % RealUncNumber (Description)
                                 obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, 0, UncInputId(), sprintf(varargin{3}));
@@ -169,10 +169,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                             cv = LinProp.Double2Array(varargin{2});
                             if ~isreal(varargin{1})
                                 % ComplexUncArray (Description)
-                                obj.NetObject = h.ComplexUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = LinProp.UncHelper.ComplexUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             else
                                 % RealUncArray (Description)
-                                obj.NetObject = h.RealUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
+                                obj.NetObject = LinProp.UncHelper.RealUncNArray(v, cv.Matrix, UncInputId(), sprintf(varargin{3}));
                             end
                         end
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'char') && isa(varargin{3}, 'char')
@@ -182,18 +182,18 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = LinProp.UncHelper.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}));
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                        obj.NetObject = LinProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
                                     end
                                 end
                             otherwise
@@ -217,18 +217,18 @@ classdef LinProp < matlab.mixin.CustomDisplay
                                 if size(varargin{1}, 2) == 1
                                     if ~isreal(varargin{1})
                                         % ComplexUncNumber
-                                        obj.NetObject = h.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     else
                                         % RealUncNumber
-                                        obj.NetObject = h.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = LinProp.UncHelper.RealUncNumberFromSamples(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     end
                                 else
                                     if ~isreal(varargin{1})
                                         % ComplexUncArray
-                                        obj.NetObject = h.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = LinProp.UncHelper.ComplexUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     else
                                         % RealUncArray
-                                        obj.NetObject = h.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                        obj.NetObject = LinProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     end
                                 end
                             otherwise
@@ -333,8 +333,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
             %
             
             % Write size of all dimensions to s.
-            if obj.IsArray
-                s = double(obj.NetObject.size);
+            if LinProp.IsArrayNet(obj.NetObject)
+                netSize = obj.NetObject.size; % Using a temp variable saves a lot of time.
+                s = double(netSize);
             else
                 s = [1 1];
             end
@@ -477,20 +478,29 @@ classdef LinProp < matlab.mixin.CustomDisplay
             I = S.subs;
             dimI = numel(I);
             
-            % Convert logical indexes to subscripts
-            isLogicalIndex = cellfun(@islogical, I);
-            I(isLogicalIndex) = cellfun(@find, I(isLogicalIndex), 'UniformOutput', false);
-            
-            % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-            if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), I(~isLogicalIndex)))
-                error('Array indices must be positive integers or logical values.');
+            % Convert logical indexes to subscripts and check subscripts
+            for ii = dimI:-1:1
+                if islogical(I{ii})
+                    I{ii} = find(I{ii});
+                else
+                    v = I{ii}(:);
+                    if any(ceil(v)~=v | isinf(v) | v <= 0)
+                        error('Array indices must be positive integers or logical values.');
+                    end
+                end
             end
+            
+            newA = strcmp(class(A), 'double'); %#ok<STISA>
             
             sizeA = size(A);
             numelA = prod(sizeA);
+            sizeB = size(B);
+            numelB = prod(sizeB);
+            isemptyB = (numelB == 0);
+            isscalarB = (numelB == 1);
             
             % Special case of null assignment to remove elements
-            if isempty(B) && isa(B, 'double')
+            if isemptyB && isa(B, 'double')
                 if sum(~strcmp(I, ':')) > 1
                     error('A null assignment can have only one non-colon index.');
                 else
@@ -525,40 +535,43 @@ classdef LinProp < matlab.mixin.CustomDisplay
             if ~isa(B, 'LinProp')
                 B = LinProp(B);
             end
-            if A.IsComplex && ~B.IsComplex
+            isComplexA = A.IsComplex;
+            isComplexB = B.IsComplex;
+            isComplex = isComplexA || isComplexB;
+            if isComplexA && ~isComplexB
                 B = complex(B);
-            elseif ~A.IsComplex && B.IsComplex
+            elseif ~isComplexA && isComplexB
                 A = complex(A);
             end
             
             % Replace ':' placeholders 
             % Note: The last dimension can always be used to address
             % all following dimensions.
-            if numelA == 0
+            if all(sizeA == 0)
                 % If A has not been defined yet, the dots (:) refer to the
                 % size of B.
-                sizeB = size(B);
                 if numel(sizeB) ~= sum(cellfun(@numel, I)>1 | strcmp(I, ':'))    % Singleton dimensions of B are ignored, except the dimensions already match.
-                    sizeB = sizeB(sizeB>1);
-                    sizeB = [sizeB ones(1, numel(I)-numel(sizeB))];
+                    sizeB_reduced = sizeB(sizeB>1);
+                    sizeB_reduced = [sizeB_reduced ones(1, numel(I)-numel(sizeB_reduced))];
+                else
+                    sizeB_reduced = sizeB;
                 end
-                numelB = prod(sizeB);
                 tmpProd = 1;
                 idx = 1;
                 if any(strcmp(I, ':'))
-                    if dimI < sum(sizeB>1)
+                    if dimI < sum(sizeB_reduced>1)
                         error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                     end
                     for ii = 1:(dimI-1)  % Dimensions except the last one
                         if strcmp(I{ii}, ':')
-                            I{ii} = 1:sizeB(idx);
-                            tmpProd = tmpProd * sizeB(idx);
+                            I{ii} = 1:sizeB_reduced(idx);
+                            tmpProd = tmpProd * sizeB_reduced(idx);
                             idx = idx + 1;
                         elseif numel(I{ii}) > 1
-                            if numel(I{ii}) ~= sizeB(idx)
+                            if numel(I{ii}) ~= sizeB_reduced(idx)
                                 error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                             end
-                            tmpProd = tmpProd * sizeB(idx);
+                            tmpProd = tmpProd * sizeB_reduced(idx);
                             idx = idx + 1;
                         end
                     end
@@ -581,18 +594,24 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
             end
             
-            I_isempty = cellfun(@isempty, I);
-            I_maxIndex = zeros(size(I));
-            I_maxIndex(~I_isempty) = cellfun(@(x) double(max(x)), I(~I_isempty));
+            for ii = numel(I):-1:1
+                I_isempty = isempty(I{ii});
+                if I_isempty
+                    I_maxIndex(ii) = 0;
+                else
+                    I_maxIndex(ii) = double(max(I{ii}));
+                end
+            end
 
+            % Assignment of no elements to an empty/new object.
             if any(I_isempty) && numelA == 0
-                if numel(B) <= 1
+                if numelB <= 1
                     s = I_maxIndex;
                     if numel(s) < 2
-                        if ~isempty(B)
-                            s = [s zeros(1,2-numel(s))];
-                        else
+                        if isemptyB && newA
                             s = [ones(1,2-numel(s)) s];
+                        else
+                            s = [s zeros(1,2-numel(s))];
                         end
                     else
                         lastNonSingletonDimension = find(s~=1, 1, 'last');
@@ -603,21 +622,20 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 else 
                     error('Unable to perform assignment because the indices on the left side are not compatible with the size of the right side.');
                 end
-            end
             
             % Linear indexing
-            if dimI == 1
+            elseif dimI == 1
                 % Linear indexing follows some specific rules
                 
-                if ~isscalar(B) && numel(I{1}) ~= numel(B)
+                if ~isscalarB && numel(I{1}) ~= numelB
                     error('Unable to perform assignment because the left and right sides have a different number of elements.');
                 end
                 
                 % Grow vector if necessary
                 if I_maxIndex > numelA
                     if numelA == 0
-                        A = LinProp(zeros(1, I_maxIndex));
-                        if B.IsComplex
+                        A = zeros(1, I_maxIndex, 'LinProp');
+                        if isComplex
                             A = complex(A);
                         end
                     elseif isrow(A)
@@ -634,10 +652,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 bm = LinProp.Convert2UncArray(B);
                 dest_index = LinProp.IndexMatrix(I);
 
-                if isscalar(B)
+                if isscalarB
                     am.SetSameItem1d(int32(dest_index - 1), bm.GetItem1d(0));
                 else
-                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numel(B)-1)));
+                    am.SetItems1d(int32(dest_index - 1), bm.GetItems1d(int32(0 : numelB-1)));
                 end
                 
                 C = LinProp.Convert2LinProp(am);
@@ -646,7 +664,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
             % Or subscript indexing / partial linear indexing
             else
   
-                if dimI < ndims(A)
+                if dimI < numel(sizeA)
                     % partial linear indexing
                     if max(I{end}) > prod(sizeA(dimI:end))
                         error('Attempt to grow array along ambiguous dimension.');
@@ -654,7 +672,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 else
                     % Ignore empty and singleton dimensions that have been
                     % indexed but do not exist anyways.
-                    I_issingleton = cellfun(@(x) all(x == 1), I);
+                    for ii = dimI:-1:1
+                        I_issingleton(ii) = all(I{ii}(:) == 1);
+                    end
                     I_lastRelevant = [find(not(I_isempty | I_issingleton), 1, 'last') 2];
                     I_lastRelevant = I_lastRelevant(1);
                     I = I(1:min(dimI, max(numel(sizeA), I_lastRelevant)));
@@ -663,15 +683,16 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
                 
                 % Check dimensions
-                if ~isscalar(B)
-                    sizeI = cellfun(@numel, I);
-                    sizeB = size(B);
+                if ~isscalarB
+                    for ii = dimI:-1:1
+                        I_numel(ii) = numel(I{ii});
+                    end
                     
-                    sizeI_reduced = sizeI(sizeI > 1);
-                    sizeB_reduced = sizeB(sizeB > 1);
-                    if numel(sizeI_reduced) ~= numel(sizeB_reduced) || any(sizeI_reduced ~= sizeB_reduced)
+                    sizeI_reduced = I_numel(I_numel ~= 1);
+                    sizeB_reduced = sizeB(sizeB ~= 1);
+                    if ~isequal(sizeI_reduced, sizeB_reduced) && not(any(I_numel == 0) && any(sizeB == 0))
                         error('Unable to perform assignment because the size of the left side is %s and the size of the right side is %s.', ...
-                        strjoin(string(sizeI), '-by-'), ...
+                        strjoin(string(I_numel), '-by-'), ...
                         strjoin(string(sizeB), '-by-'));
                     end
                     
@@ -684,7 +705,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 sA_nI = [sizeA(1 : (dimI-1)), prod(sizeA(dimI:end))]; % size of A, when using the same number of dimensions as nI;
                 if any(I_maxIndex > sA_nI)
                     A2 = LinProp(zeros(max(I_maxIndex, sA_nI)));
-                    if B.IsComplex
+                    if isComplex
                         A2 = complex(A2);
                     end
                     if numel(A) == 0
@@ -707,10 +728,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 bm = LinProp.Convert2UncArray(B);
                 dest_index = LinProp.IndexMatrix(I);
 
-                if isscalar(B)
+                if isscalarB
                     am.SetSameItemNd(int32(dest_index - 1), bm.GetItem1d(0));
                 else
-                    src_subs = arrayfun(@(x) 1:x, size(B), 'UniformOutput', false);
+                    src_subs = arrayfun(@(x) 1:x, sizeB, 'UniformOutput', false);
                     src_index  = LinProp.IndexMatrix(src_subs);
 
                     am.SetItemsNd(int32(dest_index - 1), bm.GetItemsNd(int32(src_index - 1)));
@@ -767,131 +788,154 @@ classdef LinProp < matlab.mixin.CustomDisplay
                     sizeA = size(A);
                     isvectorA = sum(sizeA > 1) == 1;
                     src_subs = S(1).subs;
-                    output_shape = {};
+                    sizeB = [];
 
                     % Convert logical indexes to subscripts
-                    isLogicalIndex = cellfun(@islogical, src_subs);
-                    src_subs(isLogicalIndex) = cellfun(@(x) find(x(:)), src_subs(isLogicalIndex), 'UniformOutput', false);
+                    for ii = 1:ni
+                        if islogical(src_subs{ii})
+                            src_subs{ii} = find(src_subs{ii});
+                        end
+                    end
 
                     % This is a very special case. If linear indexing is used, but
                     % the linear indexes are arranged in form of a matrix, the
                     % output has the shape of the matrix. This does not apply to
                     % logical indexes.
                     if ni == 1 && ~isvector(src_subs{1})
-                        output_shape = num2cell(size(src_subs{1}));   % Save shape of output for later.
+                        sizeB = int32(size(src_subs{1}));   % Save shape of output for later.
                         src_subs{1} = src_subs{1}(:);       % But conform to vector for processing.
-                    elseif ni > 1
-                        % If subscript indexing is used, interpret every
-                        % index as a vector. (This is necessary for repmat.)
-                        src_subs = cellfun(@(x) x(:), src_subs, 'UniformOutput', false);
-                    end
-
-                    % check if non-logical indexes have positive integer values (rounding has no effect and not inf, nan also fails this test).
-                    if any(cellfun(@(v) any(ceil(v)~=v | isinf(v) | v <= 0), src_subs(~isLogicalIndex)))
-                        error('Array indices must be positive integers or logical values.');
                     end
 
                     sizeA_extended = [sizeA ones(1, ni-numel(sizeA))];
-                    % Replace ':' placeholders
+                    % Replace ':' placeholders and ensure indexes are integers.
                     % Note: The last dimension can always be used to address
                     % all following dimensions.
                     for ii = 1:(ni-1)  % Dimensions except the last one
                         if strcmp(src_subs{ii}, ':')
                             src_subs{ii} = 1:sizeA_extended(ii);
+                        else
+                            originalValue = src_subs{ii};
+                            src_subs{ii} = int32(src_subs{ii});
+                            if ~isequal(originalValue, double(src_subs{ii}))
+                                error('Array indices must be positive integers or logical values.');
+                            end
                         end
                     end
                     if strcmp(src_subs{ni}, ':') % Special case for last dimension
                         src_subs{ni} = (1:(numel(A)/prod(sizeA_extended(1 : (ni-1)))))';
+                    else
+                        originalValue = src_subs{ni};
+                        src_subs{ni} = int32(src_subs{ni});
+                        if ~isequal(originalValue, double(src_subs{ni}))
+                            error('Array indices must be positive integers or logical values.');
+                        end
                     end
 
-                    % Reshape A if (partial) linear indexing is used.
+                    % Handling (partial) linear indexing
                     if ni == 1 && isvectorA
-                        % Special case for shape of output, based on definition of subsref
-                        % B has the same shape as A. 
-                        % What is not mentioned in the documentation is that this
-                        % only applies if the argument is not ':'.
-                        if ~strcmp(S(1).subs{1}, ':') && isempty(output_shape)
-                            output_shape = num2cell(sizeA);
-                            output_shape(sizeA > 1) = {[]};
+                        % If A is a vector and indexed by a vector, the output has the same shape as A. 
+                        % This does not apply if the index is ':'.
+                        if ~strcmp(S(1).subs{1}, ':') && isempty(sizeB)
+                            sizeB = int32(sizeA);
+                            sizeB(sizeA > 1) = int32(numel(src_subs{1}));
                         end
                     else
+                        % Determine the size of A based on the used
+                        % indexing and reshape if necessary.
                         sizeAnew = [sizeA_extended(1:ni-1) prod(sizeA_extended(ni:end))];
                         if numel(sizeAnew) == 1
-                            if iscolumn(src_subs{1})
-                                sizeAnew = [sizeAnew(1) 1];
-                            else 
-                                % This is a special case we have to address
-                                % later, or we have to use SetItemsNd instead of SetItems1d
+                            % If linear indexing is used, the shape of the
+                            % output is determined by the shape of the index.
+                            if isrow(src_subs{1}) 
                                 sizeAnew = [1 sizeAnew(1)];
-                                output_shape  = num2cell([1 numel(src_subs{1})]);
+                                sizeB    = int32([1 numel(src_subs{1})]);
+                            else % src_subs{1} is a column vector or a matrix(!).
+                                sizeAnew = [sizeAnew(1) 1];
                             end
                         end
-                        if numel(sizeAnew) ~= numel(sizeA) || any(sizeAnew ~= sizeA)
+                        if ~isequal(sizeAnew, sizeA)
                             A = reshape(A, sizeAnew);
                             sizeA = sizeAnew;
                             isvectorA = sum(sizeA > 1) == 1;
                         end
                     end
 
-                    % Test if indexes are in bounds
-                    if ni == 1 && isvectorA
-                        if any(src_subs{1} > numel(A))
-                            error('Index exceeds the number of array elements (%i).', numel(A));
+                    % If the size of B is not determined by some special
+                    % case above, calculate it now
+                    if isempty(sizeB)
+                        for ii = ni:-1:1
+                            sizeB(ii) = int32(numel(src_subs{ii}));
                         end
-                    else
-                        too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
-                        if any(too_large)
-                            error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
+                        % Trailing singleton dimensions are removed
+                        if numel(sizeB) > 2
+                            lastNonSingletonDimension = find(sizeB~=1, 1, 'last');
+                            if lastNonSingletonDimension < 2
+                                sizeB = sizeB(1:2);
+                            elseif ~isempty(lastNonSingletonDimension)
+                                sizeB = sizeB(1:lastNonSingletonDimension);
+                            end
                         end
                     end
+                    for ii = numel(sizeB):-1:1
+                        dest_subs{ii} = 1:sizeB(ii);
+                    end
 
-                    % Calculate size of output vector
-                    n = cellfun(@(x) numel(x), src_subs);
-                    dest_subs = arrayfun(@(x) 1:x, n, 'UniformOutput', false);
-
-                    % Extract values
+                    % Create the UncArrays and index matricies for copying
                     am = LinProp.Convert2UncArray(A);
                     src_index  = LinProp.IndexMatrix(src_subs);
                     dest_index = LinProp.IndexMatrix(dest_subs);
                     if A.IsComplex
                        bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
-                       bm.InitNd(int32(n(:)));
+                       bm.InitNd(sizeB);
                     else
                        bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.LinProp.UncNumber'});
-                       bm.InitNd(int32(n(:)));
+                       bm.InitNd(sizeB);
                     end
-                    if ni == 1
-                        bm.SetItems1d(int32(dest_index - 1), am.GetItems1d(int32(src_index - 1)));
-                    else
-                        % Due to the reshape of A above, am.ndims should
-                        % always be larger than or equal to the number of
-                        % dimensions addressed with src_index. However, a
-                        % scalar can never have more than two dimsions,
-                        % which necessitates this special case.
-                        if am.ndims < size(src_index, 2)
-                            tmp = src_index(:, am.ndims+1:end) == 1;
-                            if all(tmp(:))
-                                src_index = src_index(:, 1:am.ndims);
+                    % If A is a scalar, the UncArray am will have at most 2
+                    % dimensions. If A was addressed with more than 2
+                    % dimensions, e.g. A(1, 1, 1), we simply ignore the
+                    % other dimensions. If the indices were anything other
+                    % than 1, A would have been reshaped above to not be a
+                    % scalar.
+                    if prod(sizeA) == 1 && ni > 2
+                        src_index = src_index(:, 1:2);
+                    end
+                    
+                    % Copy the selected elements
+                    try
+                        if prod(sizeB) == 1
+                            if ni == 1
+                                B = LinProp(am.GetItem1d(int32(src_index - 1)));
+                            else
+                                B = LinProp(am.GetItemNd(int32(src_index - 1)));
+                            end
+                        else
+                            % If we reach this point, A is guaranteed to be a
+                            % matrix.
+                            bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+                            B = LinProp(bm);
+                        end
+                    catch e
+                        
+                        % Some index was incorrect. Test the subscripts to print typical matlab error messages.
+                        if any(cellfun(@(v) any(isinf(v) | v <= 0), src_subs))
+                            error('Array indices must be positive integers or logical values.');
+                        end
+                        if ni == 1 && isvectorA
+                            if any(src_subs{1} > numel(A))
+                                error('Index exceeds the number of array elements (%i).', numel(A));
+                            end
+                        else
+                            too_large = arrayfun(@(m, v) any(v{1} > m), sizeA(1:ni), src_subs);
+                            if any(too_large)
+                                error('Index in position %i exceeds array bounds (must not exceed %i).', find(too_large>0, 1), sizeA(find(too_large>0, 1)));
                             end
                         end
-                        bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+                        
+                        % Oterhwise rethrow prior error (this should not happen).
+                        rethrow(e);
                     end
-                    B = LinProp.Convert2LinProp(bm);
-
-                    % Corect shape of B
-                    if ~isempty(output_shape)
-                        B = reshape(B, output_shape{:});
-                    else
-                        sizeB = size(B);
-                        if numel(sizeB) > 2
-                            lastNonSingletonDimension = find(n~=1, 1, 'last');
-                            if lastNonSingletonDimension < 2
-                                B = reshape(B, sizeB(1:2));
-                            else 
-                                B = reshape(B, sizeB(1:lastNonSingletonDimension));
-                            end
-                        end
-                    end
+                    
                 end
                 
                 % after S(1).type == '()' has been processed
@@ -979,53 +1023,44 @@ classdef LinProp < matlab.mixin.CustomDisplay
             o = obj.NetObject;
         end
         function d = get_value(obj)
-            h = LinProp.UncHelper(); 
-            d = LinProp.Convert2Double(h.GetValue(obj.NetObject));
+            d = LinProp.Convert2Double(LinProp.UncHelper.GetValue(obj.NetObject));
         end
         function d = get_stdunc(obj)
-            h = LinProp.UncHelper(); 
-            d = LinProp.Convert2Double(h.GetStdUnc(obj.NetObject));
+            d = LinProp.Convert2Double(LinProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
-            h = LinProp.UncHelper(); 
-            d = LinProp.Convert2Double(h.GetIDof(obj.NetObject));
+            d = LinProp.Convert2Double(LinProp.UncHelper.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)
-            h = LinProp.UncHelper(); 
-            d = LinProp.Convert2Double(h.GetFcnValue(obj.NetObject));
+            d = LinProp.Convert2Double(LinProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
             l = ToUncList(obj);
-            h = LinProp.UncHelper();
-            temp = h.GetCoverageInterval(l, p);
+            temp = LinProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             d = LinProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
-            h = LinProp.UncHelper(); 
-            d = LinProp.Convert2Double(h.GetMoment(obj.NetObject, int32(n)));
+            d = LinProp.Convert2Double(LinProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
             l = ToUncList(obj);
-            h = LinProp.UncHelper();
-            temp = h.GetCorrelation(l);
+            temp = LinProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = LinProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
             l = ToUncList(obj);
-            h = LinProp.UncHelper();
-            temp = h.GetCovariance(l);
+            temp = LinProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = LinProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
             l = ToUncList(obj);
-            h = LinProp.UncHelper();
-            temp = h.GetJacobi(l);
+            temp = LinProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = LinProp.Convert2Double(array);
@@ -1033,8 +1068,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
         function c = get_jacobi2(x, y)
             x2 = ToUncList(x);
             y2 = ToUncList(y);
-            h = LinProp.UncHelper();
-            temp = h.GetJacobi2(x2, y2);
+            temp = LinProp.UncHelper.GetJacobi2(x2, y2);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = LinProp.Convert2Double(array);
@@ -1042,8 +1076,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
         function c = get_unc_component(x, y)
             x2 = ToUncList(x);
             y2 = ToUncList(y);
-            h = LinProp.UncHelper();
-            temp = h.GetUncComponent(x2, y2);
+            temp = LinProp.UncHelper.GetUncComponent(x2, y2);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
             array.Init2dData(temp);
             c = LinProp.Convert2Double(array);
@@ -1920,7 +1953,7 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 signs; ...
                 repmat(('(')', 1, n); ...
                 LinProp.toCharColumn(abs(value)); ...
-                repmat((' ± ')', 1, n); ...
+                repmat((' ï¿½ ')', 1, n); ...
                 LinProp.toCharColumn(stdunc); ...
                 repmat((')')', 1, n); ...
             ];
@@ -2070,6 +2103,9 @@ classdef LinProp < matlab.mixin.CustomDisplay
             x = LinProp(randn(varargin{:}));
         end
     end
+    properties (Constant, Access = private)
+        UncHelper = LinProp.UncHelperFactory();
+    end
     methods(Static = true, Access = private)
         function [x, y] = replicateSingletonDimensions(x, y)
             dims = max(ndims(x), ndims(y));
@@ -2092,7 +2128,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 y = repmat(y, repY);
             end
         end
-        function h = UncHelper()
+        function h = UncHelperFactory()
+            UncPropLoadNETAssemblies('LinProp');
             h = NET.createGeneric('Metas.UncLib.Core.Unc.GenericUnc', {'Metas.UncLib.LinProp.UncList', 'Metas.UncLib.LinProp.UncNumber'});
         end
         function l = LinAlg(complex)

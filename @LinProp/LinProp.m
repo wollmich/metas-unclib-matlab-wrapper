@@ -1745,7 +1745,15 @@ classdef LinProp < matlab.mixin.CustomDisplay
             bin.array = obj.IsArray;
             bin.complex = obj.IsComplex;
         end
-        function displayInFormat(obj, useFormat)
+    end
+    methods (Hidden, Access = public)
+        function displayInFormat(obj, useFormat) %#ok<INUSL> Used through inputname
+            % Function used to print a number in a different format than
+            % the one selected currently. 
+            %
+            % To make sure the correct variable name is shown, the function
+            % actually executed code in the caller workspace.
+            
             oldFormat = get(0, 'Format');
             evalin('caller', sprintf('format(''%s'');', useFormat));
             evalin('caller', sprintf('display(%s);', inputname(1)));
@@ -1753,20 +1761,40 @@ classdef LinProp < matlab.mixin.CustomDisplay
         end
     end
     methods(Access = protected)
-        displayScalarObject(obj)
-        getFooter(obj)
+        function displayScalarObject(obj)
+            
+            % If getDetailedFooter returns an empty string, we are in an
+            % environment that does not support links (like a pupup text 
+            % or the "Variables" window). In these environments the
+            % datatype and size are already shown, so we omit them.
+            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
+                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                fprintf('    %s:\n', name);
+            end
+            
+            fprintf('    %s\n\n', ...
+                LinProp.toUncCharColumn(get_value(obj), get_stdunc(obj), obj.IsComplex));
+
+            displayFooter(obj, inputname(1));
+        end
         function displayNonScalarObject(obj)
             value = get_value(obj);
             stdunc = get_stdunc(obj);
             
-            dimstr = matlab.mixin.CustomDisplay.convertDimensionsToString(obj);
-            name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
-            fprintf('    %s %s:\n\n', dimstr, name);
+            % If getDetailedFooter returns an empty string, we are in an
+            % environment that does not support links (like a pupup text 
+            % or the "Variables" window). In these environments the
+            % datatype and size are already shown, so we omit them.
+            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
+                dimstr = matlab.mixin.CustomDisplay.convertDimensionsToString(obj);
+                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                fprintf('    %s %s:\n', dimstr, name);
+            end
             
             if ismatrix(value)
                 LinProp.printPage(value, stdunc, obj.IsComplex);
             else
-                fprintf('\b'); % Remove last line break.
+                % Print every page (2D slice) separately
                 sizeObj = size(value);
                 sizeRes = sizeObj(3:end);
                 pageSubs = cell(1, numel(sizeRes));
@@ -1778,37 +1806,19 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
             end
             
-            [~, I] = dbstack();
-            if I == 1
-                methodsStr = sprintf('<a href="matlab:methods(''%s'')">Methods</a>',class(obj));
-
-                if startsWith(get(0, 'Format'), 'long')
-                    methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''short'')', 'in Format short', inputname(1), class(obj)), ', ', methodsStr];
-                else
-                    methodsStr = [LinProp.getMethodLink('displayInFormat(%s, ''long'')', 'in Format long', inputname(1), class(obj)), ', ', methodsStr];
-                end
-                
-                fprintf('Show %s.\n', methodsStr);
-            end
-            
+            displayFooter(obj, inputname(1));
         end
-        
+        displayFooter(obj, inputname) % This function is different for LinProp
     end
     methods(Static, Access = protected)
-        function link=getMethodLink(method, text, varName, class)
-
-            methodCall = sprintf(method, varName);
-                
-            link = sprintf(['matlab:if exist(''%s'', ''var'')&&isa(%s, ''%s''), ', ...
-                '%s; ', ...
-                'else, ', ...
-                'fprintf(''Unable to display variable. %s refers to a deleted object.\\n''), ', ...
-                'end'], ...
-                varName,varName,class,methodCall,varName);
-
-            link = sprintf('<a href="%s">%s</a>', link, text);
-        end
         function printPage(value, stdunc, isComplex)
+            % Helper function for displayNonScalarObject(). Prints one page
+            % (2D slice) of a matrix.
+            %
+            % Inputs:
+            %   value           2D mtrix nominal values to format
+            %   stdunc          2D mtrix of std unciertainties to format
+            %   isComplex       logical indicating if data are complex
 
             wSize = matlab.desktop.commandwindow.size;
             commandWindowWidth = wSize(1);
@@ -1860,6 +1870,13 @@ classdef LinProp < matlab.mixin.CustomDisplay
 
         end
         function column = toUncCharColumn(value, stdunc, isComplex)
+            % Used to format a scalar or vector of LinProps as a char
+            % matrix with (value +/- stdunc) notation.
+            %
+            % Inputs:
+            %   value           vector of nominal values to format
+            %   stdunc          vector of std unciertainties to format
+            %   isComplex       logical indicating if data are complex
             
             if isComplex
                 columnReal = LinProp.toUncPartCharColumn(real(value), real(stdunc), 1, false);
@@ -1876,6 +1893,19 @@ classdef LinProp < matlab.mixin.CustomDisplay
             
         end
         function column = toUncPartCharColumn(value, stdunc, signSpacing, showPlus)
+            % Helper function for toUncCharColumn.
+            %
+            % Used to format a vector of non-complex LinProps as a char
+            % matrix with (value +/- stdunc) notation.
+            %
+            % Inputs:
+            %   value           vector of nominal values to format
+            %   stdunc          vector of std unciertainties to format
+            %   signSpacing     number of spaces before opening bracket.
+            %                   The sign of the nominal value is placed in
+            %                   these spaces, thus signSpacing must be >=1.
+            %   showPlus        if true, a '+' is inserted infront of
+            %                   entries with a non-negative value.
 
             n = numel(value);
             
@@ -1897,6 +1927,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
 
         end
         function column = toCharColumn(number)
+            % Helper function for toUncPartCharColumn.
+            %
+            % Converts a vector of numbers into a char matrix contianing
+            % the numbers as right-aligned string representations.
 
             n = numel(number);
 

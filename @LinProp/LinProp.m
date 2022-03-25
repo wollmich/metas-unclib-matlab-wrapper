@@ -1102,6 +1102,18 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
+            % GET_CORRELATION Correlation matrix
+            %
+            % C = get_correlation(unc) returns a matrix of size
+            % numel(unc)-by-numel(unc) containing the correlation factors
+            % between the elements of unc.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_correlation(unc) is the same as
+            % get_correlation(unc(:)). If unc contians complex values, the
+            % real and imag part are treated separately, thus
+            % get_correlation(cUnc) is the same as
+            % get_correlation([real(cUnc(:)), imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

@@ -1092,6 +1092,20 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
+            % GET_COVERAGE_INTERVAL Coverage interval bounds
+            %
+            % I = get_coverage_interval(unc, p) returns a matrix of size
+            % numel(unc)-by-2 containing the bounds of the coverage
+            % interval of unc for the probability p, with 0 < p < 1. The
+            % first column are the lower bounds, the second column the
+            % upper bounds.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_coverage_interval(unc, p) is the same as
+            % get_coverage_interval(unc(:), p). If unc contians complex
+            % values, the real and imag part are treated separately, thus
+            % get_coverage_interval(cUnc, p) is the same as 
+            % get_coverage_interval([real(cUnc(:)), imag(cUnc(:))], p).
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

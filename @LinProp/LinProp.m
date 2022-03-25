@@ -1,42 +1,56 @@
+% This class supports the creation of uncertainty objects and subsequent
+% calculation with them as well as storage of the results. It can handle
+% complex-valued and multivariate quantities. Internally, LinProp objects
+% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/metas/de/home/fabe/hochfrequenz/unclib.html">METAS UncLib library</a>.
+%
+% <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
+%   a = LinProp(value)
+%   a = LinProp(value, standard_unc, [idof])
+%   a = LinProp(value, standard_unc, description)
+%   a = LinProp(value, (covariance), [description])
+%  (a)= LinProp((value), <strong>covariance</strong>, [description])
+%   a = LinProp((samples), 'samples', [description], [probability])
+%   a = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
+% See <a href="matlab:help LinProp.LinProp -displayBanner">List of all Constructors</a>
+%
+% <strong>Uncertainty Methods</strong>
+%   <a href="matlab:help LinProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
+%   <a href="matlab:help LinProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
+%   <a href="matlab:help LinProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
+%   <a href="matlab:help LinProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
+%   <a href="matlab:help LinProp.get_jacobi -displayBanner"             >get_jacobi</a>              Sensitivities to virtual base inputs
+%   <a href="matlab:help LinProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
+%   <a href="matlab:help LinProp.get_moment -displayBanner"             >get_moment</a>              n-th central moment
+%   <a href="matlab:help LinProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty components of y with respect to x
+%   <a href="matlab:help LinProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
+%
+% <strong>Interpolation and Integration Methods</strong>
+%   <a href="matlab:help LinProp.integrate -displayBanner"          >integrate</a>           Integration
+%   <a href="matlab:help LinProp.integrate2 -displayBanner"         >integrate2</a>          ???
+%   <a href="matlab:help LinProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
+%   <a href="matlab:help LinProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
+%   <a href="matlab:help LinProp.spline -displayBanner"             >spline</a>              Spline interpolation
+%   <a href="matlab:help LinProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
+%   <a href="matlab:help LinProp.splinecoefs -displayBanner"        >splinecoefs</a>	
+%   <a href="matlab:help LinProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration
+%   <a href="matlab:help LinProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    ???
+%
+% <strong>Object Behavior</strong>
+% Scalar LinProp objects behave like MATLAB fundamental types with respect
+% to copy operations. Copies are independent values. Operations that you
+% perform on one object do not affect copies of that object.
+% Non-scalar LinProp objects are referenced by their handle variable.
+% Copies of the handle variable refer to the same object. Operations that
+% you perform on a handle object are visible from all handle variables that
+% reference that object.
+%
+% B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+% array of handles B.
+
 % Metas.UncLib.Matlab.LinProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 22.03.2022
+% Dion Timmermann PTB - 25.03.2022
 %
-% LinProp Const:
-% a = LinProp(value)
-%
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, (idof))
-%
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, description)
-%
-% LinProp Input (ComplexUncNumber)
-% a = LinProp(value, [covariance], (description))
-%
-% LinProp Input (RealUncArray)
-% [a] = LinProp([value], [covariance], (description))
-%
-% LinProp Input (ComplexUncArray)
-% [a] = LinProp([value], [covariance], (description))
-%
-% LinProp From Samples
-% a = LinProp([samples], 'samples', (description), (probability))
-%
-% LinProp Xml String
-% a = LinProp(xml_string)
-%
-% LinProp Xml File
-% a = LinProp(filepath, 'xml_file')
-%
-% LinProp Binary File
-% a = LinProp(filepath, 'binary_file')
-%
-% LinProp System (RealUncNumber)
-% a = LinProp(value, [sys_inputs], [sys_sensitivities], 'system')
-%
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, idof, id, description)
 
 classdef LinProp
     properties
@@ -50,6 +64,42 @@ classdef LinProp
     end
     methods
         function obj = LinProp(varargin)
+            % LinProp Const:
+            % a = LinProp(value)
+            %
+            % LinProp Input (RealUncNumber)
+            % a = LinProp(value, standard_unc, [idof])
+            %
+            % LinProp Input (RealUncNumber)
+            % a = LinProp(value, standard_unc, description)
+            %
+            % LinProp Input (ComplexUncNumber)
+            % a = LinProp(value, (covariance), [description])
+            %
+            % LinProp Input (RealUncArray)
+            % [a] = LinProp((value), (covariance), [description])
+            %
+            % LinProp Input (ComplexUncArray)
+            % [a] = LinProp((value), (covariance), [description])
+            %
+            % LinProp From Samples
+            % a = LinProp((samples), 'samples', [description], [probability])
+            %
+            % LinProp Xml String
+            % a = LinProp(xml_string)
+            %
+            % LinProp Xml File
+            % a = LinProp(filepath, 'xml_file')
+            %
+            % LinProp Binary File
+            % a = LinProp(filepath, 'binary_file')
+            %
+            % LinProp System (RealUncNumber)
+            % a = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
+            %
+            % LinProp Input (RealUncNumber)
+            % a = LinProp(value, standard_unc, idof, id, description)
+            
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.
             switch nargin

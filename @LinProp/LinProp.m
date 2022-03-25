@@ -1109,6 +1109,18 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
+            % GET_COVARIANCE Covariance matrix
+            %
+            % C = get_covariance(unc) returns a matrix of size
+            % numel(unc)-by-numel(unc) containing the covariances
+            % of the elements of unc.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_covariance(unc) is the same as
+            % get_covariance(unc(:)). If unc contians complex values, the
+            % real and imag part are treated separately, thus
+            % get_covariance(cUnc) is the same as
+            % get_covariance([real(cUnc(:)), imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

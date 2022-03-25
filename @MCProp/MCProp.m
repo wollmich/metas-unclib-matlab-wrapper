@@ -1,42 +1,56 @@
+% This class supports the creation of uncertainty objects and subsequent
+% calculation with them as well as storage of the results. It can handle
+% complex-valued and multivariate quantities. Internally, MCProp objects
+% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/metas/de/home/fabe/hochfrequenz/unclib.html">METAS UncLib library</a>.
+%
+% <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
+%   a = MCProp(value)
+%   a = MCProp(value, standard_unc, [idof])
+%   a = MCProp(value, standard_unc, description)
+%   a = MCProp(value, (covariance), [description])
+%  (a)= MCProp((value), <strong>covariance</strong>, [description])
+%   a = MCProp((samples), 'samples', [description], [probability])
+%   a = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
+% See <a href="matlab:help MCProp.MCProp -displayBanner">List of all Constructors</a>
+%
+% <strong>Uncertainty Methods</strong>
+%   <a href="matlab:help MCProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
+%   <a href="matlab:help MCProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
+%   <a href="matlab:help MCProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
+%   <a href="matlab:help MCProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
+%   <a href="matlab:help MCProp.get_jacobi -displayBanner"             >get_jacobi</a>              Sensitivities to virtual base inputs
+%   <a href="matlab:help MCProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
+%   <a href="matlab:help MCProp.get_moment -displayBanner"             >get_moment</a>              n-th central moment
+%   <a href="matlab:help MCProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty components of y with respect to x
+%   <a href="matlab:help MCProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
+%
+% <strong>Interpolation and Integration Methods</strong>
+%   <a href="matlab:help MCProp.integrate -displayBanner"          >integrate</a>           Integration
+%   <a href="matlab:help MCProp.integrate2 -displayBanner"         >integrate2</a>          ???
+%   <a href="matlab:help MCProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
+%   <a href="matlab:help MCProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
+%   <a href="matlab:help MCProp.spline -displayBanner"             >spline</a>              Spline interpolation
+%   <a href="matlab:help MCProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
+%   <a href="matlab:help MCProp.splinecoefs -displayBanner"        >splinecoefs</a>	
+%   <a href="matlab:help MCProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration
+%   <a href="matlab:help MCProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    ???
+%
+% <strong>Object Behavior</strong>
+% Scalar MCProp objects behave like MATLAB fundamental types with respect
+% to copy operations. Copies are independent values. Operations that you
+% perform on one object do not affect copies of that object.
+% Non-scalar MCProp objects are referenced by their handle variable.
+% Copies of the handle variable refer to the same object. Operations that
+% you perform on a handle object are visible from all handle variables that
+% reference that object.
+%
+% B = <a href="matlab:help MCProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+% array of handles B.
+
 % Metas.UncLib.Matlab.MCProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 22.03.2022
+% Dion Timmermann PTB - 25.03.2022
 %
-% MCProp Const:
-% a = MCProp(value)
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, (idof))
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, description)
-%
-% MCProp Input (ComplexUncNumber)
-% a = MCProp(value, [covariance], (description))
-%
-% MCProp Input (RealUncArray)
-% [a] = MCProp([value], [covariance], (description))
-%
-% MCProp Input (ComplexUncArray)
-% [a] = MCProp([value], [covariance], (description))
-%
-% MCProp From Samples
-% a = MCProp([samples], 'samples', (description), (probability))
-%
-% MCProp Xml String
-% a = MCProp(xml_string)
-%
-% MCProp Xml File
-% a = MCProp(filepath, 'xml_file')
-%
-% MCProp Binary File
-% a = MCProp(filepath, 'binary_file')
-%
-% MCProp System (RealUncNumber)
-% a = MCProp(value, [sys_inputs], [sys_sensitivities], 'system')
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, idof, id, description)
 
 classdef MCProp
     properties
@@ -50,6 +64,42 @@ classdef MCProp
     end
     methods
         function obj = MCProp(varargin)
+            % MCProp Const:
+            % a = MCProp(value)
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, [idof])
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, description)
+            %
+            % MCProp Input (ComplexUncNumber)
+            % a = MCProp(value, (covariance), [description])
+            %
+            % MCProp Input (RealUncArray)
+            % [a] = MCProp((value), (covariance), [description])
+            %
+            % MCProp Input (ComplexUncArray)
+            % [a] = MCProp((value), (covariance), [description])
+            %
+            % MCProp From Samples
+            % a = MCProp((samples), 'samples', [description], [probability])
+            %
+            % MCProp Xml String
+            % a = MCProp(xml_string)
+            %
+            % MCProp Xml File
+            % a = MCProp(filepath, 'xml_file')
+            %
+            % MCProp Binary File
+            % a = MCProp(filepath, 'binary_file')
+            %
+            % MCProp System (RealUncNumber)
+            % a = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, idof, id, description)
+            
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.
             switch nargin
@@ -1092,6 +1142,20 @@ classdef MCProp
             d = MCProp.Convert2Double(MCProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
+            % GET_COVERAGE_INTERVAL Coverage interval bounds
+            %
+            % I = get_coverage_interval(unc, p) returns a matrix of size
+            % numel(unc)-by-2 containing the bounds of the coverage
+            % interval of unc for the probability p, with 0 < p < 1. The
+            % first column are the lower bounds, the second column the
+            % upper bounds.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_coverage_interval(unc, p) is the same as
+            % get_coverage_interval(unc(:), p). If unc contians complex
+            % values, the real and imag part are treated separately, thus
+            % get_coverage_interval(cUnc, p) is the same as 
+            % get_coverage_interval([real(cUnc(:)), imag(cUnc(:))], p).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1102,6 +1166,18 @@ classdef MCProp
             d = MCProp.Convert2Double(MCProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
+            % GET_CORRELATION Correlation matrix
+            %
+            % C = get_correlation(unc) returns a matrix of size
+            % numel(unc)-by-numel(unc) containing the correlation factors
+            % between the elements of unc.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_correlation(unc) is the same as
+            % get_correlation(unc(:)). If unc contians complex values, the
+            % real and imag part are treated separately, thus
+            % get_correlation(cUnc) is the same as
+            % get_correlation([real(cUnc(:)), imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1109,6 +1185,18 @@ classdef MCProp
             c = MCProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
+            % GET_COVARIANCE Covariance matrix
+            %
+            % C = get_covariance(unc) returns a matrix of size
+            % numel(unc)-by-numel(unc) containing the covariances
+            % of the elements of unc.
+            %
+            % The input argument unc is always interpreted as a vector,
+            % thus get_covariance(unc) is the same as
+            % get_covariance(unc(:)). If unc contians complex values, the
+            % real and imag part are treated separately, thus
+            % get_covariance(cUnc) is the same as
+            % get_covariance([real(cUnc(:)), imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

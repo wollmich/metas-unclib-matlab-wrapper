@@ -49,7 +49,7 @@ function displayContributions(obj, part)
         commonPath(end+1) = string(tree(1).ShortDescription); %#ok<AGROW>
         tree = tree(1).SubItems;
     end
-    commonPath = char(strjoin(commonPath, ' → '));
+    commonPath = char(strjoin(commonPath, sprintf(' \x2192 '))); % \x2192 is a right arrow
     
     fprintf('  Top level contributions are:\n\n');
     
@@ -105,7 +105,7 @@ function displayContributions(obj, part)
     fprintf('<strong>    Description</strong>%*s<strong>Component</strong>    <strong>Percentage</strong>\n', ...
         size(description, 1) - numel('    Description') - numel('Component') + size(componenent, 1) + spacing1, '');
     if ~isempty(commonPath)
-        fprintf('    %s\n', commonPath);
+        fprintf('    %s \x2192 \n', commonPath); % \x2192 is a right arrow
     end
     fprintf('%s\n', text);
     

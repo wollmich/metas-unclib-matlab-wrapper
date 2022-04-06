@@ -60,7 +60,7 @@ function displayContributions(obj, part)
     
     for ii = 1:tree.Length
         description{ii} = char(tree(ii).ShortDescription);
-        if strcmp(description{ii}, 'Unknown')
+        if strcmp(description{ii}, 'Unknown') && ~isempty(tree(ii).ID.ToByteArray)
             description{ii} = sprintf('%s (%s)', description{ii}, inputId2string(tree(ii).ID));
         end
         componenent(ii) = tree(ii).UncComponent;

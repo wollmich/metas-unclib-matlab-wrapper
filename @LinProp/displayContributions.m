@@ -60,6 +60,9 @@ function displayContributions(obj, part)
     
     for ii = 1:tree.Length
         description{ii} = char(tree(ii).ShortDescription);
+        if strcmp(description{ii}, 'Unknown')
+            description{ii} = sprintf('%s (%s)', description{ii}, inputId2string(tree(ii).ID));
+        end
         componenent(ii) = tree(ii).UncComponent;
         percentage(ii)  = tree(ii).UncPercentage;
     end
@@ -122,4 +125,26 @@ function link = methodLink(method, text, varName, class)
         varName, varName, class, methodCall, varName);
 
     link = sprintf('<a href="%s">%s</a>', link, text);
+end
+
+function str = inputId2string(inputId)
+
+    id = uint8(inputId.ToByteArray());
+    
+    x = '%02x';
+    
+    if numel(id) == 16
+        % Regular GUIDs in the format of xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
+        str = sprintf([x x x x '-' x x '-' x x '-' x x '-' x x x x x x], id);
+    elseif numel(id) == 28
+        % VNA Tool's extended ID format. (See VNA Tools Math Ref.)
+        counter = typecast(id(end-3:end), 'uint32');
+        id(end-3:end) = typecast(counter/2, 'uint8');
+        bit = mod(counter, 2);
+        str = sprintf([x x x x '-' x x '-' x x '-' x x '-' x x x x x x '-' x x '-' x '-' x '-' x x '-' x '-' x '-' x x x x '-%1i'], id, bit);
+    else
+        % Backup: dump everything as one hex string.
+        str = sprintf('%02x', id);
+    end
+    
 end

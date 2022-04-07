@@ -25,15 +25,15 @@
 %   <a href="matlab:help MCProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
 % <strong>Interpolation and Integration Methods</strong>
-%   <a href="matlab:help MCProp.integrate -displayBanner"          >integrate</a>           Integration
-%   <a href="matlab:help MCProp.integrate2 -displayBanner"         >integrate2</a>          ???
+%   <a href="matlab:help MCProp.integrate -displayBanner"          >integrate</a>           Integration with cumulative result
+%   <a href="matlab:help MCProp.integrate2 -displayBanner"         >integrate2</a>          Integration with scalar result
 %   <a href="matlab:help MCProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
 %   <a href="matlab:help MCProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
 %   <a href="matlab:help MCProp.spline -displayBanner"             >spline</a>              Spline interpolation
 %   <a href="matlab:help MCProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
 %   <a href="matlab:help MCProp.splinecoefs -displayBanner"        >splinecoefs</a>	
-%   <a href="matlab:help MCProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration
-%   <a href="matlab:help MCProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    ???
+%   <a href="matlab:help MCProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
+%   <a href="matlab:help MCProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
 %
 % <strong>Object Behavior</strong>
 % Scalar MCProp objects behave like MATLAB fundamental types with respect
@@ -1835,6 +1835,21 @@ classdef MCProp
             p = MCProp.Convert2MCProp(pm);
         end
         function a = integrate(x, y, n)
+            % a = integrate(x, y, n) Integration with cumulative result
+            %
+            % Calculates the numerical integral of y(x) interpreted as a polinomial of
+            % n-th degree. Returns a MCProp vector of the same size as y. The result
+            % contains the cummlative integral up to every value of x. The input
+            % arguments x and y specify y(x). The uncertainties of y are propagated,
+            % while any uncertainties of x are ignored. While y has to be a MCProp, x
+            % can be any type. The parameter n must be a positive integer smaller than
+            % numel(y).
+            %
+            % a = integrate2(x, y, n) is the same as:
+            %   a = integrate(x, y, n);
+            %   a = a(end);
+            % See also MCProp.integrate2, MCProp.splineintegrate.
+
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
@@ -1846,6 +1861,20 @@ classdef MCProp
             a = reshape(a, s);
         end
         function a = integrate2(x, y, n)
+            % a = integrate2(x, y, n) Integration with scalar result
+            %
+            % Calculates the numerical integral of y(x) interpreted as a polinomial of
+            % n-th degree. Returns the result of the whole inegral as a MCProp scalar.
+            % The input arguments x and y specify y(x). The uncertainties of y are
+            % propagated, while any uncertainties of x are ignored. While y has to be a
+            % MCProp, x can be any type. The parameter n must be a positive integer
+            % smaller than numel(y).
+            %
+            % a = integrate2(x, y, n) is the same as:
+            %   a = integrate(x, y, n);
+            %   a = a(end);
+            % See also MCProp.integrate, MCProp.splineintegrate2.
+            
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);

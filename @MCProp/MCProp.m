@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 24.03.2022
+% Dion Timmermann PTB - 07.04.2022
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -1710,12 +1710,10 @@ classdef MCProp < matlab.mixin.CustomDisplay
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
-            s = size(y);
             numlib = MCProp.NumLib2(y.IsComplex);
             ym = MCProp.Convert2UncArray(y);
             am = numlib.Integrate2(x, ym, n);
             a = MCProp.Convert2MCProp(am);
-            a = reshape(a, s);
         end
         function a = splineintegrate(x, y, varargin)
             x = double(x(:));
@@ -1731,13 +1729,11 @@ classdef MCProp < matlab.mixin.CustomDisplay
         function a = splineintegrate2(x, y, varargin)
             x = double(x(:));
             y = MCProp(y);
-            s = size(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
             numlib = MCProp.NumLib2(y.IsComplex);
             ym = MCProp.Convert2UncArray(y);
             am = numlib.SplineIntegrate2(x, ym, sb, sv, eb, ev);
             a = MCProp.Convert2MCProp(am);
-            a = reshape(a, s);
          end
         function p = polyfit(x,y,n)
             x = MCProp(x);

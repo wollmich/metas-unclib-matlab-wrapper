@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 24.03.2022
+% Dion Timmermann PTB - 07.04.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1710,12 +1710,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
             x = double(x(:));
             y = LinProp(y);
             n = int32(n);
-            s = size(y);
             numlib = LinProp.NumLib2(y.IsComplex);
             ym = LinProp.Convert2UncArray(y);
             am = numlib.Integrate2(x, ym, n);
             a = LinProp.Convert2LinProp(am);
-            a = reshape(a, s);
         end
         function a = splineintegrate(x, y, varargin)
             x = double(x(:));
@@ -1731,13 +1729,11 @@ classdef LinProp < matlab.mixin.CustomDisplay
         function a = splineintegrate2(x, y, varargin)
             x = double(x(:));
             y = LinProp(y);
-            s = size(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
             numlib = LinProp.NumLib2(y.IsComplex);
             ym = LinProp.Convert2UncArray(y);
             am = numlib.SplineIntegrate2(x, ym, sb, sv, eb, ev);
             a = LinProp.Convert2LinProp(am);
-            a = reshape(a, s);
          end
         function p = polyfit(x,y,n)
             x = LinProp(x);

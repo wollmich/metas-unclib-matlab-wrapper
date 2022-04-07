@@ -1849,12 +1849,10 @@ classdef DistProp
             x = double(x(:));
             y = DistProp(y);
             n = int32(n);
-            s = size(y);
             numlib = DistProp.NumLib2(y.IsComplex);
             ym = DistProp.Convert2UncArray(y);
             am = numlib.Integrate2(x, ym, n);
             a = DistProp.Convert2DistProp(am);
-            a = reshape(a, s);
         end
         function a = splineintegrate(x, y, varargin)
             x = double(x(:));
@@ -1870,13 +1868,11 @@ classdef DistProp
         function a = splineintegrate2(x, y, varargin)
             x = double(x(:));
             y = DistProp(y);
-            s = size(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
             numlib = DistProp.NumLib2(y.IsComplex);
             ym = DistProp.Convert2UncArray(y);
             am = numlib.SplineIntegrate2(x, ym, sb, sv, eb, ev);
             a = DistProp.Convert2DistProp(am);
-            a = reshape(a, s);
          end
         function p = polyfit(x,y,n)
             x = DistProp(x);

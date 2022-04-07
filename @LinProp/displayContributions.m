@@ -35,10 +35,9 @@ function displayContributions(obj, part)
             fprintf('\n  Variable %s has %i uncertainty contributions.\n', sprintf(varCall, varName), obj.NetObject.Dependencies.Length);
     end
     
-    if exist('LoadVNATools', 'file')
-        LoadVNATools();
+    try
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject, @Metas.Vna.Data.UncIdDefs.GetInfluenceInfo2);
-    else
+    catch
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject);
     end
     

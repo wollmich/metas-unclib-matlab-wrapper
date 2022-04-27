@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.5.3
 % Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 07.04.2022
+% Dion Timmermann PTB - 27.04.2022
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -950,29 +950,32 @@ classdef MCProp < matlab.mixin.CustomDisplay
                 end
             end
         end
-        function c = horzcat(a, varargin)
+        function c = cat(dim, a, varargin)
             
-            catDim = 2;
             c = a;
                 
             if numel(varargin) > 0
                 ndimsA = ndims(a);
-                if any(cellfun(@ndims, varargin) ~= ndimsA)
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                checkDims = 1:ndimsA;
-                checkDims(catDim) = [];
-                sizeAExceptCatDim = size(a, checkDims);
-                if any(cellfun(@(x) any(size(x, checkDims) ~= sizeAExceptCatDim), varargin))
-                    error('Dimensions of arrays being concatenated are not consistent.');
+                sizeA = size(a);
+                sizeVararginElements = cell(1, numel(varargin));
+                for ii = 1:numel(varargin)
+                    if ndims(varargin{ii}) ~= ndimsA
+                        error('Dimensions of arrays being concatenated are not consistent.');
+                    end
+                    sizeVararginElements{ii} = size(varargin{ii});
+                    for kk = 1:ndimsA
+                        if kk ~= dim && sizeA(kk) ~= sizeVararginElements{ii}(kk)
+                            error('Dimensions of arrays being concatenated are not consistent.');
+                        end
+                    end
                 end
                 
-                sizeAInCatDim = size(a, catDim);
+                sizeAInCatDim = sizeA(dim);
                 for ii = 1:numel(varargin)
                     subs = cell(1, ndimsA);
                     subs(:) = {':'};
-                    sizeVararginInCatDim = size(varargin{ii}, catDim);
-                    subs{catDim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
+                    sizeVararginInCatDim = sizeVararginElements{ii}(dim);
+                    subs{dim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
                     c = subsasgn(c, substruct('()', subs), varargin{ii});
                     
                     sizeAInCatDim = sizeAInCatDim+sizeVararginInCatDim;
@@ -980,35 +983,11 @@ classdef MCProp < matlab.mixin.CustomDisplay
                 
             end
         end
+        function c = horzcat(a, varargin)
+            c = cat(2, a, varargin{:});
+        end
         function c = vertcat(a, varargin)
-            
-            catDim = 1;
-            c = a;
-                
-            if numel(varargin) > 0
-                ndimsA = ndims(a);
-                if any(cellfun(@ndims, varargin) ~= ndimsA)
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                checkDims = 1:ndimsA;
-                checkDims(catDim) = [];
-                sizeAExceptCatDim = size(a, checkDims);
-                if any(cellfun(@(x) any(size(x, checkDims) ~= sizeAExceptCatDim), varargin))
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                
-                sizeAInCatDim = size(a, catDim);
-                for ii = 1:numel(varargin)
-                    subs = cell(1, ndimsA);
-                    subs(:) = {':'};
-                    sizeVararginInCatDim = size(varargin{ii}, catDim);
-                    subs{catDim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
-                    c = subsasgn(c, substruct('()', subs), varargin{ii});
-                    
-                    sizeAInCatDim = sizeAInCatDim+sizeVararginInCatDim;
-                end
-                
-            end
+            c = cat(1, a, varargin{:});
         end
         function d = get.Value(obj)
             d = get_value(obj);

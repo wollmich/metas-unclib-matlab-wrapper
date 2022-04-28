@@ -24,21 +24,23 @@ function displayContributions(obj, part)
     else
         varCall = '%s';
     end
-
-    switch (obj.NetObject.Dependencies.Length)
-        case 0
-            fprintf('\n  Variable %s has no uncertainty contributions.\n', sprintf(varCall, varName));
-            return;
-        case 1
-            fprintf('\n  Variable %s has 1 uncertainty contribution.\n', sprintf(varCall, varName));
-        otherwise
-            fprintf('\n  Variable %s has %i uncertainty contributions.\n', sprintf(varCall, varName), obj.NetObject.Dependencies.Length);
-    end
     
     try
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject, @Metas.Vna.Data.UncIdDefs.GetInfluenceInfo2);
     catch
         tree = Metas.UncLib.LinProp.UncBudget.ComputeTreeUncBudget(obj.NetObject);
+    end
+    
+    if tree.Length == 0
+        fprintf('\n  Variable %s has no uncertainty contributions.\n', sprintf(varCall, varName));
+        return;
+    end
+    
+    switch (obj.NetObject.Dependencies.Length)
+        case 1
+            fprintf('\n  Variable %s has 1 uncertainty contribution.\n', sprintf(varCall, varName));
+        otherwise
+            fprintf('\n  Variable %s has %i uncertainty contributions.\n', sprintf(varCall, varName), obj.NetObject.Dependencies.Length);
     end
     
     commonPath = strings(0, 0);
@@ -51,7 +53,6 @@ function displayContributions(obj, part)
     commonPath = char(strjoin(commonPath, sprintf(' \x2192 '))); % \x2192 is a right arrow
     
     fprintf('  Top level contributions are:\n\n');
-    
     
     description = strings(1, tree.Length);
     componenent = zeros(1, tree.Length);

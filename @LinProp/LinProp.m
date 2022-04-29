@@ -1,6 +1,6 @@
-% Metas.UncLib.Matlab.LinProp V2.5.3
-% Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 27.04.2022
+% Metas.UncLib.Matlab.LinProp V2.5.4
+% Michael Wollensack METAS - 29.04.2022
+% Dion Timmermann PTB - 28.04.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -238,7 +238,10 @@ classdef LinProp < matlab.mixin.CustomDisplay
                         error('Wrong type of input arguments')
                     end
                 case 5
-                    if isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'double') && isa(varargin{4}, 'Metas.UncLib.Core.Unc.InputId') && isa(varargin{5}, 'char')
+                    if isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'double') && isa(varargin{5}, 'char')
+                        if ~isa(varargin{4}, 'Metas.UncLib.Core.Unc.InputId')
+                            varargin{4} = UncInputId(varargin{4});
+                        end
                         if numel(varargin{1}) == 1
                             obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, varargin{3}, varargin{4}, sprintf(varargin{5}));
                         else

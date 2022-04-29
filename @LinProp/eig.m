@@ -12,7 +12,7 @@ function [V,D] = eig(A0, varargin)
 %
 %   [V,D] = EIG(A0, A1, A2, ..., An) non-linear Eigenvalue problem A0*V + A1*V*D + A2*V*D.^2 + ... + An*V*D.^n = 0
 
-% Michael Wollensack METAS - 20.08.2018
+% Michael Wollensack METAS - 29.04.2022
 
 A0 = LinProp(A0);
 isComplex = A0.IsComplex;
@@ -31,7 +31,7 @@ if (length(varargin) == 0)
     end
     if (~isComplex)
         symmetric = true;
-        A0n = Convert2UncArray(A0);
+        A0n = LinProp.Convert2UncArray(A0);
         for i1 = 1:n(1)
             for i2 = i1 + 1:n(2)
                 if (symmetric)
@@ -55,7 +55,7 @@ end
 
 linalg = UncLinAlg(isComplex);
 if (length(varargin) == 0)
-    A0n = Convert2UncArray(A0);
+    A0n = LinProp.Convert2UncArray(A0);
     if (isComplex)
         [Vn,Dn] = linalg.NonsymmetricEig(A0n);
     else
@@ -63,9 +63,9 @@ if (length(varargin) == 0)
     end
 else
     An = InitArray(isComplex, length(varargin) + 1);
-    An(1) = Convert2UncArray(A0);
+    An(1) = LinProp.Convert2UncArray(A0);
     for i = 1:length(varargin)
-        An(i + 1) = Convert2UncArray(varargin{i});
+        An(i + 1) = LinProp.Convert2UncArray(varargin{i});
     end
     [Vn,Dn] = linalg.NonLinearEig(An);
 end
@@ -74,8 +74,8 @@ Vn2 = SubMatrix(Vn, isComplex, n2);
 Vn3 = RemoveZeroImagPart(Vn2, isComplex);
 Dn2 = DiagMatrix(Dn, isComplex);
 Dn3 = RemoveZeroImagPart(Dn2, isComplex);
-V = Convert2LinProp(Vn3);
-D = Convert2LinProp(Dn3);
+V = LinProp.Convert2LinProp(Vn3);
+D = LinProp.Convert2LinProp(Dn3);
 end
 
 function m = InitArray(isComplex, n)
@@ -85,35 +85,6 @@ function m = InitArray(isComplex, n)
         c = NET.GenericClass('Metas.UncLib.Core.Ndims.RealNArray', 'Metas.UncLib.LinProp.UncNumber');
     end
     m = NET.createArray(c, n);
-end
-
-function m = Convert2UncArray(x)
-    if x.IsArray
-        m = x.NetObject;
-    else
-        if x.IsComplex
-            m = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
-        else
-            m = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.LinProp.UncNumber'});
-        end
-        m.Init2d(1, 1);
-        m.SetItem2d(0, 0, x.NetObject);
-    end 
-end
-
-function u = Convert2LinProp(x)
-    if LinProp.IsArrayNet(x)
-        if x.numel == 1
-            u = LinProp(x.GetItem2d(0, 0));
-        else
-            u = LinProp(x);
-            if ndims(u) == 1
-                u = reshape(u, size(u));
-            end
-        end
-    else
-        u = LinProp(x);
-    end
 end
 
 function m = DiagMatrix(d, isComplex)

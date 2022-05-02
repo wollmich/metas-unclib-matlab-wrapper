@@ -47,10 +47,9 @@
 % B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
 % array of handles B.
 
-% Metas.UncLib.Matlab.LinProp V2.5.3
-% Michael Wollensack METAS - 25.02.2022
-% Dion Timmermann PTB - 25.03.2022
-%
+% Metas.UncLib.Matlab.LinProp V2.5.4
+% Michael Wollensack METAS - 29.04.2022
+% Dion Timmermann PTB - 02.05.2022
 
 classdef LinProp
     properties
@@ -288,7 +287,10 @@ classdef LinProp
                         error('Wrong type of input arguments')
                     end
                 case 5
-                    if isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'double') && isa(varargin{4}, 'Metas.UncLib.Core.Unc.InputId') && isa(varargin{5}, 'char')
+                    if isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'double') && isa(varargin{5}, 'char')
+                        if ~isa(varargin{4}, 'Metas.UncLib.Core.Unc.InputId')
+                            varargin{4} = UncInputId(varargin{4});
+                        end
                         if numel(varargin{1}) == 1
                             obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, varargin{3}, varargin{4}, sprintf(varargin{5}));
                         else
@@ -1051,29 +1053,32 @@ classdef LinProp
                 end
             end
         end
-        function c = horzcat(a, varargin)
+        function c = cat(dim, a, varargin)
             
-            catDim = 2;
             c = a;
                 
             if numel(varargin) > 0
                 ndimsA = ndims(a);
-                if any(cellfun(@ndims, varargin) ~= ndimsA)
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                checkDims = 1:ndimsA;
-                checkDims(catDim) = [];
-                sizeAExceptCatDim = size(a, checkDims);
-                if any(cellfun(@(x) any(size(x, checkDims) ~= sizeAExceptCatDim), varargin))
-                    error('Dimensions of arrays being concatenated are not consistent.');
+                sizeA = size(a);
+                sizeVararginElements = cell(1, numel(varargin));
+                for ii = 1:numel(varargin)
+                    if ndims(varargin{ii}) ~= ndimsA
+                        error('Dimensions of arrays being concatenated are not consistent.');
+                    end
+                    sizeVararginElements{ii} = size(varargin{ii});
+                    for kk = 1:ndimsA
+                        if kk ~= dim && sizeA(kk) ~= sizeVararginElements{ii}(kk)
+                            error('Dimensions of arrays being concatenated are not consistent.');
+                        end
+                    end
                 end
                 
-                sizeAInCatDim = size(a, catDim);
+                sizeAInCatDim = sizeA(dim);
                 for ii = 1:numel(varargin)
                     subs = cell(1, ndimsA);
                     subs(:) = {':'};
-                    sizeVararginInCatDim = size(varargin{ii}, catDim);
-                    subs{catDim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
+                    sizeVararginInCatDim = sizeVararginElements{ii}(dim);
+                    subs{dim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
                     c = subsasgn(c, substruct('()', subs), varargin{ii});
                     
                     sizeAInCatDim = sizeAInCatDim+sizeVararginInCatDim;
@@ -1081,35 +1086,11 @@ classdef LinProp
                 
             end
         end
+        function c = horzcat(a, varargin)
+            c = cat(2, a, varargin{:});
+        end
         function c = vertcat(a, varargin)
-            
-            catDim = 1;
-            c = a;
-                
-            if numel(varargin) > 0
-                ndimsA = ndims(a);
-                if any(cellfun(@ndims, varargin) ~= ndimsA)
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                checkDims = 1:ndimsA;
-                checkDims(catDim) = [];
-                sizeAExceptCatDim = size(a, checkDims);
-                if any(cellfun(@(x) any(size(x, checkDims) ~= sizeAExceptCatDim), varargin))
-                    error('Dimensions of arrays being concatenated are not consistent.');
-                end
-                
-                sizeAInCatDim = size(a, catDim);
-                for ii = 1:numel(varargin)
-                    subs = cell(1, ndimsA);
-                    subs(:) = {':'};
-                    sizeVararginInCatDim = size(varargin{ii}, catDim);
-                    subs{catDim} = sizeAInCatDim+1:sizeAInCatDim+sizeVararginInCatDim;
-                    c = subsasgn(c, substruct('()', subs), varargin{ii});
-                    
-                    sizeAInCatDim = sizeAInCatDim+sizeVararginInCatDim;
-                end
-                
-            end
+            c = cat(1, a, varargin{:});
         end
         function d = get.Value(obj)
             d = get_value(obj);
@@ -1403,6 +1384,12 @@ classdef LinProp
         end
         function q = unwrap(p, varargin)
             q = p + unwrap(double(p), varargin{:}) - double(p);
+        end
+        function y = deg2rad(x)
+            y = (pi/180) .* x;
+        end
+        function y = rad2deg(x)
+            y = (180/pi) .* x;
         end
         function y = exp(x)
             y = LinProp(x.NetObject.Exp());

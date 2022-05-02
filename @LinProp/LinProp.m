@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 29.04.2022
-% Dion Timmermann PTB - 28.04.2022
+% Dion Timmermann PTB - 02.05.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1297,6 +1297,12 @@ classdef LinProp
         end
         function q = unwrap(p, varargin)
             q = p + unwrap(double(p), varargin{:}) - double(p);
+        end
+        function y = deg2rad(x)
+            y = (pi/180) .* x;
+        end
+        function y = rad2deg(x)
+            y = (180/pi) .* x;
         end
         function y = exp(x)
             y = LinProp(x.NetObject.Exp());

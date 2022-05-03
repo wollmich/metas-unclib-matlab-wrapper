@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.MCProp V2.5.4
 % Michael Wollensack METAS - 29.04.2022
-% Dion Timmermann PTB - 02.05.2022
+% Dion Timmermann PTB - 03.05.2022
 %
 % MCProp Const:
 % a = MCProp(value)
@@ -262,7 +262,6 @@ classdef MCProp
         end
         function display(obj)
             name = inputname(1);
-            df = '%g'; %get(0, 'Format');
             ds = get(0, 'FormatSpacing');
             if obj.IsArray
                 if isequal(ds, 'compact')
@@ -280,35 +279,42 @@ classdef MCProp
                     disp(get_stdunc(obj))        
                 end    
             else
-                if obj.IsComplex
-                    sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
-                    simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
-                    if (get_value(imag(obj)) < 0)
-                        s = [sreal ' - ' simag 'i'];
-                    else
-                        s = [sreal ' + ' simag 'i'];
-                    end
-                else        
-                    s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' ± ' num2str(get_stdunc(obj), df) ')'];
-                end    
-                if (get_value(real(obj)) < 0)
-                    s = ['  -' s];
-                else
-                    s = ['   ' s];
-                end
+                
                 if isequal(ds, 'compact')
-                    disp([name,' = '])
-                    disp(s)
+                    vspace = char(10); % Newline compatible with old matlab installations
                 else
-                    disp(' ');
-                    disp([name,' = '])
-                    disp(' ');
-                    disp(s)
-                    disp(' ');
-                end    
+                    vspace = char([10 10]);
+                end
+
+                % The plus/minus sign coded as unicode number so this
+                % source code file is not dependent on the encoding.
+                pm = sprintf(' \xB1 ');
+
+                % evalc(disp(...)) ensures the output conforms to the format setting.
+                val_real  = strtrim(evalc('disp(abs(get_value(real(obj))))'));
+                unc_real  = strtrim(evalc('disp(get_stdunc(real(obj)))'    ));
+                sign_real = ' ';
+                if (get_value(real(obj)) < 0)
+                    sign_real = '-';
+                end
+
+                if obj.IsComplex
+                    val_imag  = strtrim(evalc('disp(abs(get_value(imag(obj))))'));
+                    unc_imag  = strtrim(evalc('disp(get_stdunc(imag(obj)))'    ));
+                    sign_imag = ' + ';
+                    if (get_value(imag(obj)) < 0)
+                        sign_imag = ' - ';
+                    end
+
+                    fprintf('%s%s =%s  %s%s', vspace(1:end-1), name, vspace, ...
+                        [sign_real '(' val_real pm unc_real ')' ...
+                         sign_imag '(' val_imag pm unc_imag ')i'], ...
+                        vspace);
+                else        
+                    fprintf('%s%s =%s  %s%s', vspace(1:end-1), name, vspace, [sign_real '(' val_real pm unc_real ')'], ...
+                                        vspace);
+                end
+                
             end
         end
         function o = copy(obj)

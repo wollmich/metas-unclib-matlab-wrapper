@@ -280,12 +280,6 @@ classdef DistProp
                 end    
             else
                 
-                if isequal(ds, 'compact')
-                    vspace = char(10); % Newline compatible with old matlab installations
-                else
-                    vspace = char([10 10]);
-                end
-
                 % The plus/minus sign coded as unicode number so this
                 % source code file is not dependent on the encoding.
                 pm = sprintf(' \xB1 ');
@@ -306,15 +300,17 @@ classdef DistProp
                         sign_imag = ' - ';
                     end
 
-                    fprintf('%s%s =%s  %s%s', vspace(1:end-1), name, vspace, ...
-                        [sign_real '(' val_real pm unc_real ')' ...
-                         sign_imag '(' val_imag pm unc_imag ')i'], ...
-                        vspace);
-                else        
-                    fprintf('%s%s =%s  %s%s', vspace(1:end-1), name, vspace, [sign_real '(' val_real pm unc_real ')'], ...
-                                        vspace);
+                    value = [sign_real '(' val_real pm unc_real ')' ...
+                           sign_imag '(' val_imag pm unc_imag ')i'];
+                else
+                    value = [sign_real '(' val_real pm unc_real ')'];
                 end
-                
+                     
+                if isequal(ds, 'compact')
+                    fprintf('%s =\n  %s\n', name, value);
+                else
+                    fprintf('\n%s =\n\n  %s\n\n', name, value);
+                end
             end
         end
         function o = copy(obj)

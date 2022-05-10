@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
-% Michael Wollensack METAS - 29.04.2022
+% Michael Wollensack METAS - 10.05.2022
 % Dion Timmermann PTB - 02.05.2022
 %
 % LinProp Const:
@@ -1338,6 +1338,13 @@ classdef LinProp < matlab.mixin.CustomDisplay
         function y = atanh(x)
             x = complex(x);
             y = LinProp(x.NetObject.Atanh());
+        end
+        function [k,e] = ellipke(x)
+            if (x.IsComplex)
+                error('Input must be real');
+            end
+            k = LinProp(x.NetObject.Ellipk());
+            e = LinProp(x.NetObject.Ellipe());
         end
         function z = eq(x,y)
             z = double(x) == double(y);

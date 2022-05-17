@@ -285,23 +285,23 @@ classdef DistProp
                 pm = sprintf(' \xB1 ');
 
                 % evalc(disp(...)) ensures the output conforms to the format setting.
-                val_real  = strtrim(evalc('disp(abs(get_value(real(obj))))'));
-                unc_real  = strtrim(evalc('disp(get_stdunc(real(obj)))'    ));
+                val_real = strtrim(evalc('disp(abs(get_value(real(obj))))'));
+                unc_real = strtrim(evalc('disp(get_stdunc(real(obj)))'));
                 sign_real = ' ';
                 if (get_value(real(obj)) < 0)
                     sign_real = '-';
                 end
 
                 if obj.IsComplex
-                    val_imag  = strtrim(evalc('disp(abs(get_value(imag(obj))))'));
-                    unc_imag  = strtrim(evalc('disp(get_stdunc(imag(obj)))'    ));
+                    val_imag = strtrim(evalc('disp(abs(get_value(imag(obj))))'));
+                    unc_imag = strtrim(evalc('disp(get_stdunc(imag(obj)))'));
                     sign_imag = ' + ';
                     if (get_value(imag(obj)) < 0)
                         sign_imag = ' - ';
                     end
 
                     value = [sign_real '(' val_real pm unc_real ')' ...
-                           sign_imag '(' val_imag pm unc_imag ')i'];
+                             sign_imag '(' val_imag pm unc_imag ')i'];
                 else
                     value = [sign_real '(' val_real pm unc_real ')'];
                 end

@@ -260,6 +260,54 @@ classdef DistProp
                 end
             end 
         end
+        function str = string(obj)
+            
+            % The plus/minus sign coded as unicode number so this
+            % source code file is not dependent on the encoding.
+            pm = sprintf(' \xB1 ');
+            
+            function varargout = dispParts(x)
+                x = reshape(x, [], 1); % Enforce a column vector so disp does not produce 'Column x' statements.
+                varargout = strsplit(strtrim(evalc('disp(x)')));
+            end
+            
+            str = cell(size(obj));
+            for ii = 1:numel(obj)
+                
+                val_real  = get_value(real(obj));
+                unc_real = get_stdunc(real(obj));
+                sign_real = ' ';
+                if val_real < 0
+                    sign_real = '-';
+                end
+                
+                if ~obj.IsComplex
+                    [val_real, unc_real] = dispParts([abs(val_real), unc_real]);
+                    
+                    str{ii} = [sign_real '(' val_real pm unc_real ')'];
+                else
+                    val_imag = get_value(imag(obj));
+                    unc_imag = get_stdunc(imag(obj));
+                    sign_imag = ' + ';
+                    if val_imag < 0
+                        sign_imag = ' - ';
+                    end
+
+                    [val_real, unc_real, val_imag, unc_imag] = dispParts([abs(val_real), unc_real, abs(val_imag), unc_imag]);
+                    
+                    str{ii} = [sign_real '(' val_real pm unc_real ')' ...
+                               sign_imag '(' val_imag pm unc_imag ')i'];
+                end
+                
+            end
+            
+            % Strings and the string() function were introduced in Matalb
+            % 2016b (version 9.1). Return the cellstr for older versions.
+            if ~verLessThan('matlab', '9.1')
+                str = string(str);
+            end
+            
+        end
         function display(obj)
             name = inputname(1);
             ds = get(0, 'FormatSpacing');
@@ -277,39 +325,12 @@ classdef DistProp
                     disp([name,'.standard_unc = '])
                     disp(' ');
                     disp(get_stdunc(obj))        
-                end    
+                end
             else
-                
-                % The plus/minus sign coded as unicode number so this
-                % source code file is not dependent on the encoding.
-                pm = sprintf(' \xB1 ');
-
-                % evalc(disp(...)) ensures the output conforms to the format setting.
-                val_real = strtrim(evalc('disp(abs(get_value(real(obj))))'));
-                unc_real = strtrim(evalc('disp(get_stdunc(real(obj)))'));
-                sign_real = ' ';
-                if (get_value(real(obj)) < 0)
-                    sign_real = '-';
-                end
-
-                if obj.IsComplex
-                    val_imag = strtrim(evalc('disp(abs(get_value(imag(obj))))'));
-                    unc_imag = strtrim(evalc('disp(get_stdunc(imag(obj)))'));
-                    sign_imag = ' + ';
-                    if (get_value(imag(obj)) < 0)
-                        sign_imag = ' - ';
-                    end
-
-                    value = [sign_real '(' val_real pm unc_real ')' ...
-                             sign_imag '(' val_imag pm unc_imag ')i'];
-                else
-                    value = [sign_real '(' val_real pm unc_real ')'];
-                end
-                     
                 if isequal(ds, 'compact')
-                    fprintf('%s =\n  %s\n', name, value);
+                    fprintf('%s =\n  %s\n', name, char(string(obj)));
                 else
-                    fprintf('\n%s =\n\n  %s\n\n', name, value);
+                    fprintf('\n%s =\n\n  %s\n\n', name, char(string(obj)));
                 end
             end
         end

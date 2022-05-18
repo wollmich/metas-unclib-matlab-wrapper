@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 02.05.2022
+% Dion Timmermann PTB - 18.05.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -260,55 +260,81 @@ classdef LinProp
                 end
             end 
         end
+        function str = string(obj)
+            
+            % The plus/minus sign coded as unicode number so this
+            % source code file is not dependent on the encoding.
+            pm = sprintf(' \xB1 ');
+            
+            function varargout = dispParts(x)
+                % Using evalc(disp(x)) prints using the current format
+                % setting. We display all parts of the number as one vector
+                % so all are displayed as floats if one of them is a float.
+                x = reshape(x, [], 1); % Enforce a column vector so disp does not produce 'Column x' statements.
+                varargout = strsplit(strtrim(evalc('disp(x)')));
+            end
+            
+            str = cell(size(obj));
+            for ii = 1:numel(obj)
+                
+                val_real = get_value(real(obj));
+                unc_real = get_stdunc(real(obj));
+                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end
+                
+                if ~obj.IsComplex
+                    [val_real, unc_real] = dispParts([abs(val_real), unc_real]);
+                    
+                    str{ii} = [sign_real '(' val_real pm unc_real ')'];
+                else
+                    val_imag = get_value(imag(obj));
+                    unc_imag = get_stdunc(imag(obj));
+                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end
+
+                    [val_real, unc_real, val_imag, unc_imag] = dispParts([abs(val_real), unc_real, abs(val_imag), unc_imag]);
+                    
+                    str{ii} = [sign_real '(' val_real pm unc_real ')' ...
+                               sign_imag '(' val_imag pm unc_imag ')i'];
+                end
+                
+            end
+            
+            % Strings and the string() function were introduced in Matalb
+            % 2016b (version 9.1). Return the cellstr for older versions.
+            if ~verLessThan('matlab', '9.1')
+                str = string(str);
+            end
+            
+        end
         function display(obj)
             name = inputname(1);
-            df = '%g'; %get(0, 'Format');
             ds = get(0, 'FormatSpacing');
             if obj.IsArray
-                if isequal(ds, 'compact')
-                    disp([name,'.value = '])
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(get_stdunc(obj))
-                else
-                    disp(' ');
-                    disp([name,'.value = '])
-                    disp(' ');
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(' ');
-                    disp(get_stdunc(obj))        
-                end    
-            else
-                if obj.IsComplex
-                    sreal = ['(' num2str(abs(get_value(real(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(real(obj)), df) ')'];       
-                    simag = ['(' num2str(abs(get_value(imag(obj))), df) ...
-                             ' ± ' num2str(get_stdunc(imag(obj)), df) ')'];
-                    if (get_value(imag(obj)) < 0)
-                        s = [sreal ' - ' simag 'i'];
-                    else
-                        s = [sreal ' + ' simag 'i'];
-                    end
-                else        
-                    s = ['(' num2str(abs(get_value(obj)), df) ...
-                         ' ± ' num2str(get_stdunc(obj), df) ')'];
-                end    
-                if (get_value(real(obj)) < 0)
-                    s = ['  -' s];
-                else
-                    s = ['   ' s];
+                value = get_value(obj);
+                unc = get_stdunc(obj);
+                if isreal(value) ~= isreal(unc)
+                    value = complex(value);
+                    unc = complex(unc);
                 end
                 if isequal(ds, 'compact')
-                    disp([name,' = '])
-                    disp(s)
+                    disp([name,'.Value = '])
+                    disp(value)
+                    disp([name,'.StdUnc = '])
+                    disp(unc)
                 else
                     disp(' ');
-                    disp([name,' = '])
+                    disp([name,'.Value = '])
                     disp(' ');
-                    disp(s)
+                    disp(value)
+                    disp([name,'.StdUnc = '])
                     disp(' ');
-                end    
+                    disp(unc)        
+                end
+            else
+                if isequal(ds, 'compact')
+                    fprintf('%s =\n  %s\n', name, char(string(obj)));
+                else
+                    fprintf('\n%s =\n\n  %s\n\n', name, char(string(obj)));
+                end
             end
         end
         function o = copy(obj)

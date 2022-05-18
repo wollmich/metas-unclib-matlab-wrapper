@@ -267,6 +267,9 @@ classdef MCProp
             pm = sprintf(' \xB1 ');
             
             function varargout = dispParts(x)
+                % Using evalc(disp(x)) prints using the current format
+                % setting. We display all parts of the number as one vector
+                % so all are displayed as floats if one of them is a float.
                 x = reshape(x, [], 1); %#ok<NASGU> % Enforce a column vector so disp does not produce 'Column x' statements.
                 varargout = strsplit(strtrim(evalc('disp(x)')));
             end

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 03.05.2022
+% Dion Timmermann PTB - 18.05.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -312,19 +312,25 @@ classdef LinProp
             name = inputname(1);
             ds = get(0, 'FormatSpacing');
             if obj.IsArray
+                value = get_value(obj);
+                unc = get_stdunc(obj);
+                if isreal(value) ~= isreal(unc)
+                    value = complex(value);
+                    unc = complex(unc);
+                end
                 if isequal(ds, 'compact')
-                    disp([name,'.value = '])
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
-                    disp(get_stdunc(obj))
+                    disp([name,'.Value = '])
+                    disp(value)
+                    disp([name,'.StdUnc = '])
+                    disp(unc)
                 else
                     disp(' ');
-                    disp([name,'.value = '])
+                    disp([name,'.Value = '])
                     disp(' ');
-                    disp(get_value(obj))
-                    disp([name,'.standard_unc = '])
+                    disp(value)
+                    disp([name,'.StdUnc = '])
                     disp(' ');
-                    disp(get_stdunc(obj))        
+                    disp(unc)        
                 end
             else
                 if isequal(ds, 'compact')

@@ -2205,7 +2205,7 @@ function dispAsPages(name, value, isLoose)
         [page_subscripts{:}] = ind2sub(size_residual,ii);
 
         if ~isempty(size_residual)
-            page_name = sprintf('%s(:,:,%s)', name, strrep(num2str(cell2mat(page_subscripts)), '  ', ','));
+            page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
         end
 
         if (isLoose && ii==1); disp(' '); end

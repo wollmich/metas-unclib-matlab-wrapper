@@ -1,7 +1,7 @@
 % This class supports the creation of uncertainty objects and subsequent
 % calculation with them as well as storage of the results. It can handle
 % complex-valued and multivariate quantities. Internally, DistProp objects
-% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/metas/de/home/fabe/hochfrequenz/unclib.html">METAS UncLib library</a>.
+% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/unclib">METAS UncLib library</a>.
 %
 % <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
 %   a = DistProp(value)

@@ -270,16 +270,16 @@ classdef DistProp
                 % Using evalc(disp(x)) prints using the current format
                 % setting. We display all parts of the number as one vector
                 % so all are displayed as floats if one of them is a float.
-                x = reshape(x, [], 1); %#ok<NASGU> % Enforce a column vector so disp does not produce 'Column x' statements.
+                x = reshape(x, [], 1); % Enforce a column vector so disp does not produce 'Column x' statements.
                 varargout = strsplit(strtrim(evalc('disp(x)')));
             end
             
             str = cell(size(obj));
             for ii = 1:numel(obj)
                 
-                val_real  = get_value(real(obj));
+                val_real = get_value(real(obj));
                 unc_real = get_stdunc(real(obj));
-                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end %#ok<SEPEX>
+                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end
                 
                 if ~obj.IsComplex
                     [val_real, unc_real] = dispParts([abs(val_real), unc_real]);
@@ -288,7 +288,7 @@ classdef DistProp
                 else
                     val_imag = get_value(imag(obj));
                     unc_imag = get_stdunc(imag(obj));
-                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end %#ok<SEPEX>
+                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end
 
                     [val_real, unc_real, val_imag, unc_imag] = dispParts([abs(val_real), unc_real, abs(val_imag), unc_imag]);
                     

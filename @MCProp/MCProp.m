@@ -315,20 +315,8 @@ classdef MCProp
                     value = complex(value);
                     unc = complex(unc);
                 end
-                if isequal(ds, 'compact')
-                    disp([name,'.Value = '])
-                    disp(value)
-                    disp([name,'.StdUnc = '])
-                    disp(unc)
-                else
-                    disp(' ');
-                    disp([name,'.Value = '])
-                    disp(' ');
-                    disp(value)
-                    disp([name,'.StdUnc = '])
-                    disp(' ');
-                    disp(unc)        
-                end
+                dispAsPages([name '.Value'], value, isequal(ds, 'loose'));
+                dispAsPages([name '.StdUnc'], unc, isequal(ds, 'loose'));
             else
                 if isequal(ds, 'compact')
                     fprintf('%s =\n  %s\n', name, char(string(obj)));
@@ -2205,4 +2193,25 @@ classdef MCProp
             obj = MCProp(unc_number);
         end
     end 
+end
+
+function dispAsPages(name, value, isLoose)
+    size_all = size(value);
+    size_residual = size_all(3:end);
+    page_subscripts = cell(1, numel(size_residual));
+    page_name = name;
+    nPages = prod(size_residual);
+    for ii = 1:nPages
+        [page_subscripts{:}] = ind2sub(size_residual,ii);
+
+        if ~isempty(size_residual)
+            page_name = sprintf('%s(:,:,%s)', name, strrep(num2str(cell2mat(page_subscripts)), '  ', ','));
+        end
+
+        if (isLoose && ii==1); disp(' '); end
+        disp([page_name ' = ']);
+        if (isLoose); disp(' '); end
+        disp(value(:, :, page_subscripts{:}));
+        if (isLoose && ii ~= nPages); disp(' '); end
+    end
 end

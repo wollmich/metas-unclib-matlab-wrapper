@@ -267,7 +267,7 @@ classdef MCProp
             pm = sprintf(' \xB1 ');
             
             function varargout = dispParts(x)
-                x = reshape(x, [], 1); % Enforce a column vector so disp does not produce 'Column x' statements.
+                x = reshape(x, [], 1); %#ok<NASGU> % Enforce a column vector so disp does not produce 'Column x' statements.
                 varargout = strsplit(strtrim(evalc('disp(x)')));
             end
             
@@ -276,10 +276,7 @@ classdef MCProp
                 
                 val_real  = get_value(real(obj));
                 unc_real = get_stdunc(real(obj));
-                sign_real = ' ';
-                if val_real < 0
-                    sign_real = '-';
-                end
+                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end %#ok<SEPEX>
                 
                 if ~obj.IsComplex
                     [val_real, unc_real] = dispParts([abs(val_real), unc_real]);
@@ -288,10 +285,7 @@ classdef MCProp
                 else
                     val_imag = get_value(imag(obj));
                     unc_imag = get_stdunc(imag(obj));
-                    sign_imag = ' + ';
-                    if val_imag < 0
-                        sign_imag = ' - ';
-                    end
+                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end %#ok<SEPEX>
 
                     [val_real, unc_real, val_imag, unc_imag] = dispParts([abs(val_real), unc_real, abs(val_imag), unc_imag]);
                     

@@ -302,10 +302,6 @@ classdef MCProp
             if obj.IsArray
                 value = get_value(obj);
                 unc = get_stdunc(obj);
-                if isreal(value) ~= isreal(unc)
-                    value = complex(value);
-                    unc = complex(unc);
-                end
                 dispAsPages([name '.Value'], value, isequal(ds, 'loose'));
                 dispAsPages([name '.StdUnc'], unc, isequal(ds, 'loose'));
             else

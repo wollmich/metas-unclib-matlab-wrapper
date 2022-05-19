@@ -309,25 +309,19 @@ classdef MCProp
             name = inputname(1);
             ds = get(0, 'FormatSpacing');
             if obj.IsArray
-                value = get_value(obj);
-                unc = get_stdunc(obj);
-                if isreal(value) ~= isreal(unc)
-                    value = complex(value);
-                    unc = complex(unc);
-                end
                 if isequal(ds, 'compact')
                     disp([name,'.Value = '])
-                    disp(value)
+                    disp(get_value(obj))
                     disp([name,'.StdUnc = '])
-                    disp(unc)
+                    disp(get_stdunc(obj))
                 else
                     disp(' ');
                     disp([name,'.Value = '])
                     disp(' ');
-                    disp(value)
+                    disp(get_value(obj))
                     disp([name,'.StdUnc = '])
                     disp(' ');
-                    disp(unc)        
+                    disp(get_stdunc(obj))        
                 end
             else
                 if isequal(ds, 'compact')
@@ -2054,14 +2048,14 @@ classdef MCProp
             if MCProp.IsArrayNet(x)
                 s = int32(x.size);
                 if MCProp.IsComplexNet(x)
-                    d = double(x.DblRealValue()) + 1i.*double(x.DblImagValue());
+                    d = complex(double(x.DblRealValue()), double(x.DblImagValue()));
                 else
                     d = double(x.DblValue());
                 end
                 d = reshape(d, s);
             else
                 if MCProp.IsComplexNet(x)
-                    d = x.DblRealValue() + 1i*x.DblImagValue();
+                    d = complex(x.DblRealValue(), x.DblImagValue());
                 else
                     d = x.Value;
                 end

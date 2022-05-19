@@ -299,7 +299,13 @@ classdef LinProp
         function display(obj)
             name = inputname(1);
             ds = get(0, 'FormatSpacing');
-            if obj.IsArray
+            if isempty(obj)
+                if isequal(ds, 'compact')
+                    fprintf('%s =\n     []\n', name);
+                else
+                    fprintf('\n%s =\n\n     []\n\n', name);
+                end
+            elseif obj.IsArray
                 value = get_value(obj);
                 unc = get_stdunc(obj);
                 dispAsPages([name '.Value'], value, isequal(ds, 'loose'));

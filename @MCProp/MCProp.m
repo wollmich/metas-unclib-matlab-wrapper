@@ -299,21 +299,17 @@ classdef MCProp
         function display(obj)
             name = inputname(1);
             ds = get(0, 'FormatSpacing');
-            if obj.IsArray
+            if isempty(obj)
                 if isequal(ds, 'compact')
-                    disp([name,'.Value = '])
-                    disp(get_value(obj))
-                    disp([name,'.StdUnc = '])
-                    disp(get_stdunc(obj))
+                    fprintf('%s =\n     []\n', name);
                 else
-                    disp(' ');
-                    disp([name,'.Value = '])
-                    disp(' ');
-                    disp(get_value(obj))
-                    disp([name,'.StdUnc = '])
-                    disp(' ');
-                    disp(get_stdunc(obj))        
+                    fprintf('\n%s =\n\n     []\n\n', name);
                 end
+            elseif obj.IsArray
+                value = get_value(obj);
+                unc = get_stdunc(obj);
+                dispAsPages([name '.Value'], value, isequal(ds, 'loose'));
+                dispAsPages([name '.StdUnc'], unc, isequal(ds, 'loose'));
             else
                 if isequal(ds, 'compact')
                     fprintf('%s =\n  %s\n', name, char(string(obj)));
@@ -2190,4 +2186,25 @@ classdef MCProp
             obj = MCProp(unc_number);
         end
     end 
+end
+
+function dispAsPages(name, value, isLoose)
+    size_all = size(value);
+    size_residual = size_all(3:end);
+    page_subscripts = cell(1, numel(size_residual));
+    page_name = name;
+    nPages = prod(size_residual);
+    for ii = 1:nPages
+        [page_subscripts{:}] = ind2sub(size_residual,ii);
+
+        if ~isempty(size_residual)
+            page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
+        end
+
+        if (isLoose && ii==1); disp(' '); end
+        disp([page_name ' = ']);
+        if (isLoose); disp(' '); end
+        disp(value(:, :, page_subscripts{:}));
+        if (isLoose && ii ~= nPages); disp(' '); end
+    end
 end

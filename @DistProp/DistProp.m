@@ -315,13 +315,8 @@ classdef DistProp
             % source code file is not dependent on the encoding.
             pm = sprintf(' \xB1 ');
             
-            function varargout = dispParts(x)
-                % Using evalc(disp(x)) prints using the current format
-                % setting. We display all parts of the number as one vector
-                % so all are displayed as floats if one of them is a float.
-                x = reshape(x, [], 1); % Enforce a column vector so disp does not produce 'Column x' statements.
-                varargout = strsplit(strtrim(evalc('disp(x)')));
-            end
+            % Using evalc(disp(x)) prints using the current format setting.
+            edisp = @(x) strtrim(evalc('disp(x)'));
             
             str = cell(size(obj));
             for ii = 1:numel(obj)
@@ -331,18 +326,14 @@ classdef DistProp
                 if (val_real < 0) sign_real = '-'; else sign_real = ' '; end
                 
                 if ~obj.IsComplex
-                    [val_real, unc_real] = dispParts([abs(val_real), unc_real]);
-                    
-                    str{ii} = [sign_real '(' val_real pm unc_real ')'];
+                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')'];
                 else
                     val_imag = get_value(imag(obj));
                     unc_imag = get_stdunc(imag(obj));
                     if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end
 
-                    [val_real, unc_real, val_imag, unc_imag] = dispParts([abs(val_real), unc_real, abs(val_imag), unc_imag]);
-                    
-                    str{ii} = [sign_real '(' val_real pm unc_real ')' ...
-                               sign_imag '(' val_imag pm unc_imag ')i'];
+                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')' ...
+                               sign_imag '(' edisp(val_imag) pm edisp(unc_imag) ')i'];
                 end
                 
             end

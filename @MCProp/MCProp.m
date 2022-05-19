@@ -2033,14 +2033,14 @@ classdef MCProp
             if MCProp.IsArrayNet(x)
                 s = int32(x.size);
                 if MCProp.IsComplexNet(x)
-                    d = double(x.DblRealValue()) + 1i.*double(x.DblImagValue());
+                    d = complex(double(x.DblRealValue()), double(x.DblImagValue()));
                 else
                     d = double(x.DblValue());
                 end
                 d = reshape(d, s);
             else
                 if MCProp.IsComplexNet(x)
-                    d = x.DblRealValue() + 1i*x.DblImagValue();
+                    d = complex(x.DblRealValue(), x.DblImagValue());
                 else
                     d = x.Value;
                 end

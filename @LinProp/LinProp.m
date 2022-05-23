@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 02.05.2022
+% Dion Timmermann PTB - 19.05.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -2194,14 +2194,14 @@ classdef LinProp < matlab.mixin.CustomDisplay
             if LinProp.IsArrayNet(x)
                 s = int32(x.size);
                 if LinProp.IsComplexNet(x)
-                    d = double(x.DblRealValue()) + 1i.*double(x.DblImagValue());
+                    d = complex(double(x.DblRealValue()), double(x.DblImagValue()));
                 else
                     d = double(x.DblValue());
                 end
                 d = reshape(d, s);
             else
                 if LinProp.IsComplexNet(x)
-                    d = x.DblRealValue() + 1i*x.DblImagValue();
+                    d = complex(x.DblRealValue(), x.DblImagValue());
                 else
                     d = x.Value;
                 end
@@ -2345,4 +2345,25 @@ classdef LinProp < matlab.mixin.CustomDisplay
             obj = LinProp(unc_number);
         end
     end 
+end
+
+function dispAsPages(name, value, isLoose)
+    size_all = size(value);
+    size_residual = size_all(3:end);
+    page_subscripts = cell(1, numel(size_residual));
+    page_name = name;
+    nPages = prod(size_residual);
+    for ii = 1:nPages
+        [page_subscripts{:}] = ind2sub(size_residual,ii);
+
+        if ~isempty(size_residual)
+            page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
+        end
+
+        if (isLoose && ii==1); disp(' '); end
+        disp([page_name ' = ']);
+        if (isLoose); disp(' '); end
+        disp(value(:, :, page_subscripts{:}));
+        if (isLoose && ii ~= nPages); disp(' '); end
+    end
 end

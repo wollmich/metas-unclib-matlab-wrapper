@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 19.05.2022
+% Dion Timmermann PTB - 01.06.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1430,6 +1430,9 @@ classdef LinProp
         end
         function y = isnan(x)
             y = isnan(double(x));
+        end
+        function y = isreal(x)
+            y = ~x.IsComplex;
         end
         function y = transpose(x)
             if x.IsArray

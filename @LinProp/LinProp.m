@@ -260,6 +260,45 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
             end 
         end
+        function str = string(obj)
+            
+            % The plus/minus sign coded as unicode number so this
+            % source code file is not dependent on the encoding.
+            pm = sprintf(' \xB1 ');
+            
+            % Using evalc(disp(x)) prints using the current format setting.
+            edisp = @(x) strtrim(evalc('disp(x)'));
+            
+            str = cell(size(obj));
+            
+            val_real = get_value(real(obj));
+            unc_real = get_stdunc(real(obj));
+            sign_real = repmat(' ', size(obj));
+            sign_real(val_real < 0) = '-';
+            
+            if ~obj.IsComplex
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii) '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ')'];
+                end
+            else          
+                val_imag = get_value(imag(obj));
+                unc_imag = get_stdunc(imag(obj));
+                sign_imag = repmat('+', size(obj));
+                sign_imag(val_imag < 0) = '-';
+                
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii)  '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ') ' ...
+                               sign_imag(ii) ' (' edisp(val_imag(ii)) pm edisp(unc_imag(ii)) ')i'];
+                end
+            end
+            
+            % Strings and the string() function were introduced in Matalb
+            % 2016b (version 9.1). Return the cellstr for older versions.
+            if ~verLessThan('matlab', '9.1')
+                str = string(str);
+            end
+            
+        end
         function o = copy(obj)
             if obj.IsArray
                 o = LinProp(Copy(obj.NetObject));

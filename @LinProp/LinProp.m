@@ -1138,7 +1138,7 @@ classdef LinProp
 % bounds, the second column the upper bounds.
 %
 % unc is always interpreted as a vector, thus get_coverage_interval(unc, p)
-% is the same as get_coverage_interval(unc(:), p). If unc contians complex
+% is the same as get_coverage_interval(unc(:), p). If unc contains complex
 % values, the real and imag part are treated separately, thus
 % get_coverage_interval(cUnc, p) is the same as
 % get_coverage_interval([real(cUnc(:)), imag(cUnc(:))], p).
@@ -1159,7 +1159,7 @@ classdef LinProp
 %
 % The input argument unc is always interpreted as a vector, thus
 % get_correlation(unc) is the same as get_correlation(unc(:)). If unc
-% contians complex values, the real and imag part are treated separately,
+% contains complex values, the real and imag part are treated separately,
 % thus get_correlation(cUnc) is the same as get_correlation([real(cUnc(:)),
 % imag(cUnc(:))]).
             l = ToUncList(obj);
@@ -1176,7 +1176,7 @@ classdef LinProp
 %
 % The input argument unc is always interpreted as a vector, thus
 % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
-% contians complex values, the real and imag part are treated separately,
+% contains complex values, the real and imag part are treated separately,
 % thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
 % imag(cUnc(:))]).
             l = ToUncList(obj);

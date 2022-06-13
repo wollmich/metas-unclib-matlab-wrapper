@@ -93,7 +93,7 @@ classdef MCProp
             % MCProp Binary File
             % a = MCProp(filepath, 'binary_file')
             %
-            % MCProp System (RealUncNumber)
+            % MCProp System (RealUncNumber) (LinProp only!)
             % a = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
             %
             % MCProp Input (RealUncNumber)

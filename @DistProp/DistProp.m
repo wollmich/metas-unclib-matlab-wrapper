@@ -93,7 +93,7 @@ classdef DistProp
             % DistProp Binary File
             % a = DistProp(filepath, 'binary_file')
             %
-            % DistProp System (RealUncNumber)
+            % DistProp System (RealUncNumber) (LinProp only!)
             % a = DistProp(value, (sys_inputs), (sys_sensitivities), 'system')
             %
             % DistProp Input (RealUncNumber)

@@ -93,7 +93,7 @@ classdef LinProp
             % LinProp Binary File
             % a = LinProp(filepath, 'binary_file')
             %
-            % LinProp System (RealUncNumber)
+            % LinProp System (RealUncNumber) (LinProp only!)
             % a = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
             %
             % LinProp Input (RealUncNumber)

@@ -1,7 +1,10 @@
-function displayFooter(obj, inputname)
+function displayFooter(obj, inputname, matrixDisplay)
 
     if isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
         return;
+    end
+    if nargin < 3
+        matrixDisplay = false;
     end
 
     links = '';
@@ -12,6 +15,15 @@ function displayFooter(obj, inputname)
         links = [methodLink('displayInFormat(%s, ''long'')', 'in Format long', inputname, class(obj)), links];
     end
 
+    global UncLibMatrixDisplay
+    if matrixDisplay
+        if strcmp(UncLibMatrixDisplay, 'separate')
+            links = [methodLink('LinProp.setMatrixDisplay(''combined'');display(%s)', 'with combined uncertainties', inputname, class(obj)), links];
+        else
+            links = [methodLink('LinProp.setMatrixDisplay(''separate'');display(%s)', 'with separate uncertainties', inputname, class(obj)), links];
+        end
+    end
+    
     fprintf('Show %s<a href="matlab:methods(''%s'')">Methods</a>.\n', links, class(obj));
 
 end

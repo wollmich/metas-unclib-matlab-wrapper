@@ -1832,208 +1832,85 @@ classdef LinProp < matlab.mixin.CustomDisplay
             evalin('caller', sprintf('format(''%s'');', oldFormat));
         end
     end
-    methods(Hidden, Access = protected)
-        function displayScalarObject(obj)
+    methods (Static, Hidden, Access = public)
+        function setMatrixDisplay(format)
+            global UncLibMatrixDisplay
+            UncLibMatrixDisplay = format;
+        end
+    end
+    methods (Static, Hidden, Access = protected)
+        function TF = displaySupportsLinks()
+            link = matlab.mixin.CustomDisplay.getHandleText();
+            if strcmp(link(1:2), '<a')
+                TF = true;
+            else
+                TF = false;
+            end
+        end
+    end
+    methods (Hidden, Access = protected)
+        function header = displayHeader(obj)
             
-            % If getDetailedFooter returns an empty string, we are in an
-            % environment that does not support links (like a pupup text 
-            % or the "Variables" window). In these environments the
-            % datatype and size are already shown, so we omit them.
-            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
-                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
-                fprintf('    %s:\n', name);
+            if ~obj.displaySupportsLinks()
+                return;
             end
             
-            fprintf('    %s\n\n', ...
-                LinProp.toUncCharColumn(get_value(obj), get_stdunc(obj), obj.IsComplex));
-
+            header = matlab.mixin.CustomDisplay.getDetailedHeader(obj);
+            header = strrep(header, ' with properties', '');
+            
+            if ~strcmp(get(0, 'FormatSpacing'), 'loose')
+                header = header(1:end-1);
+            end
+            disp(header);
+        end
+        function displayEmptyObject(obj)
+            displayHeader(obj);
+            disp('     []');
+            if strcmp(get(0, 'FormatSpacing'), 'loose')
+                disp(newline);
+            end
+        end
+        function displayScalarObject(obj)
+            displayHeader(obj);
+            disp(['  ' char(string(obj))]);
             displayFooter(obj, inputname(1));
         end
         function displayNonScalarObject(obj)
-            value = get_value(obj);
-            stdunc = get_stdunc(obj);
+            % This implementation causes an issue in one case: With arrays
+            % with more than 2 dimensions, the variable is displayed in the
+            % variables window as text. The display() method implemented in
+            % CustromDisplay automaticaly adds a `inputname(1) =` to the
+            % output. I have not found a way to get rid of it. 
+            % 
+            % The formatted display of the output class is not visible in
+            % the variables window, as lines with links are not displayed.
+            % However, we can not easily detect when the output is for the
+            % display and when it is not. (only dbstack would work)
+            %
             
-            % If getDetailedFooter returns an empty string, we are in an
-            % environment that does not support links (like a pupup text 
-            % or the "Variables" window). In these environments the
-            % datatype and size are already shown, so we omit them.
-            if ~isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
-                dimstr = matlab.mixin.CustomDisplay.convertDimensionsToString(obj);
-                name = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
-                fprintf('    %s %s:\n', dimstr, name);
+            global UncLibMatrixDisplay
+            if isempty(UncLibMatrixDisplay)
+                UncLibMatrixDisplay = 'separate';
             end
             
-            if ismatrix(value)
-                LinProp.printPage(value, stdunc, obj.IsComplex);
+            displayHeader(obj);
+            
+            if strcmp(UncLibMatrixDisplay, 'separate')
+                value = get_value(obj);
+                unc = get_stdunc(obj);
+                dispAllPages([inputname(1) '.Value'], value, @disp);
+                dispAllPages([inputname(1) '.StdUnc'], unc, @disp);
             else
-                % Print every page (2D slice) separately
-                sizeObj = size(value);
-                sizeRes = sizeObj(3:end);
-                pageSubs = cell(1, numel(sizeRes));
-                for ii = 1:prod(sizeRes)
-                    [pageSubs{:}] = ind2sub(sizeRes,ii);
-
-                    fprintf('\n(:,:,%s) =\n\n', strjoin(string(pageSubs), ','));
-                    LinProp.printPage(value(:, :, pageSubs{:}), stdunc(:, :, pageSubs{:}), obj.IsComplex);
+                if ismatrix(obj)
+                    dispPage(obj);
+                else
+                    dispAllPages(inputname(1), obj, @dispPage);
                 end
             end
             
-            displayFooter(obj, inputname(1));
+            displayFooter(obj, inputname(1), true);
         end
-        displayFooter(obj, inputname) % This function is different for LinProp
-    end
-    methods(Static, Access = private)
-        function printPage(value, stdunc, isComplex)
-            % Helper function for displayNonScalarObject(). Prints one page
-            % (2D slice) of a matrix.
-            %
-            % Inputs:
-            %   value           2D mtrix nominal values to format
-            %   stdunc          2D mtrix of std unciertainties to format
-            %   isComplex       logical indicating if data are complex
-
-            wSize = matlab.desktop.commandwindow.size;
-            commandWindowWidth = wSize(1);
-
-            nColumns = size(value, 2);
-            nRows = size(value, 1);
-            spacing = 4;
-            columns = cell(1, nColumns);
-            for ii = 1:nColumns
-                columns{ii} = [repmat(' ', spacing, nRows); LinProp.toUncCharColumn(value(:, ii), stdunc(:, ii), isComplex)];
-            end
-            columnWidths = cellfun(@(x) size(x, 1), columns);
-
-            startColumn = 1;
-            while startColumn <= nColumns
-                endColumn = startColumn;
-                while endColumn < nColumns
-                    if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
-                        endColumn = endColumn + 1;
-                    else
-                        break
-                    end
-                end
-
-                if not(startColumn == 1 && endColumn == nColumns)
-                    if startColumn == endColumn
-                        fprintf('  Column %i\n', startColumn);
-                    else
-                        fprintf('  Columns %i through %i\n', startColumn, endColumn);
-                    end
-                end
-
-                indent = 0;
-                text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
-                text(end, :) = newline;
-                offset = indent+1;
-
-                for ii = startColumn:endColumn
-                    text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
-                    offset = offset + columnWidths(ii);
-                end
-
-                fprintf(text);
-                fprintf('\n');
-
-                startColumn = endColumn + 1;
-
-            end
-
-        end
-        function column = toUncCharColumn(value, stdunc, isComplex)
-            % Used to format a scalar or vector of LinProps as a char
-            % matrix with (value +/- stdunc) notation.
-            %
-            % Inputs:
-            %   value           vector of nominal values to format
-            %   stdunc          vector of std unciertainties to format
-            %   isComplex       logical indicating if data are complex
-            
-            if isComplex
-                columnReal = LinProp.toUncPartCharColumn(real(value), real(stdunc), 1, false);
-                columnImag = LinProp.toUncPartCharColumn(imag(value), imag(stdunc), 3, true);
-                
-                column = [...
-                    columnReal; ...
-                    columnImag; ...
-                    repmat(('i')', 1, numel(value)); ...
-                ];
-            else
-                column = LinProp.toUncPartCharColumn(value, stdunc, 1, false);
-            end
-            
-        end
-        function column = toUncPartCharColumn(value, stdunc, signSpacing, showPlus)
-            % Helper function for toUncCharColumn.
-            %
-            % Used to format a vector of non-complex LinProps as a char
-            % matrix with (value +/- stdunc) notation.
-            %
-            % Inputs:
-            %   value           vector of nominal values to format
-            %   stdunc          vector of std unciertainties to format
-            %   signSpacing     number of spaces before opening bracket.
-            %                   The sign of the nominal value is placed in
-            %                   these spaces, thus signSpacing must be >=1.
-            %   showPlus        if true, a '+' is inserted infront of
-            %                   entries with a non-negative value.
-
-            n = numel(value);
-            
-            signs = repmat(' ', signSpacing, n);
-            signs(ceil(signSpacing/2), value < 0) = '-';
-            if showPlus
-                % not() is used so nan also produces a +
-                signs(ceil(signSpacing/2), not(value < 0)) = '+';
-            end
-            
-            % The plus/minus sign coded as unicode number to precent
-            % problems with the encoding.
-            pm = sprintf(' \xB1 ');
-            
-            column = [...
-                signs; ...
-                repmat(('(')', 1, n); ...
-                LinProp.toCharColumn(abs(value)); ...
-                repmat(pm', 1, n); ...
-                LinProp.toCharColumn(stdunc); ...
-                repmat((')')', 1, n); ...
-            ];
-
-        end
-        function column = toCharColumn(number)
-            % Helper function for toUncPartCharColumn.
-            %
-            % Converts a vector of numbers into a char matrix contianing
-            % the numbers as right-aligned string representations.
-
-            n = numel(number);
-
-            % We first set a field width that definitely is large enough
-            % for all numbers, then remove trailing spaces
-            switch get(0, 'Format')
-                case 'shortE'
-                    format = '%17.4e';
-                case 'longE'
-                    format = '%27.15e';
-                case 'long'
-                    format = '%27.15g';
-                otherwise % Including short
-                    format = '%17.4g';
-            end
-            
-            column = sprintf(format, number);
-            column = reshape(column, [], n);    % Make matrix, one number per row.
-
-            firstNonSpace = find(~all(isspace(column), 2), 1);
-            if isempty(firstNonSpace)
-                column = repmat(newline, 1, n);
-            else
-                column = column(firstNonSpace:end, :);
-            end
-
-        end
+        displayFooter(obj, inputname, varargin) % This function is different for LinProp
     end
     methods(Access = private)
         function l = ToUncList(obj)
@@ -2389,7 +2266,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
     end 
 end
 
-function dispAsPages(name, value, isLoose)
+function dispAllPages(name, value, callback)
+    isLoose = strcmp(get(0, 'FormatSpacing'), 'loose');
     size_all = size(value);
     size_residual = size_all(3:end);
     page_subscripts = cell(1, numel(size_residual));
@@ -2405,7 +2283,70 @@ function dispAsPages(name, value, isLoose)
         if (isLoose && ii==1); disp(' '); end
         disp([page_name ' = ']);
         if (isLoose); disp(' '); end
-        disp(value(:, :, page_subscripts{:}));
+        callback(subsref(value, substruct('()', [{':'}, {':'}, page_subscripts(:)'])));
         if (isLoose && ii ~= nPages); disp(' '); end
     end
+end
+
+function dispPage(obj)
+    % Helper function for displayNonScalarObject(). Prints one page
+    % (2D slice) of a matrix.
+    %
+    % Inputs:
+    %   value           2D mtrix nominal values to format
+    %   stdunc          2D mtrix of std unciertainties to format
+    %   isComplex       logical indicating if data are complex
+
+    wSize = matlab.desktop.commandwindow.size;
+    commandWindowWidth = wSize(1);
+
+    [nRows, nColumns] = size(obj);
+    spacing = 4;
+    columns = cell(1, nColumns);
+    strings = cellstr(string(obj));
+    stringLengths = cellfun(@numel, strings);
+    columnWidths = max(stringLengths, [], 1) + spacing;
+    for ii = 1:nColumns
+        columns{ii} = repmat(' ', columnWidths(ii), nRows);
+        for kk = 1:nRows
+            columns{ii}(1+spacing:spacing+stringLengths(ii, kk), kk) = strings{ii, kk};
+        end
+    end
+
+    startColumn = 1;
+    while startColumn <= nColumns
+        endColumn = startColumn;
+        while endColumn < nColumns
+            if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
+                endColumn = endColumn + 1;
+            else
+                break
+            end
+        end
+
+        if not(startColumn == 1 && endColumn == nColumns)
+            if startColumn == endColumn
+                fprintf('  Column %i\n', startColumn);
+            else
+                fprintf('  Columns %i through %i\n', startColumn, endColumn);
+            end
+        end
+
+        indent = 0;
+        text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
+        text(end, :) = newline;
+        offset = indent+1;
+
+        for ii = startColumn:endColumn
+            text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
+            offset = offset + columnWidths(ii);
+        end
+
+        fprintf(text);
+        fprintf('\n');
+
+        startColumn = endColumn + 1;
+
+    end
+
 end

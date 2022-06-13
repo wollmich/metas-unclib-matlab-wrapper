@@ -270,23 +270,26 @@ classdef LinProp
             edisp = @(x) strtrim(evalc('disp(x)'));
             
             str = cell(size(obj));
-            for ii = 1:numel(obj)
-                
-                val_real = get_value(real(obj));
-                unc_real = get_stdunc(real(obj));
-                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end
-                
-                if ~obj.IsComplex
-                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')'];
-                else
-                    val_imag = get_value(imag(obj));
-                    unc_imag = get_stdunc(imag(obj));
-                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end
-
-                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')' ...
-                               sign_imag '(' edisp(val_imag) pm edisp(unc_imag) ')i'];
+            
+            val_real = get_value(real(obj));
+            unc_real = get_stdunc(real(obj));
+            sign_real = repmat(' ', size(obj));
+            sign_real(val_real < 0) = '-';
+            
+            if ~obj.IsComplex
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii) '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ')'];
                 end
+            else          
+                val_imag = get_value(imag(obj));
+                unc_imag = get_stdunc(imag(obj));
+                sign_imag = repmat('+', size(obj));
+                sign_imag(val_imag < 0) = '-';
                 
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii)  '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ') ' ...
+                               sign_imag(ii) ' (' edisp(val_imag(ii)) pm edisp(unc_imag(ii)) ')i'];
+                end
             end
             
             % Strings and the string() function were introduced in Matalb

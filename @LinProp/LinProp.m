@@ -275,6 +275,7 @@ classdef LinProp
             unc_real = get_stdunc(real(obj));
             sign_real = repmat(' ', size(obj));
             sign_real(val_real < 0) = '-';
+            val_real = abs(val_real);
             
             if ~obj.IsComplex
                 for ii = 1:numel(obj)
@@ -285,6 +286,7 @@ classdef LinProp
                 unc_imag = get_stdunc(imag(obj));
                 sign_imag = repmat('+', size(obj));
                 sign_imag(val_imag < 0) = '-';
+                val_imag = abs(val_imag);
                 
                 for ii = 1:numel(obj)
                     str{ii} = [sign_real(ii)  '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ') ' ...

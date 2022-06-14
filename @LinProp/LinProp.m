@@ -300,8 +300,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
             end
 
             if parser.Results.AlignColumns
-                val_real_str = alignColumn(val_real_str);
-                unc_real_str = alignColumn(unc_real_str);
+                val_real_str = LinProp.alignColumn(val_real_str);
+                unc_real_str = LinProp.alignColumn(unc_real_str);
             end
 
             if ~obj.IsComplex
@@ -321,8 +321,8 @@ classdef LinProp < matlab.mixin.CustomDisplay
                 end
 
                 if parser.Results.AlignColumns
-                    val_imag_str = alignColumn(val_imag_str);
-                    unc_imag_str = alignColumn(unc_imag_str);
+                    val_imag_str = LinProp.alignColumn(val_imag_str);
+                    unc_imag_str = LinProp.alignColumn(unc_imag_str);
                 end
 
                 for ii = 1:numel(obj)
@@ -1857,103 +1857,6 @@ classdef LinProp < matlab.mixin.CustomDisplay
             bin.complex = obj.IsComplex;
         end
     end
-    methods (Hidden, Access = public)
-        function displayInFormat(obj, useFormat) %#ok<INUSL> Used through inputname
-            % Function used to print a number in a different format than
-            % the one selected currently. 
-            %
-            % To make sure the correct variable name is shown, the function
-            % actually executed code in the caller workspace.
-            
-            oldFormat = get(0, 'Format');
-            evalin('caller', sprintf('format(''%s'');', useFormat));
-            evalin('caller', sprintf('display(%s);', inputname(1)));
-            evalin('caller', sprintf('format(''%s'');', oldFormat));
-        end
-    end
-    methods (Static, Hidden, Access = public)
-        function setMatrixDisplay(format)
-            global UncLibMatrixDisplay
-            UncLibMatrixDisplay = format;
-        end
-    end
-    methods (Static, Hidden, Access = protected)
-        function TF = displaySupportsLinks()
-            link = matlab.mixin.CustomDisplay.getHandleText();
-            if strcmp(link(1:2), '<a')
-                TF = true;
-            else
-                TF = false;
-            end
-        end
-    end
-    methods (Hidden, Access = protected)
-        function header = displayHeader(obj)
-            
-            if ~obj.displaySupportsLinks()
-                return;
-            end
-            
-            header = matlab.mixin.CustomDisplay.getDetailedHeader(obj);
-            header = strrep(header, ' with properties', '');
-            
-            if ~strcmp(get(0, 'FormatSpacing'), 'loose')
-                header = header(1:end-1);
-            end
-            disp(header);
-        end
-        function displayEmptyObject(obj)
-            displayHeader(obj);
-            disp('     []');
-            if strcmp(get(0, 'FormatSpacing'), 'loose')
-                disp(newline);
-            end
-        end
-        function displayScalarObject(obj)
-            displayHeader(obj);
-            str = string(obj, ...
-                'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
-            );
-            disp(['  ' char(str)]);
-            displayFooter(obj, inputname(1));
-        end
-        function displayNonScalarObject(obj)
-            % This implementation causes an issue in one case: With arrays
-            % with more than 2 dimensions, the variable is displayed in the
-            % variables window as text. The display() method implemented in
-            % CustromDisplay automaticaly adds a `inputname(1) =` to the
-            % output. I have not found a way to get rid of it. 
-            % 
-            % The formatted display of the output class is not visible in
-            % the variables window, as lines with links are not displayed.
-            % However, we can not easily detect when the output is for the
-            % display and when it is not. (only dbstack would work)
-            %
-            
-            global UncLibMatrixDisplay
-            if isempty(UncLibMatrixDisplay)
-                UncLibMatrixDisplay = 'separate';
-            end
-            
-            displayHeader(obj);
-            
-            if strcmp(UncLibMatrixDisplay, 'separate')
-                value = get_value(obj);
-                unc = get_stdunc(obj);
-                dispAllPages([inputname(1) '.Value'], value, @disp);
-                dispAllPages([inputname(1) '.StdUnc'], unc, @disp);
-            else
-                if ismatrix(obj)
-                    dispPage(obj);
-                else
-                    dispAllPages(inputname(1), obj, @dispPage);
-                end
-            end
-            
-            displayFooter(obj, inputname(1), true);
-        end
-        displayFooter(obj, inputname, varargin) % This function is different for LinProp
-    end
     methods(Access = private)
         function l = ToUncList(obj)
             temp = Metas.UncLib.LinProp.UncList();
@@ -2306,133 +2209,235 @@ classdef LinProp < matlab.mixin.CustomDisplay
             obj = LinProp(unc_number);
         end
     end 
-end
-
-function dispAllPages(name, value, callback)
-    isLoose = strcmp(get(0, 'FormatSpacing'), 'loose');
-    size_all = size(value);
-    size_residual = size_all(3:end);
-    page_subscripts = cell(1, numel(size_residual));
-    page_name = name;
-    nPages = prod(size_residual);
-    for ii = 1:nPages
-        [page_subscripts{:}] = ind2sub(size_residual,ii);
-
-        if ~isempty(size_residual)
-            page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
-        end
-
-        if (isLoose && ii==1); disp(' '); end
-        disp([page_name ' = ']);
-        if (isLoose); disp(' '); end
-        callback(subsref(value, substruct('()', [{':'}, {':'}, page_subscripts(:)'])));
-        if (isLoose && ii ~= nPages); disp(' '); end
-    end
-end
-
-function dispPage(obj)
-    % Helper function for displayNonScalarObject(). Prints one page
-    % (2D slice) of a matrix.
-    %
-    % Inputs:
-    %   value           2D mtrix nominal values to format
-    %   stdunc          2D mtrix of std unciertainties to format
-    %   isComplex       logical indicating if data are complex
-
-    wSize = matlab.desktop.commandwindow.size;
-    commandWindowWidth = wSize(1);
-
-    [nRows, nColumns] = size(obj);
-    spacing = 4;
-    columns = cell(1, nColumns);
-    columnWidths = zeros(1, nColumns);
     
-    for ii = 1:nColumns
-        
-        objColumn = subsref(obj, substruct('()', {':', ii}));
-        
-        strings = cellstr(string(objColumn, 'AlignColumns', true, ...
-            'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
-        ));
-        
-        stringLengths = cellfun(@numel, strings);
-        columnWidths(ii) = max(stringLengths, [], 1) + spacing;
-        
-        columns{ii} = repmat(' ', columnWidths(ii), nRows);
-        for kk = 1:nRows
-            columns{ii}(1+spacing:end, kk) = strings{kk};
+    
+    methods (Hidden, Access = public)
+        function displayInFormat(obj, useFormat) %#ok<INUSL> Used through inputname
+            % Function used to print a number in a different format than
+            % the one selected currently. 
+            %
+            % To make sure the correct variable name is shown, the function
+            % actually executed code in the caller workspace.
+            
+            oldFormat = get(0, 'Format');
+            evalin('caller', sprintf('format(''%s'');', useFormat));
+            evalin('caller', sprintf('display(%s);', inputname(1)));
+            evalin('caller', sprintf('format(''%s'');', oldFormat));
         end
     end
-
-    startColumn = 1;
-    while startColumn <= nColumns
-        endColumn = startColumn;
-        while endColumn < nColumns
-            if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
-                endColumn = endColumn + 1;
+    methods (Static, Hidden, Access = public)
+        function setMatrixDisplay(format)
+            global UncLibMatrixDisplay
+            UncLibMatrixDisplay = format;
+        end
+    end
+    methods (Static, Hidden, Access = protected)
+        function TF = displaySupportsLinks()
+            link = matlab.mixin.CustomDisplay.getHandleText();
+            if strcmp(link(1:2), '<a')
+                TF = true;
             else
-                break
+                TF = false;
             end
         end
-
-        if not(startColumn == 1 && endColumn == nColumns)
-            if startColumn == endColumn
-                fprintf('  Column %i\n', startColumn);
-            else
-                fprintf('  Columns %i through %i\n', startColumn, endColumn);
+    end
+    methods (Hidden, Access = protected)
+        
+        displayFooter(obj, inputname, varargin) % This function is different for LinProp
+        
+        function header = displayHeader(obj)
+            
+            if ~obj.displaySupportsLinks()
+                return;
+            end
+            
+            header = matlab.mixin.CustomDisplay.getDetailedHeader(obj);
+            header = strrep(header, ' with properties', '');
+            
+            if ~strcmp(get(0, 'FormatSpacing'), 'loose')
+                header = header(1:end-1);
+            end
+            disp(header);
+        end
+        function displayEmptyObject(obj)
+            displayHeader(obj);
+            disp('     []');
+            if strcmp(get(0, 'FormatSpacing'), 'loose')
+                disp(newline);
             end
         end
-
-        indent = 0;
-        text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
-        text(end, :) = newline;
-        offset = indent+1;
-
-        for ii = startColumn:endColumn
-            text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
-            offset = offset + columnWidths(ii);
+        function displayScalarObject(obj)
+            displayHeader(obj);
+            str = string(obj, ...
+                'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
+            );
+            disp(['  ' char(str)]);
+            displayFooter(obj, inputname(1));
         end
-
-        fprintf(text);
-        fprintf('\n');
-
-        startColumn = endColumn + 1;
-
-    end
-
-end
-function strOut = alignColumn(strIn)
-    nRows = numel(strIn);
-    
-    width          = zeros(nRows, 1);
-    widthBeforeDot = zeros(nRows, 1);
-    widthAfterDot  = zeros(nRows, 1);
-    for ii = 1:nRows
-        dotPos     = find(strIn{ii} == '.', 1);
-        width(ii)  = numel(strIn{ii});
-        
-        if isempty(dotPos)
-            widthBeforeDot(ii) = width(ii);
-            widthAfterDot(ii)  = 0;
-        else
-            widthBeforeDot(ii) = dotPos-1;
-            widthAfterDot(ii)  = width(ii)-dotPos;
+        function displayNonScalarObject(obj)
+            % This implementation causes an issue in one case: With arrays
+            % with more than 2 dimensions, the variable is displayed in the
+            % variables window as text. The display() method implemented in
+            % CustromDisplay automaticaly adds a `inputname(1) =` to the
+            % output. I have not found a way to get rid of it. 
+            % 
+            % The formatted display of the output class is not visible in
+            % the variables window, as lines with links are not displayed.
+            % However, we can not easily detect when the output is for the
+            % display and when it is not. (only dbstack would work)
+            %
+            
+            global UncLibMatrixDisplay
+            if isempty(UncLibMatrixDisplay)
+                UncLibMatrixDisplay = 'separate';
+            end
+            
+            displayHeader(obj);
+            
+            if strcmp(UncLibMatrixDisplay, 'separate')
+                value = get_value(obj);
+                unc = get_stdunc(obj);
+                dispAllPages([inputname(1) '.Value'], value, @disp);
+                dispAllPages([inputname(1) '.StdUnc'], unc, @disp);
+            else
+                if ismatrix(obj)
+                    LinProp.dispPage(obj);
+                else
+                    dispAllPages(inputname(1), obj, @LinProp.dispPage);
+                end
+            end
+            
+            displayFooter(obj, inputname(1), true);
         end
     end
+    methods (Static, Hidden, Access = private)
+        function dispAllPages(name, value, callback)
+            isLoose = strcmp(get(0, 'FormatSpacing'), 'loose');
+            size_all = size(value);
+            size_residual = size_all(3:end);
+            page_subscripts = cell(1, numel(size_residual));
+            page_name = name;
+            nPages = prod(size_residual);
+            for ii = 1:nPages
+                [page_subscripts{:}] = ind2sub(size_residual,ii);
 
-    maxWidthBeforeDot = max(widthBeforeDot);
-    maxWidthAfterDot = max(widthAfterDot);
-    
-    if maxWidthAfterDot == 0
-        newWidth = maxWidthBeforeDot;
-    else
-        newWidth = maxWidthBeforeDot + maxWidthAfterDot + 1;
-    end
-    
-    offset = maxWidthBeforeDot - widthBeforeDot + 1;
-    strOut = cell(size(strIn));
-    for ii = 1:nRows
-        strOut{ii} = repmat(' ', 1, newWidth);
-        strOut{ii}(offset(ii):offset(ii)+width(ii)-1) = strIn{ii};
+                if ~isempty(size_residual)
+                    page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
+                end
+
+                if (isLoose && ii==1); disp(' '); end
+                disp([page_name ' = ']);
+                if (isLoose); disp(' '); end
+                callback(subsref(value, substruct('()', [{':'}, {':'}, page_subscripts(:)'])));
+                if (isLoose && ii ~= nPages); disp(' '); end
+            end
+        end
+        function dispPage(obj)
+            % Helper function for displayNonScalarObject(). Prints one page
+            % (2D slice) of a matrix.
+            %
+            % Inputs:
+            %   value           2D mtrix nominal values to format
+            %   stdunc          2D mtrix of std unciertainties to format
+            %   isComplex       logical indicating if data are complex
+
+            wSize = matlab.desktop.commandwindow.size;
+            commandWindowWidth = wSize(1);
+
+            [nRows, nColumns] = size(obj);
+            spacing = 4;
+            columns = cell(1, nColumns);
+            columnWidths = zeros(1, nColumns);
+
+            for ii = 1:nColumns
+
+                objColumn = subsref(obj, substruct('()', {':', ii}));
+
+                strings = cellstr(string(objColumn, 'AlignColumns', true, ...
+                    'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
+                ));
+
+                stringLengths = cellfun(@numel, strings);
+                columnWidths(ii) = max(stringLengths, [], 1) + spacing;
+
+                columns{ii} = repmat(' ', columnWidths(ii), nRows);
+                for kk = 1:nRows
+                    columns{ii}(1+spacing:end, kk) = strings{kk};
+                end
+            end
+
+            startColumn = 1;
+            while startColumn <= nColumns
+                endColumn = startColumn;
+                while endColumn < nColumns
+                    if commandWindowWidth > sum(columnWidths(startColumn:endColumn+1))
+                        endColumn = endColumn + 1;
+                    else
+                        break
+                    end
+                end
+
+                if not(startColumn == 1 && endColumn == nColumns)
+                    if startColumn == endColumn
+                        fprintf('  Column %i\n', startColumn);
+                    else
+                        fprintf('  Columns %i through %i\n', startColumn, endColumn);
+                    end
+                end
+
+                indent = 0;
+                text = repmat(' ', indent+sum(columnWidths(startColumn:endColumn)) + 1, nRows);
+                text(end, :) = newline;
+                offset = indent+1;
+
+                for ii = startColumn:endColumn
+                    text(offset:offset+columnWidths(ii)-1, :) = columns{ii};
+                    offset = offset + columnWidths(ii);
+                end
+
+                fprintf(text);
+                fprintf('\n');
+
+                startColumn = endColumn + 1;
+
+            end
+        end
+        function strOut = alignColumn(strIn)
+            nRows = numel(strIn);
+
+            width          = zeros(nRows, 1);
+            widthBeforeDot = zeros(nRows, 1);
+            widthAfterDot  = zeros(nRows, 1);
+            for ii = 1:nRows
+                dotPos     = find(strIn{ii} == '.', 1);
+                width(ii)  = numel(strIn{ii});
+
+                if isempty(dotPos)
+                    widthBeforeDot(ii) = width(ii);
+                    widthAfterDot(ii)  = 0;
+                else
+                    widthBeforeDot(ii) = dotPos-1;
+                    widthAfterDot(ii)  = width(ii)-dotPos;
+                end
+            end
+
+            maxWidthBeforeDot = max(widthBeforeDot);
+            maxWidthAfterDot = max(widthAfterDot);
+
+            if maxWidthAfterDot == 0
+                newWidth = maxWidthBeforeDot;
+            else
+                newWidth = maxWidthBeforeDot + maxWidthAfterDot + 1;
+            end
+
+            offset = maxWidthBeforeDot - widthBeforeDot + 1;
+            strOut = cell(size(strIn));
+            for ii = 1:nRows
+                strOut{ii} = repmat(' ', 1, newWidth);
+                strOut{ii}(offset(ii):offset(ii)+width(ii)-1) = strIn{ii};
+            end
+        end
     end
 end
+
+

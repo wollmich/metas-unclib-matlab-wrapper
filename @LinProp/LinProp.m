@@ -2335,11 +2335,6 @@ classdef LinProp < matlab.mixin.CustomDisplay
         function dispPage(obj)
             % Helper function for displayNonScalarObject(). Prints one page
             % (2D slice) of a matrix.
-            %
-            % Inputs:
-            %   value           2D mtrix nominal values to format
-            %   stdunc          2D mtrix of std unciertainties to format
-            %   isComplex       logical indicating if data are complex
 
             wSize = matlab.desktop.commandwindow.size;
             commandWindowWidth = wSize(1);

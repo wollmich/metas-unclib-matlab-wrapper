@@ -260,26 +260,53 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 end
             end 
         end
-        function str = string(obj)
-            
+        function str = string(obj, varargin)
+            % STRING Return DistProp matrix as string array.
+            %
+            % string(__, 'FormatSpec', formatSpec) Specifies the format for the
+            % conversion of the value and standard uncertainty of each element to a
+            % string. Must be a valid formatSpec for <a href="matlab:doc sprintf">sprintf</a>. Default is '%g'.
+            %
+            % string(__, 'AlignColumns', true) Alings output so the plus/minus signs
+            % and decimal points are all at the same position.
+            % 
+
+            parser = inputParser();
+            parser.addParameter('AlignColumns', false, @(x) islogical(x) && isscalar(x));
+            parser.addParameter('FormatSpec', '%g');
+            parser.parse(varargin{:});
+
             % The plus/minus sign coded as unicode number so this
             % source code file is not dependent on the encoding.
             pm = sprintf(' \xB1 ');
-            
-            % Using evalc(disp(x)) prints using the current format setting.
-            edisp = @(x) strtrim(evalc('disp(x)'));
-            
+
+            if isa(parser.Results.FormatSpec, 'function_handle')
+                format = parser.Results.FormatSpec;
+            else
+                format = @(x) sprintf(char(parser.Results.FormatSpec), x);
+            end
+
             str = cell(size(obj));
-            
+
             val_real = get_value(real(obj));
             unc_real = get_stdunc(real(obj));
             sign_real = repmat(' ', size(obj));
             sign_real(val_real < 0) = '-';
             val_real = abs(val_real);
-            
+
+            for ii = numel(val_real):-1:1
+                val_real_str{ii} = format(val_real(ii));
+                unc_real_str{ii} = format(unc_real(ii));
+            end
+
+            if parser.Results.AlignColumns
+                val_real_str = alignColumn(val_real_str);
+                unc_real_str = alignColumn(unc_real_str);
+            end
+
             if ~obj.IsComplex
                 for ii = 1:numel(obj)
-                    str{ii} = [sign_real(ii) '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ')'];
+                    str{ii} = [sign_real(ii) '(' val_real_str{ii} pm unc_real_str{ii} ')'];
                 end
             else          
                 val_imag = get_value(imag(obj));
@@ -287,10 +314,20 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 sign_imag = repmat('+', size(obj));
                 sign_imag(val_imag < 0) = '-';
                 val_imag = abs(val_imag);
-                
+
+                for ii = numel(val_imag):-1:1
+                    val_imag_str{ii} = format(val_imag(ii));
+                    unc_imag_str{ii} = format(unc_imag(ii));
+                end
+
+                if parser.Results.AlignColumns
+                    val_imag_str = alignColumn(val_imag_str);
+                    unc_imag_str = alignColumn(unc_imag_str);
+                end
+
                 for ii = 1:numel(obj)
-                    str{ii} = [sign_real(ii)  '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ') ' ...
-                               sign_imag(ii) ' (' edisp(val_imag(ii)) pm edisp(unc_imag(ii)) ')i'];
+                    str{ii} = [sign_real(ii)  '(' val_real_str{ii} pm unc_real_str{ii} ') ' ...
+                               sign_imag(ii) ' (' val_imag_str{ii} pm unc_imag_str{ii} ')i'];
                 end
             end
             
@@ -299,7 +336,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
             if ~verLessThan('matlab', '9.1')
                 str = string(str);
             end
-            
+
         end
         function o = copy(obj)
             if obj.IsArray
@@ -1874,7 +1911,10 @@ classdef DistProp < matlab.mixin.CustomDisplay
         end
         function displayScalarObject(obj)
             displayHeader(obj);
-            disp(['  ' char(string(obj))]);
+            str = string(obj, ...
+                'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
+            );
+            disp(['  ' char(str)]);
             displayFooter(obj, inputname(1));
         end
         function displayNonScalarObject(obj)
@@ -2305,13 +2345,22 @@ function dispPage(obj)
     [nRows, nColumns] = size(obj);
     spacing = 4;
     columns = cell(1, nColumns);
-    strings = cellstr(string(obj));
-    stringLengths = cellfun(@numel, strings);
-    columnWidths = max(stringLengths, [], 1) + spacing;
+    columnWidths = zeros(1, nColumns);
+    
     for ii = 1:nColumns
+        
+        objColumn = subsref(obj, substruct('()', {':', ii}));
+        
+        strings = cellstr(string(objColumn, 'AlignColumns', true, ...
+            'FormatSpec', @(x) strtrim(evalc('disp(x)')) ...
+        ));
+        
+        stringLengths = cellfun(@numel, strings);
+        columnWidths(ii) = max(stringLengths, [], 1) + spacing;
+        
         columns{ii} = repmat(' ', columnWidths(ii), nRows);
         for kk = 1:nRows
-            columns{ii}(1+spacing:spacing+stringLengths(ii, kk), kk) = strings{ii, kk};
+            columns{ii}(1+spacing:end, kk) = strings{kk};
         end
     end
 
@@ -2351,4 +2400,39 @@ function dispPage(obj)
 
     end
 
+end
+function strOut = alignColumn(strIn)
+    nRows = numel(strIn);
+    
+    width          = zeros(nRows, 1);
+    widthBeforeDot = zeros(nRows, 1);
+    widthAfterDot  = zeros(nRows, 1);
+    for ii = 1:nRows
+        dotPos     = find(strIn{ii} == '.', 1);
+        width(ii)  = numel(strIn{ii});
+        
+        if isempty(dotPos)
+            widthBeforeDot(ii) = width(ii);
+            widthAfterDot(ii)  = 0;
+        else
+            widthBeforeDot(ii) = dotPos-1;
+            widthAfterDot(ii)  = width(ii)-dotPos;
+        end
+    end
+
+    maxWidthBeforeDot = max(widthBeforeDot);
+    maxWidthAfterDot = max(widthAfterDot);
+    
+    if maxWidthAfterDot == 0
+        newWidth = maxWidthBeforeDot;
+    else
+        newWidth = maxWidthBeforeDot + maxWidthAfterDot + 1;
+    end
+    
+    offset = maxWidthBeforeDot - widthBeforeDot + 1;
+    strOut = cell(size(strIn));
+    for ii = 1:nRows
+        strOut{ii} = repmat(' ', 1, newWidth);
+        strOut{ii}(offset(ii):offset(ii)+width(ii)-1) = strIn{ii};
+    end
 end

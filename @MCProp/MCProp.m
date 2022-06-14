@@ -2297,13 +2297,13 @@ classdef MCProp < matlab.mixin.CustomDisplay
             if strcmp(UncLibMatrixDisplay, 'separate')
                 value = get_value(obj);
                 unc = get_stdunc(obj);
-                dispAllPages([inputname(1) '.Value'], value, @disp);
-                dispAllPages([inputname(1) '.StdUnc'], unc, @disp);
+                MCProp.dispAllPages([inputname(1) '.Value'], value, @disp);
+                MCProp.dispAllPages([inputname(1) '.StdUnc'], unc, @disp);
             else
                 if ismatrix(obj)
                     MCProp.dispPage(obj);
                 else
-                    dispAllPages(inputname(1), obj, @MCProp.dispPage);
+                    MCProp.dispAllPages(inputname(1), obj, @MCProp.dispPage);
                 end
             end
             

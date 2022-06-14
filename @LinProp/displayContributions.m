@@ -55,12 +55,12 @@ function displayContributions(obj, part)
     fprintf('  Top level contributions are:\n\n');
     
     description = strings(1, tree.Length);
-    componenent = zeros(1, tree.Length);
+    component   = zeros(1, tree.Length);
     percentage  = zeros(1, tree.Length);
     
     for ii = 1:tree.Length
         description{ii} = char(tree(ii).ShortDescription);
-        componenent(ii) = tree(ii).UncComponent;
+        component(ii)   = tree(ii).UncComponent;
         percentage(ii)  = tree(ii).UncPercentage;
     end
 
@@ -70,8 +70,16 @@ function displayContributions(obj, part)
     description = sprintf(['%-' num2str(maxDescriptionLength) 's'], description);
     description = reshape(description, [], nTableRows);
 
-    componenent = LinProp.toCharColumn(componenent);
-    componenent = reshape(componenent, [], nTableRows);
+    edisp = @(x) strtrim(evalc('disp(x)'));
+    
+    for ii = nTableRows:-1:1
+        componentStr{ii} = edisp(component(ii));
+    end
+    componentStr = LinProp.alignColumn(componentStr);
+    component = [];
+    for ii = nTableRows:-1:1
+        component(:, ii) = componentStr{ii};
+    end
 
     percentage = sprintf('%6.2f%%\n', percentage);
     percentage = reshape(percentage, [], nTableRows);
@@ -98,12 +106,12 @@ function displayContributions(obj, part)
     text = [...
         description; ...
         repmat(' ', spacing1, nTableRows); ...
-        componenent; ...
+        component; ...
         repmat(' ', spacing2, nTableRows); ...
         percentage ...
     ];
     fprintf('<strong>    Description</strong>%*s<strong>Component</strong>    <strong>Percentage</strong>\n', ...
-        size(description, 1) - numel('    Description') - numel('Component') + size(componenent, 1) + spacing1, '');
+        size(description, 1) - numel('    Description') - numel('Component') + size(component, 1) + spacing1, '');
     if ~isempty(commonPath)
         fprintf('    %s \x2192 \n', commonPath); % \x2192 is a right arrow
     end

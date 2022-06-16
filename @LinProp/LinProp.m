@@ -49,7 +49,7 @@
 
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 01.06.2022
+% Dion Timmermann PTB - 16.06.2022
 
 classdef LinProp
     properties
@@ -255,6 +255,9 @@ classdef LinProp
                     if isa(varargin{1}, 'double') && isa(varargin{2}, 'LinProp') && isa(varargin{3}, 'double') && isa(varargin{4}, 'char')
                         switch lower(varargin{4})
                             case 'system'
+                                if ~isreal(varargin{1}) || ~isreal(varargin{2}) || ~isreal(varargin{3})
+                                    error('Value, system inputs, and system sensitivities must be real-valued.');
+                                end
                                 obj.NetObject = LinProp.System2LinProp(varargin{1}, varargin{2}, varargin{3}).NetObject;
                             otherwise
                                 error('Wrong type of input arguments')
@@ -319,23 +322,28 @@ classdef LinProp
             edisp = @(x) strtrim(evalc('disp(x)'));
             
             str = cell(size(obj));
-            for ii = 1:numel(obj)
-                
-                val_real = get_value(real(obj));
-                unc_real = get_stdunc(real(obj));
-                if (val_real < 0) sign_real = '-'; else sign_real = ' '; end
-                
-                if ~obj.IsComplex
-                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')'];
-                else
-                    val_imag = get_value(imag(obj));
-                    unc_imag = get_stdunc(imag(obj));
-                    if (val_imag < 0) sign_imag = ' - '; else sign_imag = ' + '; end
-
-                    str{ii} = [sign_real '(' edisp(val_real) pm edisp(unc_real) ')' ...
-                               sign_imag '(' edisp(val_imag) pm edisp(unc_imag) ')i'];
+            
+            val_real = get_value(real(obj));
+            unc_real = get_stdunc(real(obj));
+            sign_real = repmat(' ', size(obj));
+            sign_real(val_real < 0) = '-';
+            val_real = abs(val_real);
+            
+            if ~obj.IsComplex
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii) '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ')'];
                 end
+            else          
+                val_imag = get_value(imag(obj));
+                unc_imag = get_stdunc(imag(obj));
+                sign_imag = repmat('+', size(obj));
+                sign_imag(val_imag < 0) = '-';
+                val_imag = abs(val_imag);
                 
+                for ii = 1:numel(obj)
+                    str{ii} = [sign_real(ii)  '(' edisp(val_real(ii)) pm edisp(unc_real(ii)) ') ' ...
+                               sign_imag(ii) ' (' edisp(val_imag(ii)) pm edisp(unc_imag(ii)) ')i'];
+                end
             end
             
             % Strings and the string() function were introduced in Matalb
@@ -534,7 +542,7 @@ classdef LinProp
                 s = double(varargin{1});
             end
             if numel(s) < 2
-                error('Size vector must have at least two elements.');
+                error('MATLAB:getReshapeDims:sizeVector', 'Size vector must have at least two elements.');
             end
             if any(not(isreal(s)))
                 error('Size argument cannot be complex.');
@@ -552,7 +560,7 @@ classdef LinProp
                 end
             else
                 if prod(s) ~= numel(x)
-                    error('Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
+                    error('MATLAB:getReshapeDims:notSameNumel', 'Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
                 end
             end
             y = copy(x);
@@ -2127,6 +2135,22 @@ classdef LinProp
         end
         function x = randn(varargin)
             x = LinProp(randn(varargin{:}));
+        end
+        function x = empty(varargin)
+            try
+                x = reshape(LinProp([]), varargin{:});
+            catch e
+                switch (e.identifier)
+                    case 'MATLAB:getReshapeDims:notSameNumel'
+                        error('MATLAB:class:emptyMustBeZero', 'At least one dimension must be zero.');
+                    case 'MATLAB:getReshapeDims:sizeVector'
+                        % This error is triggered with LinProp.empty(0),
+                        % which should return a 0-by-0 element.
+                        x = LinProp([]);
+                    otherwise
+                        rethrow(e);
+                end
+            end
         end
     end
     properties (Constant, Access = private)

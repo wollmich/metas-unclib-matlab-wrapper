@@ -2279,10 +2279,11 @@ classdef LinProp < matlab.mixin.CustomDisplay
             disp(header);
         end
         function displayEmptyObject(obj)
-            displayHeader(obj);
-            disp('     []');
+            fprintf('  %s empty %s array\n', ...
+                matlab.mixin.CustomDisplay.convertDimensionsToString(obj), ...
+                matlab.mixin.CustomDisplay.getClassNameForHeader(obj));
             if strcmp(get(0, 'FormatSpacing'), 'loose')
-                disp(newline);
+                fprintf(newline);
             end
         end
         function displayScalarObject(obj)

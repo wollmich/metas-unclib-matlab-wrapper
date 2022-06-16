@@ -206,6 +206,9 @@ classdef LinProp
                     if isa(varargin{1}, 'double') && isa(varargin{2}, 'LinProp') && isa(varargin{3}, 'double') && isa(varargin{4}, 'char')
                         switch lower(varargin{4})
                             case 'system'
+                                if ~isreal(varargin{1}) || ~isreal(varargin{2}) || ~isreal(varargin{3})
+                                    error('Value, system inputs, and system sensitivities must be real-valued.');
+                                end
                                 obj.NetObject = LinProp.System2LinProp(varargin{1}, varargin{2}, varargin{3}).NetObject;
                             otherwise
                                 error('Wrong type of input arguments')

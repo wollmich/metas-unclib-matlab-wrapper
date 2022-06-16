@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 01.06.2022
+% Dion Timmermann PTB - 16.06.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -493,7 +493,7 @@ classdef LinProp
                 s = double(varargin{1});
             end
             if numel(s) < 2
-                error('Size vector must have at least two elements.');
+                error('MATLAB:getReshapeDims:sizeVector', 'Size vector must have at least two elements.');
             end
             if any(not(isreal(s)))
                 error('Size argument cannot be complex.');
@@ -511,7 +511,7 @@ classdef LinProp
                 end
             else
                 if prod(s) ~= numel(x)
-                    error('Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
+                    error('MATLAB:getReshapeDims:notSameNumel', 'Number of elements must not change. Use [] as one of the size inputs to automatically calculate the appropriate size for that dimension.');
                 end
             end
             y = copy(x);
@@ -1953,6 +1953,22 @@ classdef LinProp
         end
         function x = randn(varargin)
             x = LinProp(randn(varargin{:}));
+        end
+        function x = empty(varargin)
+            try
+                x = reshape(LinProp([]), varargin{:});
+            catch e
+                switch (e.identifier)
+                    case 'MATLAB:getReshapeDims:notSameNumel'
+                        error('MATLAB:class:emptyMustBeZero', 'At least one dimension must be zero.');
+                    case 'MATLAB:getReshapeDims:sizeVector'
+                        % This error is triggered with LinProp.empty(0),
+                        % which should return a 0-by-0 element.
+                        x = LinProp([]);
+                    otherwise
+                        rethrow(e);
+                end
+            end
         end
     end
     properties (Constant, Access = private)

@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 16.06.2022
+% Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -2221,17 +2221,25 @@ function dispAsPages(name, value, isLoose)
     page_subscripts = cell(1, numel(size_residual));
     page_name = name;
     nPages = prod(size_residual);
+    isComplex = ~isreal(value);
     for ii = 1:nPages
         [page_subscripts{:}] = ind2sub(size_residual,ii);
+        page_values = value(:, :, page_subscripts{:});
+        % Subscript assignment here removes the imag part if it is zero, so
+        % we need to fix that for the call to disp.
+        if isComplex
+            page_values = complex(page_values);
+        end
 
         if ~isempty(size_residual)
             page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
         end
+        
 
         if (isLoose && ii==1); disp(' '); end
         disp([page_name ' = ']);
         if (isLoose); disp(' '); end
-        disp(value(:, :, page_subscripts{:}));
+        disp(page_values);
         if (isLoose && ii ~= nPages); disp(' '); end
     end
 end

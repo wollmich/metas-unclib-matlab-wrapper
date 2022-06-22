@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 16.06.2022
+% Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1275,17 +1275,46 @@ classdef DistProp
                 end
             end
         end
-        function y = complex(x)
-            if x.IsComplex
-                y = copy(x);
-            else
-                if x.IsArray
-                    y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+        function z = complex(varargin)
+            narginchk(1, 2);
+            if nargin == 1
+                x = varargin{1};
+                if x.IsComplex
+                    z = copy(x);
                 else
-                    y = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                    if x.IsArray
+                        z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                    else
+                        z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                    end
+                    z.InitRe(x.NetObject);
+                    z = DistProp(z);
                 end
-                y.InitRe(x.NetObject);
-                y = DistProp(y);
+            else
+                a = DistProp(varargin{1});
+                b = DistProp(varargin{2});
+                if ~isreal(a)
+                    error('Input for real part must be a real-valued.');
+                end
+                if ~isreal(b)
+                    error('Input for imaginary part must be a real-valued.');
+                end
+                try
+                    [a, b] = DistProp.replicateSingletonDimensions(a, b);
+                catch e
+                    if isequal(e.identifier, 'MATLAB:sizeDimensionsMustMatch')
+                        throwAsCaller(e);
+                    else
+                        rethrow(e);
+                    end
+                end
+                if a.IsArray
+                    z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                else
+                    z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                end
+                z.InitReIm(a.NetObject, b.NetObject);
+                z = DistProp(z);
             end
         end
         function y = real(x)

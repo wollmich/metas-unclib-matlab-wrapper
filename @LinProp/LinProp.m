@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.LinProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 16.06.2022
+% Dion Timmermann PTB - 22.06.2022
 %
 % LinProp Const:
 % a = LinProp(value)
@@ -1275,17 +1275,46 @@ classdef LinProp
                 end
             end
         end
-        function y = complex(x)
-            if x.IsComplex
-                y = copy(x);
-            else
-                if x.IsArray
-                    y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
+        function z = complex(varargin)
+            narginchk(1, 2);
+            if nargin == 1
+                x = varargin{1};
+                if x.IsComplex
+                    z = copy(x);
                 else
-                    y = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.LinProp.UncNumber'});
+                    if x.IsArray
+                        z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
+                    else
+                        z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.LinProp.UncNumber'});
+                    end
+                    z.InitRe(x.NetObject);
+                    z = LinProp(z);
                 end
-                y.InitRe(x.NetObject);
-                y = LinProp(y);
+            else
+                a = LinProp(varargin{1});
+                b = LinProp(varargin{2});
+                if ~isreal(a)
+                    error('Input for real part must be a real-valued.');
+                end
+                if ~isreal(b)
+                    error('Input for imaginary part must be a real-valued.');
+                end
+                try
+                    [a, b] = LinProp.replicateSingletonDimensions(a, b);
+                catch e
+                    if isequal(e.identifier, 'MATLAB:sizeDimensionsMustMatch')
+                        throwAsCaller(e);
+                    else
+                        rethrow(e);
+                    end
+                end
+                if a.IsArray
+                    z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
+                else
+                    z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.LinProp.UncNumber'});
+                end
+                z.InitReIm(a.NetObject, b.NetObject);
+                z = LinProp(z);
             end
         end
         function y = real(x)

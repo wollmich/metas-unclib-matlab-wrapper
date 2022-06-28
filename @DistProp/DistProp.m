@@ -1,6 +1,6 @@
 % Metas.UncLib.Matlab.DistProp V2.5.4
 % Michael Wollensack METAS - 10.05.2022
-% Dion Timmermann PTB - 16.06.2022
+% Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
 % a = DistProp(value)
@@ -1290,17 +1290,44 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 end
             end
         end
-        function y = complex(x)
-            if x.IsComplex
-                y = copy(x);
-            else
-                if x.IsArray
-                    y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+        function z = complex(varargin)
+            narginchk(1, 2);
+            if nargin == 1
+                x = varargin{1};
+                if x.IsComplex
+                    z = copy(x);
                 else
-                    y = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                    if x.IsArray
+                        z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                    else
+                        z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                    end
+                    z.InitRe(x.NetObject);
+                    z = DistProp(z);
                 end
-                y.InitRe(x.NetObject);
-                y = DistProp(y);
+            else
+                a = DistProp(varargin{1});
+                b = DistProp(varargin{2});
+                if ~isreal(a)
+                    error('Input for real part must be a real-valued.');
+                end
+                if ~isreal(b)
+                    error('Input for imaginary part must be a real-valued.');
+                end
+                if ~isscalar(a) && ~isscalar(b)
+                    if ~isequal(size(a), size(b))
+                        throwAsCaller(MException('MATLAB:sizeDimensionsMustMatch', 'Input arrays must have the same size.'));
+                    end
+                else
+                    [a, b] = DistProp.replicateSingletonDimensions(a, b);
+                end
+                if a.IsArray
+                    z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.DistProp.UncNumber'});
+                else
+                    z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.DistProp.UncNumber'});
+                end
+                z.InitReIm(a.NetObject, b.NetObject);
+                z = DistProp(z);
             end
         end
         function y = real(x)
@@ -2229,7 +2256,6 @@ classdef DistProp < matlab.mixin.CustomDisplay
         end
     end 
     
-    
     methods (Hidden, Access = public)
         function displayInFormat(obj, useFormat) %#ok<INUSL> Used through inputname
             % Function used to print a number in a different format than
@@ -2338,8 +2364,15 @@ classdef DistProp < matlab.mixin.CustomDisplay
             page_subscripts = cell(1, numel(size_residual));
             page_name = name;
             nPages = prod(size_residual);
+            isComplex = ~isreal(value);
             for ii = 1:nPages
                 [page_subscripts{:}] = ind2sub(size_residual,ii);
+                page_values = subsref(value, substruct('()', [{':'}, {':'}, page_subscripts(:)']));
+                % Subscript assignment here removes the imag part if it is zero, so
+                % we need to fix that for the call to disp.
+                if isComplex
+                    page_values = complex(page_values);
+                end
 
                 if ~isempty(size_residual)
                     page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
@@ -2348,7 +2381,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 if (isLoose && ii==1); disp(' '); end
                 disp([page_name ' = ']);
                 if (isLoose); disp(' '); end
-                callback(subsref(value, substruct('()', [{':'}, {':'}, page_subscripts(:)'])));
+                callback(page_values);
                 if (isLoose && ii ~= nPages); disp(' '); end
             end
         end
@@ -2454,5 +2487,4 @@ classdef DistProp < matlab.mixin.CustomDisplay
         end
     end
 end
-
 

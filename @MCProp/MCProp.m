@@ -1356,17 +1356,44 @@ classdef MCProp
                 end
             end
         end
-        function y = complex(x)
-            if x.IsComplex
-                y = copy(x);
-            else
-                if x.IsArray
-                    y = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.MCProp.UncNumber'});
+        function z = complex(varargin)
+            narginchk(1, 2);
+            if nargin == 1
+                x = varargin{1};
+                if x.IsComplex
+                    z = copy(x);
                 else
-                    y = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.MCProp.UncNumber'});
+                    if x.IsArray
+                        z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.MCProp.UncNumber'});
+                    else
+                        z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.MCProp.UncNumber'});
+                    end
+                    z.InitRe(x.NetObject);
+                    z = MCProp(z);
                 end
-                y.InitRe(x.NetObject);
-                y = MCProp(y);
+            else
+                a = MCProp(varargin{1});
+                b = MCProp(varargin{2});
+                if ~isreal(a)
+                    error('Input for real part must be a real-valued.');
+                end
+                if ~isreal(b)
+                    error('Input for imaginary part must be a real-valued.');
+                end
+                if ~isscalar(a) && ~isscalar(b)
+                    if ~isequal(size(a), size(b))
+                        throwAsCaller(MException('MATLAB:sizeDimensionsMustMatch', 'Input arrays must have the same size.'));
+                    end
+                else
+                    [a, b] = MCProp.replicateSingletonDimensions(a, b);
+                end
+                if a.IsArray
+                    z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.MCProp.UncNumber'});
+                else
+                    z = NET.createGeneric('Metas.UncLib.Core.Complex', {'Metas.UncLib.MCProp.UncNumber'});
+                end
+                z.InitReIm(a.NetObject, b.NetObject);
+                z = MCProp(z);
             end
         end
         function y = real(x)

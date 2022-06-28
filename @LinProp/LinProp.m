@@ -1299,14 +1299,12 @@ classdef LinProp
                 if ~isreal(b)
                     error('Input for imaginary part must be a real-valued.');
                 end
-                try
-                    [a, b] = LinProp.replicateSingletonDimensions(a, b);
-                catch e
-                    if isequal(e.identifier, 'MATLAB:sizeDimensionsMustMatch')
-                        throwAsCaller(e);
-                    else
-                        rethrow(e);
+                if ~isscalar(a) && ~isscalar(b)
+                    if ~isequal(size(a), size(b))
+                        throwAsCaller(MException('MATLAB:sizeDimensionsMustMatch', 'Input arrays must have the same size.'));
                     end
+                else
+                    [a, b] = LinProp.replicateSingletonDimensions(a, b);
                 end
                 if a.IsArray
                     z = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});

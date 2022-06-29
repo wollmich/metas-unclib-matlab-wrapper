@@ -1870,29 +1870,33 @@ classdef MCProp
         function yy = spline(x, y, xx, varargin)
 % a = SPLINE(x, y, xx, [bounds]) Spline interpolation
 %
-% Interpolates y(x) at points xx, with y(x) being a cubic spline, specified
-% by the vectors x and y and the boundary conditions. Returns yy a MCProp
+% Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+% the vectors x and y and the boundary conditions. Returns yy, a MCProp
 % vector of the same size as xx which contains the interpolated values. The
-% uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
-% x and xx are ignored. While y has to be a MCProp, x and xx can be any
-% type.
+% uncertainties of y(x) are propagated, while any uncertainties of x and xx
+% are ignored. While y has to be a MCProp, x and xx can be any type.
 %
-% spline(__, 'not-a-knot')
+% SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
 %
-% spline(__, 'natural spline')
-%
-% spline(__, 'first derivative')
-%
-% spline(__, 'second derivative')
-%
+% SPLINE(__, boundaryCond) Specifies the boundary condition on both ends.
+% Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the 
+% conditions '1st derivative' and '2nd derivative', the respective 
+% derivatives are set to zero.
 % 
-% In general, the interpolated values are calculated based on multiple
-% values of x and y. Using <strong>interpolation</strong>, this will result in the uncertainties 
-% of yy being smaller (or at the edges larger) that those of y. Using <strong>interpolation2</strong>, 
-% the uncertainties of yy will be a linear interpolation of y. See <a
-% href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+% SPLINE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
 %
-% See also MCProp.interpolation2, MCProp.spline.
+% In general, the interpolated values are calculated based on multiple
+% values of x and y. Using <strong>interpolation</strong>, this will result in the  
+% uncertainties of yy being smaller (or at the edges larger) that those 
+% of y. Using <strong>interpolation2</strong>, the uncertainties of yy will be a linear
+% interpolation of y. See <a href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+%
+% See also MCProp.interpolation, MCProp.spline2.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1905,6 +1909,29 @@ classdef MCProp
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
+% a = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation
+%
+% Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+% the vectors x and y and the boundary conditions. Returns yy, a MCProp
+% vector of the same size as xx which contains the interpolated values. The
+% uncertainties of y(x) are propagated, while any uncertainties of x and xx
+% are ignored. While y has to be a MCProp, x and xx can be any type.
+%
+% SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINE2(__, boundaryCond) Specifies the boundary condition on both ends.
+% Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the 
+% conditions '1st derivative' and '2nd derivative', the respective 
+% derivatives are set to zero.
+% 
+% SPLINE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.interpolation2, MCProp.spline.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1928,16 +1955,12 @@ classdef MCProp
         function a = integrate(x, y, n)
 % a = INTEGRATE(x, y, n) Integration with cumulative result
 %
-% Calculates the numerical integral of y(x) with y(x) being a polinomial of
-% n-th degree, specified by the vectors x and y. Returns a MCProp vector
+% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% of n-th degree specified by the vectors x and y. Returns a MCProp vector
 % of the same size as y which contains the cummlative integral up to every
-% value of x. The uncertainties of y (i.e. y(x)) are propagated, while any
-% uncertainties of x are ignored. While y has to be a MCProp, x can be any
+% value of x. The uncertainties of y(x) are propagated, while any uncer-
+% tainties of x are ignored. While y has to be a MCProp, x can be any
 % type. The parameter n must be a positive integer smaller than numel(y).
-%
-% a = integrate2(x, y, n) is the same as:
-%   a = integrate(x, y, n);
-%   a = a(end);
 %
 % See also MCProp.integrate2, MCProp.splineintegrate.
 
@@ -1954,14 +1977,14 @@ classdef MCProp
         function a = integrate2(x, y, n)
 % a = INTEGRATE2(x, y, n) Integration with scalar result
 %
-% Calculates the numerical integral of y(x) with y(x) being a polinomial of
-% n-th degree, specified by the vectors x and y. Returns the result of the
-% whole integral as a MCProp scalar. The input arguments x and y specify
-% y(x). The uncertainties of y (i.e. y(x)) are propagated, while any
+% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% of n-th degree specified by the vectors x and y. Returns the result of
+% the whole integral as a MCProp scalar. The input arguments x and y
+% specify y(x). The uncertainties of y(x) are propagated, while any
 % uncertainties of x are ignored. While y has to be a MCProp, x can be any
 % type. The parameter n must be a positive integer smaller than numel(y).
 %
-% a = integrate2(x, y, n) is the same as:
+% a = integrate2(x, y, n) returns the same result as:
 %   a = integrate(x, y, n);
 %   a = a(end);
 %
@@ -1976,6 +1999,30 @@ classdef MCProp
             a = MCProp.Convert2MCProp(am);
         end
         function a = splineintegrate(x, y, varargin)
+% a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result
+%
+% Calculates the numerical integral of y(x), with y(x) being a cubic spline
+% defined by the vectors x and y and the boundary conditions. Returns a
+% MCProp vector of the same size as y which contains the cummlative
+% integral up to every value of x. The uncertainties of y(x) are
+% propagated, while any uncertainties of x are ignored. While y has to be a
+% MCProp, x can be any type.
+%
+% SPLINEINTEGRATE(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINEINTEGRATE(__, boundaryCond) Specifies the boundary condition on
+% both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the
+% conditions '1st derivative' and '2nd derivative', the respective
+% derivatives are set to zero.
+% 
+% SPLINEINTEGRATE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.integrate, MCProp.splineintegrate2.
             x = double(x(:));
             y = MCProp(y);
             s = size(y);
@@ -1987,10 +2034,29 @@ classdef MCProp
             a = reshape(a, s);
         end
         function a = splineintegrate2(x, y, varargin)
-% a = splineintegrate2(x, y, [opts]) Spline integration with scalar result
+% a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result
 %
+% Calculates the numerical integral of y(x), with y(x) being a cubic spline
+% defined by the vectors x and y and the boundary conditions. Returns the
+% result of the whole integral as a MCProp scalar. The uncertainties of
+% y(x) are propagated, while any uncertainties of x are ignored. While y
+% has to be a MCProp, x can be any type.
+%
+% SPLINEINTEGRATE2(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINEINTEGRATE2(__, boundaryCond) Specifies the boundary condition on
+% both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the
+% conditions '1st derivative' and '2nd derivative', the respective
+% derivatives are set to zero.
 % 
+% SPLINEINTEGRATE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
 %
+% See also MCProp.integrate2, MCProp.splineintegrate.
             x = double(x(:));
             y = MCProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});

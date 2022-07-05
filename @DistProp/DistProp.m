@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.5.4
-% Michael Wollensack METAS - 10.05.2022
+% Metas.UncLib.Matlab.DistProp V2.5.5
+% Michael Wollensack METAS - 05.07.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
@@ -80,6 +80,8 @@ classdef DistProp
                             end
                         case 'Metas.UncLib.DistProp.UncNumber'
                             obj.NetObject = varargin{1};
+                        case 'Metas.UncLib.Core.Real<Metas*UncLib*DistProp*UncNumber>'
+                            obj.NetObject = varargin{1}.Item;
                         case 'Metas.UncLib.Core.Complex<Metas*UncLib*DistProp*UncNumber>'
                             obj.NetObject = varargin{1};
                         case 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*DistProp*UncNumber>'

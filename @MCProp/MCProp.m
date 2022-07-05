@@ -2241,7 +2241,91 @@ classdef MCProp
             unc_number.Init(value, sys_inputs.data, sys_sensitivities(:));
             obj = MCProp(unc_number);
         end
-    end 
+    end
+    properties (Constant)
+        Const2014 = InitConst2014();
+        Const2014_90 = InitConst2014_90();
+        Const2018 = InitConst2018();
+        Const = InitConst2018();
+    end
+end
+
+function c = InitConst2014()
+    const = Metas.UncLib.Core.Const2014;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2014', {'Metas.UncLib.MCProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.mu0 = const.mu0;
+    c.ep0 = const.ep0;
+    c.Kcd = const.Kcd;
+    c.Mu = const.Mu;
+    c.G = MCProp(uconst.G);
+    c.alpha = MCProp(uconst.alpha);
+    c.Ryd = MCProp(uconst.Ryd);
+    c.mpsme = MCProp(uconst.mpsme);
+    c.Na = MCProp(uconst.Na);
+    c.Kj = MCProp(uconst.Kj);
+    c.k = MCProp(uconst.k);
+    c.Rk = MCProp(uconst.Rk);
+    c.e = MCProp(uconst.e);
+    c.h = MCProp(uconst.h);
+    c.me = MCProp(uconst.me);
+    c.mp = MCProp(uconst.mp);
+    c.u = MCProp(uconst.u);
+    c.F = MCProp(uconst.F);
+    c.R = MCProp(uconst.R);
+    c.eV = MCProp(uconst.eV);
+end
+
+function c = InitConst2014_90()
+    const = Metas.UncLib.Core.Const2014;
+    const90 = Metas.UncLib.Core.Const2014_90;
+    uconst90 =  NET.createGeneric('Metas.UncLib.Core.Const2014_90', {'Metas.UncLib.MCProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.mu0 = const.mu0;
+    c.ep0 = const.ep0;
+    c.Kcd = const.Kcd;
+    c.Mu = const.Mu;
+    c.Kj = const90.Kj;
+    c.Rk = const90.Rk;
+    c.e = const90.e;
+    c.h = const90.h;
+    c.Na = MCProp(uconst90.Na);
+    c.F = MCProp(uconst90.F);
+    c.k = MCProp(uconst90.k);
+end
+
+function c = InitConst2018()
+    const = Metas.UncLib.Core.Const2018;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2018', {'Metas.UncLib.MCProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.h = const.h;
+    c.e = const.e;
+    c.k = const.k;
+    c.Na = const.Na;
+    c.Kcd = const.Kcd;
+    c.Kj = const.Kj;
+    c.Rk = const.Rk;
+    c.F = const.F;
+    c.R = const.R;
+    c.eV = const.eV;
+    c.G = MCProp(uconst.G);
+    c.alpha = MCProp(uconst.alpha);
+    c.mu0 = MCProp(uconst.mu0);
+    c.ep0 = MCProp(uconst.ep0);
+    c.Ryd = MCProp(uconst.Ryd);
+    c.me = MCProp(uconst.me);
+    c.are = MCProp(uconst.are);
+    c.arp = MCProp(uconst.arp);
+    c.mpsme = MCProp(uconst.mpsme);
+    c.mp = MCProp(uconst.mp);
+    c.u = MCProp(uconst.u);
+    c.Mu = MCProp(uconst.Mu);
 end
 
 function dispAsPages(name, value, isLoose)

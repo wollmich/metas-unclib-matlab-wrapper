@@ -2241,7 +2241,91 @@ classdef LinProp
             unc_number.Init(value, sys_inputs.data, sys_sensitivities(:));
             obj = LinProp(unc_number);
         end
-    end 
+    end
+    properties (Constant)
+        Const2014 = InitConst2014();
+        Const2014_90 = InitConst2014_90();
+        Const2018 = InitConst2018();
+        Const = InitConst2018();
+    end
+end
+
+function c = InitConst2014()
+    const = Metas.UncLib.Core.Const2014;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2014', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.mu0 = const.mu0;
+    c.ep0 = const.ep0;
+    c.Kcd = const.Kcd;
+    c.Mu = const.Mu;
+    c.G = LinProp(uconst.G);
+    c.alpha = LinProp(uconst.alpha);
+    c.Ryd = LinProp(uconst.Ryd);
+    c.mpsme = LinProp(uconst.mpsme);
+    c.Na = LinProp(uconst.Na);
+    c.Kj = LinProp(uconst.Kj);
+    c.k = LinProp(uconst.k);
+    c.Rk = LinProp(uconst.Rk);
+    c.e = LinProp(uconst.e);
+    c.h = LinProp(uconst.h);
+    c.me = LinProp(uconst.me);
+    c.mp = LinProp(uconst.mp);
+    c.u = LinProp(uconst.u);
+    c.F = LinProp(uconst.F);
+    c.R = LinProp(uconst.R);
+    c.eV = LinProp(uconst.eV);
+end
+
+function c = InitConst2014_90()
+    const = Metas.UncLib.Core.Const2014;
+    const90 = Metas.UncLib.Core.Const2014_90;
+    uconst90 =  NET.createGeneric('Metas.UncLib.Core.Const2014_90', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.mu0 = const.mu0;
+    c.ep0 = const.ep0;
+    c.Kcd = const.Kcd;
+    c.Mu = const.Mu;
+    c.Kj = const90.Kj;
+    c.Rk = const90.Rk;
+    c.e = const90.e;
+    c.h = const90.h;
+    c.Na = LinProp(uconst90.Na);
+    c.F = LinProp(uconst90.F);
+    c.k = LinProp(uconst90.k);
+end
+
+function c = InitConst2018()
+    const = Metas.UncLib.Core.Const2018;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2018', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    c.deltavCs = const.deltavCs;
+    c.c0 = const.c0;
+    c.h = const.h;
+    c.e = const.e;
+    c.k = const.k;
+    c.Na = const.Na;
+    c.Kcd = const.Kcd;
+    c.Kj = const.Kj;
+    c.Rk = const.Rk;
+    c.F = const.F;
+    c.R = const.R;
+    c.eV = const.eV;
+    c.G = LinProp(uconst.G);
+    c.alpha = LinProp(uconst.alpha);
+    c.mu0 = LinProp(uconst.mu0);
+    c.ep0 = LinProp(uconst.ep0);
+    c.Ryd = LinProp(uconst.Ryd);
+    c.me = LinProp(uconst.me);
+    c.are = LinProp(uconst.are);
+    c.arp = LinProp(uconst.arp);
+    c.mpsme = LinProp(uconst.mpsme);
+    c.mp = LinProp(uconst.mp);
+    c.u = LinProp(uconst.u);
+    c.Mu = LinProp(uconst.Mu);
 end
 
 function dispAsPages(name, value, isLoose)

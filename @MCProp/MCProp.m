@@ -1,42 +1,55 @@
+% This class supports the creation of uncertainty objects and subsequent
+% calculation with them as well as storage of the results. It can handle
+% complex-valued and multivariate quantities. Internally, MCProp objects
+% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/unclib">METAS UncLib library</a>.
+%
+% <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
+%   a = MCProp(value)
+%   a = MCProp(value, standard_unc, [idof])
+%   a = MCProp(value, standard_unc, description)
+%   a = MCProp(value, (covariance), [description])
+%  (a)= MCProp((value), (covariance), [description])
+%   a = MCProp((samples), 'samples', [description], [probability])
+%   a = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
+% See <a href="matlab:help MCProp.MCProp -displayBanner">List of all Constructors</a>
+%
+% <strong>Uncertainty Methods</strong>
+%   <a href="matlab:help MCProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
+%   <a href="matlab:help MCProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
+%   <a href="matlab:help MCProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
+%   <a href="matlab:help MCProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
+%   <a href="matlab:help MCProp.get_jacobi -displayBanner"             >get_jacobi</a>              Sensitivities to virtual base inputs
+%   <a href="matlab:help MCProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
+%   <a href="matlab:help MCProp.get_moment -displayBanner"             >get_moment</a>              n-th central moment
+%   <a href="matlab:help MCProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty components of y with respect to x
+%   <a href="matlab:help MCProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
+%
+% <strong>Interpolation and Integration Methods</strong>
+%   <a href="matlab:help MCProp.integrate -displayBanner"          >integrate</a>           Integration with cumulative result
+%   <a href="matlab:help MCProp.integrate2 -displayBanner"         >integrate2</a>          Integration with scalar result
+%   <a href="matlab:help MCProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
+%   <a href="matlab:help MCProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
+%   <a href="matlab:help MCProp.spline -displayBanner"             >spline</a>              Spline interpolation
+%   <a href="matlab:help MCProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
+%   <a href="matlab:help MCProp.splinecoefs -displayBanner"        >splinecoefs</a>	
+%   <a href="matlab:help MCProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
+%   <a href="matlab:help MCProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
+%
+% <strong>Object Behavior</strong>
+% Scalar MCProp objects behave like MATLAB fundamental types with respect
+% to copy operations. Copies are independent values. Operations that you
+% perform on one object do not affect copies of that object.
+% Non-scalar MCProp objects are referenced by their handle variable.
+% Copies of the handle variable refer to the same object. Operations that
+% you perform on a handle object are visible from all handle variables that
+% reference that object.
+%
+% B = <a href="matlab:help MCProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+% array of handles B.
+
 % Metas.UncLib.Matlab.MCProp V2.6.0
 % Michael Wollensack METAS - 06.07.2022
 % Dion Timmermann PTB - 22.06.2022
-%
-% MCProp Const:
-% a = MCProp(value)
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, (idof))
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, description)
-%
-% MCProp Input (ComplexUncNumber)
-% a = MCProp(value, [covariance], (description))
-%
-% MCProp Input (RealUncArray)
-% [a] = MCProp([value], [covariance], (description))
-%
-% MCProp Input (ComplexUncArray)
-% [a] = MCProp([value], [covariance], (description))
-%
-% MCProp From Samples
-% a = MCProp([samples], 'samples', (description), (probability))
-%
-% MCProp Xml String
-% a = MCProp(xml_string)
-%
-% MCProp Xml File
-% a = MCProp(filepath, 'xml_file')
-%
-% MCProp Binary File
-% a = MCProp(filepath, 'binary_file')
-%
-% MCProp System (RealUncNumber)
-% a = MCProp(value, [sys_inputs], [sys_sensitivities], 'system')
-%
-% MCProp Input (RealUncNumber)
-% a = MCProp(value, standard_unc, idof, id, description)
 
 classdef MCProp
     properties
@@ -50,6 +63,42 @@ classdef MCProp
     end
     methods
         function obj = MCProp(varargin)
+            % MCProp Const:
+            % a = MCProp(value)
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, [idof])
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, description)
+            %
+            % MCProp Input (ComplexUncNumber)
+            % a = MCProp(value, (covariance), [description])
+            %
+            % MCProp Input (RealUncArray)
+            % [a] = MCProp((value), (covariance), [description])
+            %
+            % MCProp Input (ComplexUncArray)
+            % [a] = MCProp((value), (covariance), [description])
+            %
+            % MCProp From Samples
+            % a = MCProp((samples), 'samples', [description], [probability])
+            %
+            % MCProp Xml String
+            % a = MCProp(xml_string)
+            %
+            % MCProp Xml File
+            % a = MCProp(filepath, 'xml_file')
+            %
+            % MCProp Binary File
+            % a = MCProp(filepath, 'binary_file')
+            %
+            % MCProp System (RealUncNumber) (LinProp only!)
+            % a = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
+            %
+            % MCProp Input (RealUncNumber)
+            % a = MCProp(value, standard_unc, idof, id, description)
+            
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.
             switch nargin
@@ -1091,6 +1140,18 @@ classdef MCProp
             d = MCProp.Convert2Double(MCProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
+% GET_COVERAGE_INTERVAL Coverage interval bounds
+%
+% I = get_coverage_interval(unc, p) returns a matrix of size n-by-2
+% containing the bounds of the coverage interval of unc for the probability
+% p, with 0 < p < 1 and n=numel(unc). The first column are the lower
+% bounds, the second column the upper bounds.
+%
+% unc is always interpreted as a vector, thus get_coverage_interval(unc, p)
+% is the same as get_coverage_interval(unc(:), p). If unc contains complex
+% values, the real and imag part are treated separately, thus
+% get_coverage_interval(cUnc, p) is the same as
+% get_coverage_interval([real(cUnc(:)), imag(cUnc(:))], p).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1101,6 +1162,16 @@ classdef MCProp
             d = MCProp.Convert2Double(MCProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
+% GET_CORRELATION Correlation matrix
+%
+% C = get_correlation(unc) returns a matrix of size n-by-n containing the
+% correlation factors between the elements of unc, whith n = numel(unc).
+%
+% The input argument unc is always interpreted as a vector, thus
+% get_correlation(unc) is the same as get_correlation(unc(:)). If unc
+% contains complex values, the real and imag part are treated separately,
+% thus get_correlation(cUnc) is the same as get_correlation([real(cUnc(:)),
+% imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1108,6 +1179,16 @@ classdef MCProp
             c = MCProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
+% GET_COVARIANCE Covariance matrix
+%
+% C = get_covariance(unc) returns a matrix of size n-by-n containing the
+% covariances of the elements of unc, whith n = numel(unc).
+%
+% The input argument unc is always interpreted as a vector, thus
+% get_covariance(unc) is the same as get_covariance(unc(:)). If unc
+% contains complex values, the real and imag part are treated separately,
+% thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
+% imag(cUnc(:))]).
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1732,6 +1813,22 @@ classdef MCProp
             X = reshape(X, s);
         end
         function yy = interpolation(x, y, n, xx)
+% a = INTERPOLATION(x, y, n, xx) Interpolation
+%
+% Interpolates y(x) at points xx, with y(x) being a polinomial of n-th
+% degree, specified by the vectors x and y. Returns yy a MCProp vector of
+% the same size as xx which contains the interpolated values. The
+% uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
+% x and xx are ignored. While y has to be a MCProp, x and xx can be any
+% type. The parameter n must be a positive integer smaller than numel(x).
+% 
+% In general, the interpolated values are calculated based on n values of x
+% and y. Using <strong>interpolation</strong>, this will result in the uncertainties of yy
+% being smaller (or at the edges larger) that those of y. Using <strong>interpolation2</strong>, 
+% the uncertainties of yy will be a linear interpolation of y.
+% See <a href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+%
+% See also MCProp.interpolation2, MCProp.spline.
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
@@ -1744,6 +1841,23 @@ classdef MCProp
             yy = reshape(yy, s);
         end
         function yy = interpolation2(x, y, n, xx)
+% a = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation
+%
+% Interpolates y(x) at points xx, with y(x) being a polinomial of n-th
+% degree, specified by the vectors x and y. Returns yy a MCProp vector of
+% the same size as xx which contains the interpolated values. The
+% uncertainties of y (i.e. y(x)) are linearly interpolated, while any
+% uncertainties of x and xx are ignored. While y has to be a MCProp, x and
+% xx can be any type. The parameter n must be a positive integer smaller
+% than numel(x).
+% 
+% In general, the interpolated values are calculated based on n values of x
+% and y. Using <strong>interpolation</strong>, this will result in the uncertainties of yy
+% being smaller (or at the edges larger) that those of y. Using <strong>interpolation2</strong>, 
+% the uncertainties of yy will be a linear interpolation of y.
+% See <a href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+%
+% See also MCProp.interpolation, MCProp.spline2.
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
@@ -1756,6 +1870,35 @@ classdef MCProp
             yy = reshape(yy, s);
         end
         function yy = spline(x, y, xx, varargin)
+% a = SPLINE(x, y, xx, [bounds]) Spline interpolation
+%
+% Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+% the vectors x and y and the boundary conditions. Returns yy, a MCProp
+% vector of the same size as xx which contains the interpolated values. The
+% uncertainties of y(x) are propagated, while any uncertainties of x and xx
+% are ignored. While y has to be a MCProp, x and xx can be any type.
+%
+% SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINE(__, boundaryCond) Specifies the boundary condition on both ends.
+% Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the 
+% conditions '1st derivative' and '2nd derivative', the respective 
+% derivatives are set to zero.
+% 
+% SPLINE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% In general, the interpolated values are calculated based on multiple
+% values of x and y. Using <strong>interpolation</strong>, this will result in the  
+% uncertainties of yy being smaller (or at the edges larger) that those 
+% of y. Using <strong>interpolation2</strong>, the uncertainties of yy will be a linear
+% interpolation of y. See <a href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+%
+% See also MCProp.interpolation, MCProp.spline2.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1768,6 +1911,29 @@ classdef MCProp
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
+% a = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation
+%
+% Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+% the vectors x and y and the boundary conditions. Returns yy, a MCProp
+% vector of the same size as xx which contains the interpolated values. The
+% uncertainties of y(x) are propagated, while any uncertainties of x and xx
+% are ignored. While y has to be a MCProp, x and xx can be any type.
+%
+% SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINE2(__, boundaryCond) Specifies the boundary condition on both ends.
+% Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the 
+% conditions '1st derivative' and '2nd derivative', the respective 
+% derivatives are set to zero.
+% 
+% SPLINE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.interpolation2, MCProp.spline.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1789,6 +1955,17 @@ classdef MCProp
             p = MCProp.Convert2MCProp(pm);
         end
         function a = integrate(x, y, n)
+% a = INTEGRATE(x, y, n) Integration with cumulative result
+%
+% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% of n-th degree specified by the vectors x and y. Returns a MCProp vector
+% of the same size as y which contains the cummlative integral up to every
+% value of x. The uncertainties of y(x) are propagated, while any uncer-
+% tainties of x are ignored. While y has to be a MCProp, x can be any
+% type. The parameter n must be a positive integer smaller than numel(y).
+%
+% See also MCProp.integrate2, MCProp.splineintegrate.
+
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
@@ -1800,6 +1977,21 @@ classdef MCProp
             a = reshape(a, s);
         end
         function a = integrate2(x, y, n)
+% a = INTEGRATE2(x, y, n) Integration with scalar result
+%
+% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% of n-th degree specified by the vectors x and y. Returns the result of
+% the whole integral as a MCProp scalar. The input arguments x and y
+% specify y(x). The uncertainties of y(x) are propagated, while any
+% uncertainties of x are ignored. While y has to be a MCProp, x can be any
+% type. The parameter n must be a positive integer smaller than numel(y).
+%
+% a = integrate2(x, y, n) returns the same result as:
+%   a = integrate(x, y, n);
+%   a = a(end);
+%
+% See also MCProp.integrate, MCProp.splineintegrate2.
+            
             x = double(x(:));
             y = MCProp(y);
             n = int32(n);
@@ -1809,6 +2001,30 @@ classdef MCProp
             a = MCProp.Convert2MCProp(am);
         end
         function a = splineintegrate(x, y, varargin)
+% a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result
+%
+% Calculates the numerical integral of y(x), with y(x) being a cubic spline
+% defined by the vectors x and y and the boundary conditions. Returns a
+% MCProp vector of the same size as y which contains the cummlative
+% integral up to every value of x. The uncertainties of y(x) are
+% propagated, while any uncertainties of x are ignored. While y has to be a
+% MCProp, x can be any type.
+%
+% SPLINEINTEGRATE(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINEINTEGRATE(__, boundaryCond) Specifies the boundary condition on
+% both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the
+% conditions '1st derivative' and '2nd derivative', the respective
+% derivatives are set to zero.
+% 
+% SPLINEINTEGRATE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.integrate, MCProp.splineintegrate2.
             x = double(x(:));
             y = MCProp(y);
             s = size(y);
@@ -1820,6 +2036,29 @@ classdef MCProp
             a = reshape(a, s);
         end
         function a = splineintegrate2(x, y, varargin)
+% a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result
+%
+% Calculates the numerical integral of y(x), with y(x) being a cubic spline
+% defined by the vectors x and y and the boundary conditions. Returns the
+% result of the whole integral as a MCProp scalar. The uncertainties of
+% y(x) are propagated, while any uncertainties of x are ignored. While y
+% has to be a MCProp, x can be any type.
+%
+% SPLINEINTEGRATE2(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINEINTEGRATE2(__, boundaryCond) Specifies the boundary condition on
+% both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the
+% conditions '1st derivative' and '2nd derivative', the respective
+% derivatives are set to zero.
+% 
+% SPLINEINTEGRATE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.integrate2, MCProp.splineintegrate.
             x = double(x(:));
             y = MCProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
@@ -1880,6 +2119,15 @@ classdef MCProp
             l = temp.op_Implicit(obj.NetObject);
         end
         function [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin)
+            % (..., y)
+            % (..., boundaryConditions)
+            % (..., startBoundaryCondition, startV, endBoundaryCondition, endV)
+            %
+            % Boundary conditions are strings. Valid values are:
+            %   'not-a-knot' (default)
+            %   'natural spline'
+            %   'first derivative'
+            %   'second derivative'
             switch nargin
                 case 1
                     sb = Metas.UncLib.Core.SplineBoundary.Not_a_Knot;

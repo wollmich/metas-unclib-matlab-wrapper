@@ -47,8 +47,8 @@
 % B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
 % array of handles B.
 
-% Metas.UncLib.Matlab.LinProp V2.5.4
-% Michael Wollensack METAS - 10.05.2022
+% Metas.UncLib.Matlab.LinProp V2.6.0
+% Michael Wollensack METAS - 06.07.2022
 % Dion Timmermann PTB - 22.06.2022
 
 classdef LinProp
@@ -129,6 +129,8 @@ classdef LinProp
                             end
                         case 'Metas.UncLib.LinProp.UncNumber'
                             obj.NetObject = varargin{1};
+                        case 'Metas.UncLib.Core.Real<Metas*UncLib*LinProp*UncNumber>'
+                            obj.NetObject = varargin{1}.Item;
                         case 'Metas.UncLib.Core.Complex<Metas*UncLib*LinProp*UncNumber>'
                             obj.NetObject = varargin{1};
                         case 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*LinProp*UncNumber>'
@@ -2487,7 +2489,154 @@ classdef LinProp
             unc_number.Init(value, sys_inputs.data, sys_sensitivities(:));
             obj = LinProp(unc_number);
         end
-    end 
+    end
+    properties (Constant)
+        % Physical Constants CODATA 2014
+        Const2014 = InitConst2014();
+        % Physical Constants CODATA 2014 for Conventional Electrical Units 90
+        Const2014_90 = InitConst2014_90();
+        % Physical Constants CODATA 2018
+        Const2018 = InitConst2018();
+        % Newest Physical Constants
+        Const = InitConst2018();
+    end
+end
+
+function c = InitConst2014()
+    const = Metas.UncLib.Core.Const2014;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2014', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    % Hyperfine transition frequency of Cs-133 / Hz
+    c.deltavCs = const.deltavCs;
+    % Speed of light in vacuum / (m/s)
+    c.c0 = const.c0;
+    % Vacuum magnetic permeability / (Vs/Am)
+    c.mu0 = const.mu0;
+    % Vacuum electric permittivity / (As/Vm)
+    c.ep0 = const.ep0;
+    % Luminous efficacy / (lm/W)
+    c.Kcd = const.Kcd;
+    % Molar mass constant / (kg/mol)
+    c.Mu = const.Mu;
+    % Newtonian constant of gravitation / (m^3/(kg*s^2))
+    c.G = LinProp(uconst.G);
+    % Fine-structure constant
+    c.alpha = LinProp(uconst.alpha);
+    % Rydberg constant / (1/m)
+    c.Ryd = LinProp(uconst.Ryd);
+    % Proton-electron mass ratio
+    c.mpsme = LinProp(uconst.mpsme);
+    % Avogadro constant / (1/mol)
+    c.Na = LinProp(uconst.Na);
+    % Josephson constant / (Hz/V)
+    c.Kj = LinProp(uconst.Kj);
+    % Boltzmann constant / (J/K)
+    c.k = LinProp(uconst.k);
+    % von Klitzing constant / Ohm
+    c.Rk = LinProp(uconst.Rk);
+    % Elementary charge / C
+    c.e = LinProp(uconst.e);
+    % Planck constant / Js
+    c.h = LinProp(uconst.h);
+    % Electron mass / kg
+    c.me = LinProp(uconst.me);
+    % Proton mass / kg
+    c.mp = LinProp(uconst.mp);
+    % Atomic mass constant / kg
+    c.u = LinProp(uconst.u);
+    % Faraday constant / (C/mol)
+    c.F = LinProp(uconst.F);
+    % Molar gas constant / (J/(mol*K))
+    c.R = LinProp(uconst.R);
+    % Electron volt / J
+    c.eV = LinProp(uconst.eV);
+end
+
+function c = InitConst2014_90()
+    const = Metas.UncLib.Core.Const2014;
+    const90 = Metas.UncLib.Core.Const2014_90;
+    uconst90 =  NET.createGeneric('Metas.UncLib.Core.Const2014_90', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    % Hyperfine transition frequency of Cs-133 / Hz
+    c.deltavCs = const.deltavCs;
+    % Speed of light in vacuum / (m/s)
+    c.c0 = const.c0;
+    % Vacuum magnetic permeability / (Vs/Am)
+    c.mu0 = const.mu0;
+    % Vacuum electric permittivity / (As/Vm)
+    c.ep0 = const.ep0;
+    % Luminous efficacy / (lm/W)
+    c.Kcd = const.Kcd;
+    % Molar mass constant / (kg/mol)
+    c.Mu = const.Mu;
+    % Conventional value of Josephson constant / (Hz/V)
+    c.Kj = const90.Kj;
+    % Conventional value of von Klitzing constant / Ohm
+    c.Rk = const90.Rk;
+    % Elementary charge / C
+    c.e = const90.e;
+    % Planck constant / Js
+    c.h = const90.h;
+    % Avogadro constant / (1/mol)
+    c.Na = LinProp(uconst90.Na);
+    % Faraday constant / (C/mol)
+    c.F = LinProp(uconst90.F);
+    % Boltzmann constant / (J/K)
+    c.k = LinProp(uconst90.k);
+end
+
+function c = InitConst2018()
+    const = Metas.UncLib.Core.Const2018;
+    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2018', {'Metas.UncLib.LinProp.UncNumber'});
+    c = {};
+    % Hyperfine transition frequency of Cs-133 / Hz
+    c.deltavCs = const.deltavCs;
+    % Speed of light in vacuum / (m/s)
+    c.c0 = const.c0;
+    % Planck constant / Js
+    c.h = const.h;
+    % Elementary charge / C
+    c.e = const.e;
+    % Boltzmann constant / (J/K)
+    c.k = const.k;
+    % Avogadro constant / (1/mol)
+    c.Na = const.Na;
+    % Luminous efficacy / (lm/W)
+    c.Kcd = const.Kcd;
+    % Josephson constant / (Hz/V)
+    c.Kj = const.Kj;
+    % von Klitzing constant / Ohm
+    c.Rk = const.Rk;
+    % Faraday constant / (C/mol)
+    c.F = const.F;
+    % Molar gas constant / (J/(mol*K))
+    c.R = const.R;
+    % Electron volt / J
+    c.eV = const.eV;
+    % Newtonian constant of gravitation / (m^3/(kg*s^2))
+    c.G = LinProp(uconst.G);
+    % Fine-structure constant
+    c.alpha = LinProp(uconst.alpha);
+    % Vacuum magnetic permeability / (Vs/Am)
+    c.mu0 = LinProp(uconst.mu0);
+    % Vacuum electric permittivity / (As/Vm)
+    c.ep0 = LinProp(uconst.ep0);
+    % Rydberg constant / (1/m)
+    c.Ryd = LinProp(uconst.Ryd);
+    % Electron mass / kg
+    c.me = LinProp(uconst.me);
+    % Electron relative atomic mass
+    c.are = LinProp(uconst.are);
+    % Proton relative atomic mass
+    c.arp = LinProp(uconst.arp);
+    % Proton-electron mass ratio
+    c.mpsme = LinProp(uconst.mpsme);
+    % Proton mass / kg
+    c.mp = LinProp(uconst.mp);
+    % Atomic mass constant / kg
+    c.u = LinProp(uconst.u);
+    % Molar mass constant / (kg/mol)
+    c.Mu = LinProp(uconst.Mu);
 end
 
 function dispAsPages(name, value, isLoose)

@@ -1,3 +1,3 @@
-classdef Const < Const2018
+classdef Const < DistProp.Const2018
 % Newest Physical Constants
 end

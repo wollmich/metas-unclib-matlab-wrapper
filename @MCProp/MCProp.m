@@ -1898,7 +1898,7 @@ classdef MCProp
 % of y. Using <strong>interpolation2</strong>, the uncertainties of yy will be a linear
 % interpolation of y. See <a href="matlab:s=which('MCProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
 %
-% See also MCProp.interpolation, MCProp.spline2.
+% See also MCProp.interpolation, MCProp.spline2, MCProp.splinecoefs.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1933,7 +1933,7 @@ classdef MCProp
 % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
 % '1st derivative', and '2nd derivative'.
 %
-% See also MCProp.interpolation2, MCProp.spline.
+% See also MCProp.interpolation2, MCProp.spline, MCProp.splinecoefs.
             x = double(x(:));
             y = MCProp(y);
             s = size(xx);
@@ -1946,6 +1946,34 @@ classdef MCProp
             yy = reshape(yy, s);
         end
         function p = splinecoefs(x, y, varargin)
+% p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline
+%
+% Returns the coefficients of the cublic splines that connect the points
+% defined by the vectors x and y and the specified the boundary conditions.
+% Returns a n-by-4 matrix of local coefficients, where n is the number of
+% spline segments, i.e. n = length(x)-1. While x and y can be any type,
+% uncertainties of x are ignored.
+%
+% The i'th row of p with values [a b c d] can be interpreted as 
+%   f(xq) = a*(xq - x(i)).^3 + b*(xq - x(i)).^2 + c*(xq - x(i)) + d.
+% The matrix returned by this method has the same properties as the
+% pp.coefs matrix returned by <a href="matlab:help spline">PP = spline(X,Y)</a>.
+%
+% SPLINECOEFS(x, y) Uses the 'not-a-knot' boundary condition.
+%
+% SPLINECOEFS(__, boundaryCond) Specifies the boundary condition on both
+% ends. Valid values for boundaryCond are 'not-a-knot' (default),
+% 'natural spline', '1st derivative', and '2nd derivative'. With the 
+% conditions '1st derivative' and '2nd derivative', the respective 
+% derivatives are set to zero.
+% 
+% SPLINECOEFS(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+% Specifies the boundary condition for the left and right end and also the
+% value of the derivatives. Valid values for leftBoundCond and
+% rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+% '1st derivative', and '2nd derivative'.
+%
+% See also MCProp.spline.
             x = double(x(:));
             y = MCProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});

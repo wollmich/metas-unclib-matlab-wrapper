@@ -11,17 +11,21 @@
 %  (a)= DistProp((value), (covariance), [description])
 %   a = DistProp((samples), 'samples', [description], [probability])
 %   a = DistProp(value, (sys_inputs), (sys_sensitivities), 'system')
-% See <a href="matlab:help DistProp.DistProp -displayBanner">List of all Constructors</a>
+% See <a href="matlab:help DistProp.DistProp -displayBanner">List of all constructors</a>
+%
+% The values of a can be accessed through a<a href="matlab:help DistProp.Value -displayBanner">.Value</a> or <a href="matlab:help DistProp.get_value -displayBanner">get_value</a>(a), 
+% and the standard uncertainties through a<a href="matlab:help DistProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help DistProp.get_stdunc -displayBanner">get_stdunc</a>(a).
+% Many common matlab functions are availibe, see <a href="matlab:methods(DistProp(1))">list of all methods.</a>
 %
 % <strong>Uncertainty Methods</strong>
 %   <a href="matlab:help DistProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
 %   <a href="matlab:help DistProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
 %   <a href="matlab:help DistProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
-%   <a href="matlab:help DistProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
-%   <a href="matlab:help DistProp.get_jacobi -displayBanner"             >get_jacobi</a>              Sensitivities to virtual base inputs
+%   <a href="matlab:help DistProp.get_jacobi -displayBanner"             >get_jacobi</a>              Uncertainty contributions of base inputs
+%   <a href="matlab:help DistProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty contributions of intermediate results
 %   <a href="matlab:help DistProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
-%   <a href="matlab:help DistProp.get_moment -displayBanner"             >get_moment</a>              n-th central moment
-%   <a href="matlab:help DistProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty components of y with respect to x
+%   <a href="matlab:help DistProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
+%   <a href="matlab:help DistProp.get_moment -displayBanner"             >get_moment</a>              n'th central moment
 %   <a href="matlab:help DistProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
 % <strong>Interpolation and Integration Methods</strong>
@@ -31,7 +35,7 @@
 %   <a href="matlab:help DistProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
 %   <a href="matlab:help DistProp.spline -displayBanner"             >spline</a>              Spline interpolation
 %   <a href="matlab:help DistProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
-%   <a href="matlab:help DistProp.splinecoefs -displayBanner"        >splinecoefs</a>	
+%   <a href="matlab:help DistProp.splinecoefs -displayBanner"        >splinecoefs</a>         Coefficients of interpolation spline
 %   <a href="matlab:help DistProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
 %   <a href="matlab:help DistProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
 %

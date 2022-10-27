@@ -1,7 +1,30 @@
-% LinProp Uncertainty Budget
-% Michael Wollensack METAS - 20.09.2021
-
 function unc_budget(x, varargin)
+% UNC_BUDGET Opens budget window 
+%
+% unc_budget(unc) opens a window with the uncertainty budget of unc.
+% The input unc must be a LinProp. It can be a scalar, vector, or matrix.
+%
+% unc_budget(unc, format) behaves as above, but also specifies the format
+% of numerical values. format must be a char array or string scalar. 
+% Recomended values are 'f3', 'f6', 'f9', 'e3', 'e6', and 'e9', but
+% <a href="https://learn.microsoft.com/de-de/dotnet/standard/base-types/standard-numeric-format-strings">standard</a> and <a
+% href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings">custom</a> .NET numeric format strings will also work.
+%
+% unc_budget(unc, format, windowName) behaves as above, but also specifies
+% the name of the budget window. windowName must be a string scalar or char
+% array. The default value is the name of the variable passed as unc.
+%
+% unc_budget(unc, format, windowName, columnNames) behaves as above, but
+% also specifies the names of the elements of unc and thus the column
+% headings in the GUI. columnNames must be a cell string or array of
+% strings. This option is only availible when var is complex or a vector 
+% or matrix.
+%
+% If unc contains a complex values vector, the real and imag part are
+% interleaved. In this respect unc_budget behaves differently than
+% get_correlation(), get_covariance(), etc.
+
+% Michael Wollensack METAS - 20.09.2021
 
 x = LinProp(x);
 n = get_net_object(x);

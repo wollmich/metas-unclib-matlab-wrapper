@@ -66,41 +66,58 @@ classdef LinProp
     end
     methods
         function obj = LinProp(varargin)
-            % LinProp Const:
-            % a = LinProp(value)
-            %
-            % LinProp Input (RealUncNumber)
-            % a = LinProp(value, standard_unc, [idof])
-            %
-            % LinProp Input (RealUncNumber)
-            % a = LinProp(value, standard_unc, description)
-            %
-            % LinProp Input (ComplexUncNumber)
-            % a = LinProp(value, (covariance), [description])
-            %
-            % LinProp Input (RealUncArray)
-            % [a] = LinProp((value), (covariance), [description])
-            %
-            % LinProp Input (ComplexUncArray)
-            % [a] = LinProp((value), (covariance), [description])
-            %
-            % LinProp From Samples
-            % a = LinProp((samples), 'samples', [description], [probability])
-            %
-            % LinProp Xml String
-            % a = LinProp(xml_string)
-            %
-            % LinProp Xml File
-            % a = LinProp(filepath, 'xml_file')
-            %
-            % LinProp Binary File
-            % a = LinProp(filepath, 'binary_file')
-            %
-            % LinProp System (RealUncNumber) (LinProp only!)
-            % a = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
-            %
-            % LinProp Input (RealUncNumber)
-            % a = LinProp(value, standard_unc, idof, id, description)
+% Constructor to creat LinProp uncertainty objects
+%
+% u = LinProp(value) creates an uncertainty object without any
+% uncertainties but the specified value. value can real- or complex-valued
+% and have any shape. This operation can be used to preallocate variables.
+%
+% u = LinProp(value, standard_unc, [description]) creates a real-valued
+% scalar uncertainty object with the specified value and standard
+% uncertainty. value and standard_unc must be real-valued scalars.
+% Optionally, a description can be specified (see below).
+%
+% u = LinProp(value, covariance, [description]) creates an uncertainty
+% object based on a complex and/or non-scalar value and an associated
+% covariance matrix. value must be a complex scalar or a real- or
+% complex-valued matrix. covariance must be a square, real-valued matrix.
+% The rows and columns of covariance match the elements of value interpred
+% as a vector, i.e. value(:). If value is complex-valued the first row and
+% column of covariance relate to real(value(1)), the second row and colum
+% of covariance to imag(value(1)), the third row and colum of covariance to
+% real(value(2)), etc. Optionally, a description can be specified (see
+% below).
+%
+% u = LinProp(samples, 'samples', [description], [probability]) creates a
+% scalar or vector uncertainty object from a column vector or matrix of
+% real- or complex-valued samples. u will be a scalar or column vector. The
+% number of elements in u is the same as the number of columns of samples.
+% samples must have at least one more row than columns. Optionally, a
+% description can be specified (see below).
+%
+% u = LinProp(value, sys_inputs, sys_sensitivities, 'system') creates an
+% uncertainty object with the specified value and sensitivities to the
+% specified system inputs. This approach can be used to bridge a function,
+% e.g. a numerical method like nonlinear least squares. value must be the
+% result of this function, sys_inputs a vector of uncertainty objects used
+% as inputs to this function, and sys_sensitivities a vector of sensitivies
+% of value to changes of sys_inputs. This constructor is LinProp only!
+% 
+% Use u = LinProp(xml_string), u = LinProp(filepath, 'xml_file'), or 
+% u = LinProp(filepath, 'binary_file') to load an uncertainty object which 
+% has previously been exported with xml_string(u), xml_file(u, filepath), 
+% or binary_file(u, filepath).
+% 
+% LinProp(value, standard_unc, idof, [id, description]) creates a scalar,
+% real-valued uncertainty object based on the specified value, standard
+% uncertainy, and inverse degree of freedom. All three variables must be
+% real-valued scalars. Additionally, an id and description can be specified
+% for the uncertainty.
+%
+% With several constructors it is possible define a description to an
+% uncertainty object. This description must be a char array and will later
+% show in the uncertainty budget. Use '\t' to mark levels of hirachy and
+% thus group uncertainties.
             
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.

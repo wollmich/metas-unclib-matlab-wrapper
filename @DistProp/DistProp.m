@@ -1154,6 +1154,10 @@ classdef DistProp
             d = DistProp.Convert2Double(DistProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
+% GET_IDOF Inverse degree of freedom
+%
+% d = GET_IDOF(unc) returns a matrix of the same size of unc, containing
+% the inverse degrees of freedom of every element of unc.
             d = DistProp.Convert2Double(DistProp.UncHelper.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)

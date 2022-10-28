@@ -1183,6 +1183,11 @@ classdef MCProp
             d = MCProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
+% GET_MOMENT Central moment
+%
+% d = GET_MOMENT(unc, n) returns the n'th central moment of the
+% distribution of obj. unc must be a scalar MCProp, n must be a
+% non-negative integer.
             d = MCProp.Convert2Double(MCProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)

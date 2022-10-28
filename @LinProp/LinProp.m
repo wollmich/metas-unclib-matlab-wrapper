@@ -4,17 +4,16 @@
 % in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/unclib">METAS UncLib library</a>.
 %
 % <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
-%   a = LinProp(value)
-%   a = LinProp(value, standard_unc, [idof])
-%   a = LinProp(value, standard_unc, description)
-%   a = LinProp(value, (covariance), [description])
-%  (a)= LinProp((value), (covariance), [description])
-%   a = LinProp((samples), 'samples', [description], [probability])
-%   a = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
+%   u = LinProp(value)
+%   u = LinProp(value, standard_unc, [description])
+%   u = LinProp(value, (covariance), [description])
+%  (u)= LinProp((value), (covariance), [description])
+%   u = LinProp((samples), 'samples', [description], [probability])
+%   u = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
 % See <a href="matlab:help LinProp.LinProp -displayBanner">List of all constructors</a>
 %
-% The values of a can be accessed through a<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(a), 
-% and the standard uncertainties through a<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(a).
+% The values of u can be accessed through u<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(u), 
+% and the standard uncertainties through u<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(u).
 % Many common matlab functions are availibe, see <a href="matlab:methods(LinProp(1))">list of all methods.</a>
 %
 % <strong>Uncertainty Methods</strong>

@@ -1225,6 +1225,20 @@ classdef MCProp
             c = MCProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
+% GET_JACOBI Uncertainty contributions of base inputs
+%
+% c = GET_JACOBI(unc) returns a m-by-n matrix containing the sensitivity
+% coefficients multiplied with the standard uncertainties of the base
+% inputs of unc. m is the number of elements in unc (*2 for complex
+% numbers), n is the number of base inputs of unc.
+%
+% The input argument unc is always interpreted as a vector, thus
+% get_covariance(unc) is the same as get_covariance(unc(:)). If unc
+% contains complex values, the real and imag part are treated separately,
+% thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
+% imag(cUnc(:))]).
+%
+% See also get_jacobi2.
             l = ToUncList(obj);
             temp = MCProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

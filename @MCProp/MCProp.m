@@ -1281,6 +1281,20 @@ classdef MCProp
             c = MCProp.Convert2Double(array);
         end
         function c = get_unc_component(x, y)
+% GET_UNC_COMPONENT Uncertainty contributions of intermediate results
+%
+% c = get_unc_component(x, y) returns the uncertainty contributions of the
+% intermediate results y to the uncertainty object x.
+%
+% get_unc_component(x,y) is the same as get_jacobi2(x,y) .* get_stdunc(y).
+%
+% The input arguments x and y are always interpreted as vectors, thus
+% get_unc_component(x, y) is the same as get_unc_component(x(:), y(:)). If
+% x or y contain complex values, the real and imag part are treated
+% separately, thus get_unc_component(cx, cy) is the same as
+% get_unc_component([real(cx(:)),imag(cx(:))], [real(cy(:)),imag(cy(:))]).
+%
+% See also get_jacobi, get_jacobi2.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = MCProp.UncHelper.GetUncComponent(x2, y2);

@@ -1246,6 +1246,33 @@ classdef MCProp
             c = MCProp.Convert2Double(array);
         end
         function c = get_jacobi2(x, y)
+% GET_JACOBI2 Sensitivities to intermediate results
+%
+% c = GET_JACOBI2(x, y) returns a m-by-n marix containing the sensitivies
+% of x to the intermediate results y. m is the number of elements in x (*2
+% for complex numbers), n is the number intermediate results y.
+%
+% The intermediate results y must form a base for x, thus 
+%   1. y must be complete in the sense that there exists a function f such 
+%      that x = f(y).
+%   2. the elements of y must be linearly independent, i.e. there must not
+%      exist a function g such that x = g(y') with y' being a subset of y.
+%
+% The user is is required to ensure that these conditions are met.
+% Otherwise, the result returned by this method might be incorrect.
+%
+% To check that these conditions were met in the statement
+%   j = get_jacobi2(x,y)
+% test if standard uncertainty of y matches
+%   get_stdunc(x) == sqrt(j*get_covariance(y)*j')
+%
+% The input arguments x and y are always interpreted as vectors, thus
+% get_jacobi2(x, y) is the same as get_jacobi2(x(:), y(:)). If x or y
+% contain complex values, the real and imag part are treated separately,
+% thus get_jacobi2(cx, cy) is the same as get_jacobi2([real(cx(:)),
+% imag(cx(:))], [real(cy(:)), imag(cy(:))]).
+%
+% See also get_jacobi, get_unc_component.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = MCProp.UncHelper.GetJacobi2(x2, y2);

@@ -1913,11 +1913,11 @@ classdef LinProp
             X = reshape(X, s);
         end
         function yy = interpolation(x, y, n, xx)
-% a = INTERPOLATION(x, y, n, xx) Interpolation
+% yy = INTERPOLATION(x, y, n, xx) Interpolation
 %
 % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
-% degree, specified by the vectors x and y. Returns yy a LinProp vector of
-% the same size as xx which contains the interpolated values. The
+% degree, specified by the vectors x and y. Returns yy, a LinProp vector of
+% the same size as xx, which contains the interpolated values. The
 % uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
 % x and xx are ignored. While y must be a LinProp, x and xx can be any
 % type. The parameter n must be a positive integer smaller than numel(x).
@@ -1941,11 +1941,11 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = interpolation2(x, y, n, xx)
-% a = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation
+% yy = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation
 %
 % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
-% degree, specified by the vectors x and y. Returns yy a LinProp vector of
-% the same size as xx which contains the interpolated values. The
+% degree, specified by the vectors x and y. Returns yy, a LinProp vector of
+% the same size as xx, which contains the interpolated values. The
 % uncertainties of y (i.e. y(x)) are linearly interpolated, while any
 % uncertainties of x and xx are ignored. While y must be a LinProp, x and
 % xx can be any type. The parameter n must be a positive integer smaller
@@ -1970,13 +1970,13 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline(x, y, xx, varargin)
-% a = SPLINE(x, y, xx, [bounds]) Spline interpolation
+% yy = SPLINE(x, y, xx, [bounds]) Spline interpolation
 %
 % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
 % the vectors x and y and the boundary conditions. Returns yy, a LinProp
-% vector of the same size as xx which contains the interpolated values. The
-% uncertainties of y(x) are propagated, while any uncertainties of x and xx
-% are ignored. While y must be a LinProp, x and xx can be any type.
+% vector of the same size as xx, which contains the interpolated values.
+% The uncertainties of y(x) are propagated, while any uncertainties of x
+% and xx are ignored. While y must be a LinProp, x and xx can be any type.
 %
 % SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
 %
@@ -1993,10 +1993,10 @@ classdef LinProp
 % '1st derivative', and '2nd derivative'.
 %
 % In general, the interpolated values are calculated based on multiple
-% values of x and y. Using <strong>interpolation</strong>, this will result in the  
-% uncertainties of yy being smaller (or at the edges larger) that those 
-% of y. Using <strong>interpolation2</strong>, the uncertainties of yy will be a linear
-% interpolation of y. See <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+% values of x and y. Using spline, this will result in the uncertainties of
+% yy being smaller (or at the edges larger) that those of y. Using spline2,
+% the uncertainties of yy will be a linear interpolation of y. See 
+% <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
 %
 % See also LinProp.interpolation, LinProp.spline2, LinProp.splinecoefs.
             x = double(x(:));
@@ -2011,13 +2011,14 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
-% a = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation
+% yy = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation
 %
 % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
 % the vectors x and y and the boundary conditions. Returns yy, a LinProp
-% vector of the same size as xx which contains the interpolated values. The
-% uncertainties of y(x) are propagated, while any uncertainties of x and xx
-% are ignored. While y must be a LinProp, x and xx can be any type.
+% vector of the same size as xx, which contains the interpolated values. The
+% uncertainties of y(x) are linearly propagated, while any uncertainties of
+% x and xx are ignored. While y must be a LinProp, x and xx can be any
+% type.
 %
 % SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
 %
@@ -2032,6 +2033,12 @@ classdef LinProp
 % value of the derivatives. Valid values for leftBoundCond and
 % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
 % '1st derivative', and '2nd derivative'.
+%
+% In general, the interpolated values are calculated based on multiple
+% values of x and y. Using spline, this will result in the uncertainties of
+% yy being smaller (or at the edges larger) that those of y. Using spline2,
+% the uncertainties of yy will be a linear interpolation of y. See 
+% <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
 %
 % See also LinProp.interpolation2, LinProp.spline, LinProp.splinecoefs.
             x = double(x(:));

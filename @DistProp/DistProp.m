@@ -1238,10 +1238,9 @@ classdef DistProp
 % intermediate results.
 %
 % The input argument unc is always interpreted as a vector, thus
-% get_covariance(unc) is the same as get_covariance(unc(:)). If unc
-% contains complex values, the real and imag part are treated separately,
-% thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
-% imag(cUnc(:))]).
+% get_jacobi(unc) is the same as get_jacobi(unc(:)). If unc contains
+% complex values, the real and imag part are treated separately, thus
+% get_jacobi(cUnc) is the same as get_jacobi([real(cUnc(:)),imag(cUnc(:))]).
 %
 % See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);

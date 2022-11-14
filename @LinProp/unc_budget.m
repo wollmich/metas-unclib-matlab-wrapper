@@ -7,7 +7,7 @@ function unc_budget(x, varargin)
 % unc_budget(unc, format) behaves as above, but also specifies the format
 % of numerical values. format must be a char array or string scalar. 
 % Recomended values are 'f3', 'f6', 'f9', 'e3', 'e6', and 'e9', but
-% <a href="https://learn.microsoft.com/de-de/dotnet/standard/base-types/standard-numeric-format-strings">standard</a> and <a
+% <a href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings">standard</a> and <a
 % href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings">custom</a> .NET numeric format strings will also work.
 %
 % unc_budget(unc, format, windowName) behaves as above, but also specifies

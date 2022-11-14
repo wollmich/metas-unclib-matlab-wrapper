@@ -1923,8 +1923,8 @@ classdef DistProp
 % type. The parameter n must be a positive integer smaller than numel(x).
 % 
 % In general, the interpolated values are calculated based on n values of x
-% and y. Using <strong>interpolation</strong>, this will result in the uncertainties of yy
-% being smaller (or at the edges larger) that those of y. Using <strong>interpolation2</strong>, 
+% and y. Using interpolation, this will result in the uncertainties of yy
+% being smaller (or at the edges larger) that those of y. Using interpolation2, 
 % the uncertainties of yy will be a linear interpolation of y.
 % See <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
 %
@@ -1952,8 +1952,8 @@ classdef DistProp
 % than numel(x).
 % 
 % In general, the interpolated values are calculated based on n values of x
-% and y. Using <strong>interpolation</strong>, this will result in the uncertainties of yy
-% being smaller (or at the edges larger) that those of y. Using <strong>interpolation2</strong>, 
+% and y. Using interpolation, this will result in the uncertainties of yy
+% being smaller (or at the edges larger) that those of y. Using interpolation2, 
 % the uncertainties of yy will be a linear interpolation of y.
 % See <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
 %

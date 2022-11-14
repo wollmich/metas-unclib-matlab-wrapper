@@ -18,7 +18,7 @@
 %
 % The values of u can be accessed through u<a href="matlab:help MCProp.Value -displayBanner">.Value</a> or <a href="matlab:help MCProp.get_value -displayBanner">get_value</a>(u), 
 % and the standard uncertainties through u<a href="matlab:help MCProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help MCProp.get_stdunc -displayBanner">get_stdunc</a>(u).
-% Many common matlab functions are availibe, see <a href="matlab:methods(MCProp(1))">list of all methods.</a>
+% Many common MATLAB functions are availibe, see <a href="matlab:methods(MCProp(1))">list of all methods</a>.
 %
 % <strong>Uncertainty Methods</strong>
 %   <a href="matlab:help MCProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix

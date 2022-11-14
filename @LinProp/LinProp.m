@@ -1233,7 +1233,7 @@ classdef LinProp
 % inputs of unc. m is the number of elements in unc (*2 for complex
 % numbers), n is the number of base inputs of unc.
 %
-% If the order of the base inputs is not clear, use get_jacobi2() and
+% If the order of the base inputs is not clear, use get_unc_component() and
 % explicitly specify the order of the base inputs by passing them as
 % intermediate results.
 %
@@ -1243,7 +1243,7 @@ classdef LinProp
 % thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
 % imag(cUnc(:))]).
 %
-% See also get_jacobi2.
+% See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});

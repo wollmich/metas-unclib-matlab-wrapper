@@ -7,20 +7,21 @@
 % complex-valued and multivariate quantities. Internally, LinProp objects
 % in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/unclib">METAS UncLib library</a>.
 %
-% <strong>Commonly used Constructors</strong> (Round brackes indicate vectors)
+% Commonly used Constructors  (Round brackes indicate vectors.)
 %   u = LinProp(value)
 %   u = LinProp(value, standard_unc, [description])
 %   u = LinProp(value, (covariance), [description])
 %  (u)= LinProp((value), (covariance), [description])
 %   u = LinProp((samples), 'samples', [description], [probability])
 %   u = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
-% See <a href="matlab:help LinProp.LinProp -displayBanner">List of all constructors</a>
+%   Documentation of all constructors availible with <a href="matlab: help LinProp/LinProp -displayBanner">help LinProp/LinProp</a>.
 %
-% The values of u can be accessed through u<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(u), 
-% and the standard uncertainties through u<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(u).
-% Many common MATLAB functions are availibe, see <a href="matlab:methods(LinProp(1))">list of all methods</a>.
+% Properties and Common Functions
+%   The values of u can be accessed through u<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(u), 
+%   and the standard uncertainties through u<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(u).
+%   Many common MATLAB functions are availibe, see <a href="matlab:methods(LinProp(1))">list of all methods</a>.
 %
-% <strong>Uncertainty Methods</strong>
+% Uncertainty Methods
 %   <a href="matlab:help LinProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
 %   <a href="matlab:help LinProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
 %   <a href="matlab:help LinProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
@@ -31,7 +32,7 @@
 %   <a href="matlab:help LinProp.get_moment -displayBanner"             >get_moment</a>              n'th central moment
 %   <a href="matlab:help LinProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
-% <strong>Interpolation and Integration Methods</strong>
+% Interpolation and Integration Methods
 %   <a href="matlab:help LinProp.integrate -displayBanner"          >integrate</a>           Integration with cumulative result
 %   <a href="matlab:help LinProp.integrate2 -displayBanner"         >integrate2</a>          Integration with scalar result
 %   <a href="matlab:help LinProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
@@ -42,17 +43,19 @@
 %   <a href="matlab:help LinProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
 %   <a href="matlab:help LinProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
 %
-% <strong>Object Behavior</strong>
-% Scalar LinProp objects behave like MATLAB fundamental types with respect
-% to copy operations. Copies are independent values. Operations that you
-% perform on one object do not affect copies of that object.
-% Non-scalar LinProp objects are referenced by their handle variable.
-% Copies of the handle variable refer to the same object. Operations that
-% you perform on a handle object are visible from all handle variables that
-% reference that object.
+% Object Behavior
+%   Scalar LinProp objects behave like MATLAB fundamental types with
+%   respect to copy operations. Copies are independent values. Operations
+%   that you perform on one object do not affect copies of that object.
+%   Non-scalar LinProp objects are referenced by their handle variable.
+%   Copies of the handle variable refer to the same object. Operations that
+%   you perform on a handle object are visible from all handle variables
+%   that reference that object.
 %
-% B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
-% array of handles B.
+%   B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+%   array of handles B.
+% 
+% See also LinProp/LinProp.
 
 
 classdef LinProp

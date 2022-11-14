@@ -5,7 +5,7 @@
 % This class supports the creation of uncertainty objects and subsequent
 % calculation with them as well as storage of the results. It can handle
 % complex-valued and multivariate quantities. Internally, DistProp objects
-% in MATLAB are wrappers of the .NET interface of the <a href="www.metas.ch/unclib">METAS UncLib library</a>.
+% in MATLAB are wrappers of the .NET interface of the <a href="https://www.metas.ch/unclib">METAS UncLib library</a>.
 %
 % Commonly used Constructors  (Round brackes indicate vectors.)
 %   u = DistProp(value)
@@ -1246,8 +1246,7 @@ classdef DistProp
 % get_jacobi(cUnc) is the same as get_jacobi([real(cUnc(:)),imag(cUnc(:))]).
 % 
 % The computational and mathematical relations between base inputs and 
-% uncertainty numbers are described in <a
-% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+% uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);
@@ -1284,8 +1283,7 @@ classdef DistProp
 % imag(cx(:))], [real(cy(:)), imag(cy(:))]).
 % 
 % The mathematical relations between base inputs, intermediate results, and 
-% uncertainty numbers are described in <a
-% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+% uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi, get_unc_component.
             x2 = ToUncList(x);
@@ -1310,8 +1308,7 @@ classdef DistProp
 % get_unc_component([real(cx(:)),imag(cx(:))], [real(cy(:)),imag(cy(:))]).
 % 
 % The mathematical relations between base inputs, intermediate results, and 
-% uncertainty numbers are described in <a
-% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+% uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi, get_jacobi2.
             x2 = ToUncList(x);

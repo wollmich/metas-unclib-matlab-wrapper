@@ -1241,6 +1241,10 @@ classdef LinProp
 % get_jacobi(unc) is the same as get_jacobi(unc(:)). If unc contains
 % complex values, the real and imag part are treated separately, thus
 % get_jacobi(cUnc) is the same as get_jacobi([real(cUnc(:)),imag(cUnc(:))]).
+% 
+% The computational and mathematical relations between base inputs and 
+% uncertainty numbers are described in <a
+% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);
@@ -1275,6 +1279,10 @@ classdef LinProp
 % contain complex values, the real and imag part are treated separately,
 % thus get_jacobi2(cx, cy) is the same as get_jacobi2([real(cx(:)),
 % imag(cx(:))], [real(cy(:)), imag(cy(:))]).
+% 
+% The mathematical relations between base inputs, intermediate results, and 
+% uncertainty numbers are described in <a
+% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi, get_unc_component.
             x2 = ToUncList(x);
@@ -1297,6 +1305,10 @@ classdef LinProp
 % x or y contain complex values, the real and imag part are treated
 % separately, thus get_unc_component(cx, cy) is the same as
 % get_unc_component([real(cx(:)),imag(cx(:))], [real(cy(:)),imag(cy(:))]).
+% 
+% The mathematical relations between base inputs, intermediate results, and 
+% uncertainty numbers are described in <a
+% href="doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
 %
 % See also get_jacobi, get_jacobi2.
             x2 = ToUncList(x);

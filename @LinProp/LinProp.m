@@ -1,3 +1,7 @@
+% Metas.UncLib.Matlab.LinProp V2.6.0
+% Michael Wollensack METAS - 06.07.2022
+% Dion Timmermann PTB - 22.06.2022
+%
 % This class supports the creation of uncertainty objects and subsequent
 % calculation with them as well as storage of the results. It can handle
 % complex-valued and multivariate quantities. Internally, LinProp objects
@@ -50,9 +54,6 @@
 % B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
 % array of handles B.
 
-% Metas.UncLib.Matlab.LinProp V2.6.0
-% Michael Wollensack METAS - 06.07.2022
-% Dion Timmermann PTB - 22.06.2022
 
 classdef LinProp
     properties

@@ -7,19 +7,19 @@
 % complex-valued and multivariate quantities. Internally, LinProp objects
 % in MATLAB are wrappers of the .NET interface of the <a href="https://www.metas.ch/unclib">METAS UncLib library</a>.
 %
-% Commonly used Constructors  (Round brackes indicate vectors.)
+% Commonly used Constructors  (Round brackets indicate vectors.)
 %   u = LinProp(value)
 %   u = LinProp(value, standard_unc, [description])
 %   u = LinProp(value, (covariance), [description])
 %  (u)= LinProp((value), (covariance), [description])
 %   u = LinProp((samples), 'samples', [description], [probability])
 %   u = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
-%   Documentation of all constructors availible with <a href="matlab: help LinProp/LinProp -displayBanner">help LinProp/LinProp</a>.
+%   Documentation of all constructors available with <a href="matlab: help LinProp/LinProp -displayBanner">help LinProp/LinProp</a>.
 %
 % Properties and Common Functions
 %   The values of u can be accessed through u<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(u), 
 %   and the standard uncertainties through u<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(u).
-%   Many common MATLAB functions are availibe, see <a href="matlab:methods(LinProp(1))">list of all methods</a>.
+%   Many common MATLAB functions are available, see <a href="matlab:methods(LinProp(1))">list of all methods</a>.
 %
 % Uncertainty Methods
 %   <a href="matlab:help LinProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
@@ -28,7 +28,7 @@
 %   <a href="matlab:help LinProp.get_jacobi -displayBanner"             >get_jacobi</a>              Uncertainty contributions of base inputs
 %   <a href="matlab:help LinProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty contributions of intermediate results
 %   <a href="matlab:help LinProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
-%   <a href="matlab:help LinProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedeom
+%   <a href="matlab:help LinProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedom
 %   <a href="matlab:help LinProp.get_moment -displayBanner"             >get_moment</a>              n'th central moment
 %   <a href="matlab:help LinProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
@@ -898,7 +898,7 @@ classdef LinProp
             %
             % When addressing a = {1, 2, 3} with a{:}, this function would
             % return 3. When addressing a = {1, 2, 3} with a(:), this
-            % function would retrun 1. 
+            % function would return 1. 
             %
             % This class does not support brace indexing. When using dot
             % indexing on a LinProp matrix, e.g. a = LinProp(1:3); a.Value, 
@@ -1198,7 +1198,7 @@ classdef LinProp
 % GET_CORRELATION Correlation matrix
 %
 % C = get_correlation(unc) returns a matrix of size n-by-n containing the
-% correlation factors between the elements of unc, whith n = numel(unc).
+% correlation factors between the elements of unc, with n = numel(unc).
 %
 % The input argument unc is always interpreted as a vector, thus
 % get_correlation(unc) is the same as get_correlation(unc(:)). If unc
@@ -1215,7 +1215,7 @@ classdef LinProp
 % GET_COVARIANCE Covariance matrix
 %
 % C = get_covariance(unc) returns a matrix of size n-by-n containing the
-% covariances of the elements of unc, whith n = numel(unc).
+% covariances of the elements of unc, with n = numel(unc).
 %
 % The input argument unc is always interpreted as a vector, thus
 % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
@@ -1258,7 +1258,7 @@ classdef LinProp
         function c = get_jacobi2(x, y)
 % GET_JACOBI2 Sensitivities to intermediate results
 %
-% c = GET_JACOBI2(x, y) returns a m-by-n marix containing the sensitivies
+% c = GET_JACOBI2(x, y) returns a m-by-n matrix containing the sensitivities
 % of x to the intermediate results y. m is the number of elements in x (*2
 % for complex numbers), n is the number intermediate results y.
 %
@@ -1268,7 +1268,7 @@ classdef LinProp
 %   2. the elements of y must be linearly independent, i.e. there must not
 %      exist a function g such that x = g(y') with y' being a subset of y.
 %
-% The user is is required to ensure that these conditions are met.
+% The user is required to ensure that these conditions are met.
 % Otherwise, the result returned by this method might be incorrect.
 %
 % To check that these conditions were met in the statement
@@ -1915,11 +1915,11 @@ classdef LinProp
         function yy = interpolation(x, y, n, xx)
 % a = INTERPOLATION(x, y, n, xx) Interpolation
 %
-% Interpolates y(x) at points xx, with y(x) being a polinomial of n-th
+% Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
 % degree, specified by the vectors x and y. Returns yy a LinProp vector of
 % the same size as xx which contains the interpolated values. The
 % uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
-% x and xx are ignored. While y has to be a LinProp, x and xx can be any
+% x and xx are ignored. While y must be a LinProp, x and xx can be any
 % type. The parameter n must be a positive integer smaller than numel(x).
 % 
 % In general, the interpolated values are calculated based on n values of x
@@ -1943,11 +1943,11 @@ classdef LinProp
         function yy = interpolation2(x, y, n, xx)
 % a = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation
 %
-% Interpolates y(x) at points xx, with y(x) being a polinomial of n-th
+% Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
 % degree, specified by the vectors x and y. Returns yy a LinProp vector of
 % the same size as xx which contains the interpolated values. The
 % uncertainties of y (i.e. y(x)) are linearly interpolated, while any
-% uncertainties of x and xx are ignored. While y has to be a LinProp, x and
+% uncertainties of x and xx are ignored. While y must be a LinProp, x and
 % xx can be any type. The parameter n must be a positive integer smaller
 % than numel(x).
 % 
@@ -1976,7 +1976,7 @@ classdef LinProp
 % the vectors x and y and the boundary conditions. Returns yy, a LinProp
 % vector of the same size as xx which contains the interpolated values. The
 % uncertainties of y(x) are propagated, while any uncertainties of x and xx
-% are ignored. While y has to be a LinProp, x and xx can be any type.
+% are ignored. While y must be a LinProp, x and xx can be any type.
 %
 % SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
 %
@@ -2017,7 +2017,7 @@ classdef LinProp
 % the vectors x and y and the boundary conditions. Returns yy, a LinProp
 % vector of the same size as xx which contains the interpolated values. The
 % uncertainties of y(x) are propagated, while any uncertainties of x and xx
-% are ignored. While y has to be a LinProp, x and xx can be any type.
+% are ignored. While y must be a LinProp, x and xx can be any type.
 %
 % SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
 %
@@ -2048,7 +2048,7 @@ classdef LinProp
         function p = splinecoefs(x, y, varargin)
 % p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline
 %
-% Returns the coefficients of the cublic splines that connect the points
+% Returns the coefficients of the cubic splines that connect the points
 % defined by the vectors x and y and the specified the boundary conditions.
 % Returns a n-by-4 matrix of local coefficients, where n is the number of
 % spline segments, i.e. n = length(x)-1. While x and y can be any type,
@@ -2085,11 +2085,11 @@ classdef LinProp
         function a = integrate(x, y, n)
 % a = INTEGRATE(x, y, n) Integration with cumulative result
 %
-% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% Calculates the numerical integral of y(x), with y(x) being a polynomial
 % of n-th degree specified by the vectors x and y. Returns a LinProp vector
-% of the same size as y which contains the cummlative integral up to every
+% of the same size as y which contains the cumulative integral up to every
 % value of x. The uncertainties of y(x) are propagated, while any uncer-
-% tainties of x are ignored. While y has to be a LinProp, x can be any
+% tainties of x are ignored. While y must be a LinProp, x can be any
 % type. The parameter n must be a positive integer smaller than numel(y).
 %
 % See also LinProp.integrate2, LinProp.splineintegrate.
@@ -2107,11 +2107,11 @@ classdef LinProp
         function a = integrate2(x, y, n)
 % a = INTEGRATE2(x, y, n) Integration with scalar result
 %
-% Calculates the numerical integral of y(x), with y(x) being a polinomial
+% Calculates the numerical integral of y(x), with y(x) being a polynomial
 % of n-th degree specified by the vectors x and y. Returns the result of
 % the whole integral as a LinProp scalar. The input arguments x and y
 % specify y(x). The uncertainties of y(x) are propagated, while any
-% uncertainties of x are ignored. While y has to be a LinProp, x can be any
+% uncertainties of x are ignored. While y must be a LinProp, x can be any
 % type. The parameter n must be a positive integer smaller than numel(y).
 %
 % a = integrate2(x, y, n) returns the same result as:
@@ -2133,7 +2133,7 @@ classdef LinProp
 %
 % Calculates the numerical integral of y(x), with y(x) being a cubic spline
 % defined by the vectors x and y and the boundary conditions. Returns a
-% LinProp vector of the same size as y which contains the cummlative
+% LinProp vector of the same size as y which contains the cumulative
 % integral up to every value of x. The uncertainties of y(x) are
 % propagated, while any uncertainties of x are ignored. While y has to be a
 % LinProp, x can be any type.
@@ -2170,7 +2170,7 @@ classdef LinProp
 % defined by the vectors x and y and the boundary conditions. Returns the
 % result of the whole integral as a LinProp scalar. The uncertainties of
 % y(x) are propagated, while any uncertainties of x are ignored. While y
-% has to be a LinProp, x can be any type.
+% must be a LinProp, x can be any type.
 %
 % SPLINEINTEGRATE2(x, y) Uses the 'not-a-knot' boundary condition.
 %

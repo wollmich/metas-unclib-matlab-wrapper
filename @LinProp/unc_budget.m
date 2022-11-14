@@ -17,7 +17,7 @@ function unc_budget(x, varargin)
 % unc_budget(unc, format, windowName, columnNames) behaves as above, but
 % also specifies the names of the elements of unc and thus the column
 % headings in the GUI. columnNames must be a cell string or array of
-% strings. This option is only availible when var is complex or a vector 
+% strings. This option is only available when var is complex or a vector 
 % or matrix.
 %
 % If unc contains a complex values vector, the real and imag part are

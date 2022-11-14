@@ -1233,6 +1233,10 @@ classdef DistProp
 % inputs of unc. m is the number of elements in unc (*2 for complex
 % numbers), n is the number of base inputs of unc.
 %
+% If the order of the base inputs is not clear, use get_jacobi2() and
+% explicitly specify the order of the base inputs by passing them as
+% intermediate results.
+%
 % The input argument unc is always interpreted as a vector, thus
 % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
 % contains complex values, the real and imag part are treated separately,

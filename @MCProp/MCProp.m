@@ -340,9 +340,8 @@ classdef MCProp
         end
         function str = string(obj)
             
-            % The plus/minus sign coded as unicode number so this
-            % source code file is not dependent on the encoding.
-            pm = sprintf(' \xB1 ');
+            pm = sprintf(' \xB1 '); % The plus/minus sign coded as unicode 
+            % number so this source code file is not dependent on the encoding.
             
             % Using evalc(disp(x)) prints using the current format setting.
             edisp = @(x) strtrim(evalc('disp(x)'));

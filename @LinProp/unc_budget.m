@@ -1,5 +1,5 @@
 function unc_budget(x, varargin)
-% UNC_BUDGET Opens budget window 
+% UNC_BUDGET Opens budget window.
 %
 % unc_budget(unc) opens a window with the uncertainty budget of unc.
 % The input unc must be a LinProp. It can be a scalar, vector, or matrix.

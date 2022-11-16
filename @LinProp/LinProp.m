@@ -70,7 +70,7 @@ classdef LinProp
     end
     methods
         function obj = LinProp(varargin)
-            % Constructor to creat LinProp uncertainty objects
+            % Constructor to create LinProp uncertainty objects.
             %
             % u = LinProp(value) creates an uncertainty object without any
             % uncertainties but the specified value. value can real- or complex-valued
@@ -1157,7 +1157,7 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
-            % GET_IDOF Inverse degree of freedom
+            % GET_IDOF Inverse degree of freedom.
             %
             % d = GET_IDOF(unc) returns a matrix of the same size of unc, containing
             % the inverse degrees of freedom of every element of unc.
@@ -1167,7 +1167,7 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
-            % GET_COVERAGE_INTERVAL Coverage interval bounds
+            % GET_COVERAGE_INTERVAL Coverage interval bounds.
             %
             % I = get_coverage_interval(unc, p) returns a matrix of size n-by-2
             % containing the bounds of the coverage interval of unc for the probability
@@ -1186,7 +1186,7 @@ classdef LinProp
             d = LinProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
-            % GET_MOMENT Central moment
+            % GET_MOMENT Central moment.
             %
             % d = GET_MOMENT(unc, n) returns the n'th central moment of the
             % distribution of obj. unc must be a scalar LinProp, n must be a
@@ -1194,7 +1194,7 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
-            % GET_CORRELATION Correlation matrix
+            % GET_CORRELATION Correlation matrix.
             %
             % C = get_correlation(unc) returns a matrix of size n-by-n containing the
             % correlation factors between the elements of unc, with n = numel(unc).
@@ -1211,7 +1211,7 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
-            % GET_COVARIANCE Covariance matrix
+            % GET_COVARIANCE Covariance matrix.
             %
             % C = get_covariance(unc) returns a matrix of size n-by-n containing the
             % covariances of the elements of unc, with n = numel(unc).
@@ -1228,7 +1228,7 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
-            % GET_JACOBI Uncertainty contributions of base inputs
+            % GET_JACOBI Uncertainty contributions of base inputs.
             %
             % c = GET_JACOBI(unc) returns a m-by-n matrix containing the sensitivity
             % coefficients multiplied with the standard uncertainties of the base
@@ -1255,7 +1255,7 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_jacobi2(x, y)
-            % GET_JACOBI2 Sensitivities to intermediate results
+            % GET_JACOBI2 Sensitivities to intermediate results.
             %
             % c = GET_JACOBI2(x, y) returns a m-by-n matrix containing the sensitivities
             % of x to the intermediate results y. m is the number of elements in x (*2
@@ -1293,7 +1293,7 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_unc_component(x, y)
-            % GET_UNC_COMPONENT Uncertainty contributions of intermediate results
+            % GET_UNC_COMPONENT Uncertainty contributions of intermediate results.
             %
             % c = get_unc_component(x, y) returns the uncertainty contributions of the
             % intermediate results y to the uncertainty object x.
@@ -1912,7 +1912,7 @@ classdef LinProp
             X = reshape(X, s);
         end
         function yy = interpolation(x, y, n, xx)
-            % yy = INTERPOLATION(x, y, n, xx) Interpolation
+            % yy = INTERPOLATION(x, y, n, xx) Interpolation.
             %
             % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
             % degree, specified by the vectors x and y. Returns yy, a LinProp vector of
@@ -1940,7 +1940,7 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = interpolation2(x, y, n, xx)
-            % yy = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation
+            % yy = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation.
             %
             % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
             % degree, specified by the vectors x and y. Returns yy, a LinProp vector of
@@ -1969,7 +1969,7 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline(x, y, xx, varargin)
-            % yy = SPLINE(x, y, xx, [bounds]) Spline interpolation
+            % yy = SPLINE(x, y, xx, [bounds]) Spline interpolation.
             %
             % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
             % the vectors x and y and the boundary conditions. Returns yy, a LinProp
@@ -2010,7 +2010,7 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
-            % yy = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation
+            % yy = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation.
             %
             % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
             % the vectors x and y and the boundary conditions. Returns yy, a LinProp
@@ -2052,7 +2052,7 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function p = splinecoefs(x, y, varargin)
-            % p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline
+            % p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline.
             %
             % Returns the coefficients of the cubic splines that connect the points
             % defined by the vectors x and y and the specified the boundary conditions.
@@ -2089,7 +2089,7 @@ classdef LinProp
             p = LinProp.Convert2LinProp(pm);
         end
         function a = integrate(x, y, n)
-            % a = INTEGRATE(x, y, n) Integration with cumulative result
+            % a = INTEGRATE(x, y, n) Integration with cumulative result.
             %
             % Calculates the numerical integral of y(x), with y(x) being a polynomial
             % of n-th degree specified by the vectors x and y. Returns a LinProp vector
@@ -2111,7 +2111,7 @@ classdef LinProp
             a = reshape(a, s);
         end
         function a = integrate2(x, y, n)
-            % a = INTEGRATE2(x, y, n) Integration with scalar result
+            % a = INTEGRATE2(x, y, n) Integration with scalar result.
             %
             % Calculates the numerical integral of y(x), with y(x) being a polynomial
             % of n-th degree specified by the vectors x and y. Returns the result of
@@ -2135,7 +2135,7 @@ classdef LinProp
             a = LinProp.Convert2LinProp(am);
         end
         function a = splineintegrate(x, y, varargin)
-            % a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result
+            % a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result.
             %
             % Calculates the numerical integral of y(x), with y(x) being a cubic spline
             % defined by the vectors x and y and the boundary conditions. Returns a
@@ -2170,7 +2170,7 @@ classdef LinProp
             a = reshape(a, s);
         end
         function a = splineintegrate2(x, y, varargin)
-            % a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result
+            % a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result.
             %
             % Calculates the numerical integral of y(x), with y(x) being a cubic spline
             % defined by the vectors x and y and the boundary conditions. Returns the

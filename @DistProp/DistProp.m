@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.6.0
-% Michael Wollensack METAS - 06.07.2022
+% Metas.UncLib.Matlab.DistProp V2.6.1
+% Michael Wollensack METAS - 18.11.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:

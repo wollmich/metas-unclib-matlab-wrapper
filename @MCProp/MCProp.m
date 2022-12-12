@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.MCProp V2.6.1
-% Michael Wollensack METAS - 18.11.2022
+% Metas.UncLib.Matlab.MCProp V2.6.2
+% Michael Wollensack METAS - 09.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % MCProp Const:
@@ -1737,7 +1737,7 @@ classdef MCProp
             n = int32(n);
             s = size(xx);
             xx = double(xx(:));
-            numlib = MCProp.NumLib(y.IsComplex);
+            numlib = MCProp.NumLib2(y.IsComplex);
             ym = MCProp.Convert2UncArray(y);
             yym = numlib.Interpolation(x, ym, n, xx);
             yy = MCProp.Convert2MCProp(yym);
@@ -1838,7 +1838,7 @@ classdef MCProp
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
-            numlib = MCProp.NumLib(x.IsComplex);
+            numlib = MCProp.NumLib2(x.IsComplex);
             xm = MCProp.Convert2UncArray(x);
             ym = MCProp.Convert2UncArray(y);
             pm = numlib.PolyFit(xm, ym, n);

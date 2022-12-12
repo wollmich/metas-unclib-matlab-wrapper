@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.LinProp V2.6.1
-% Michael Wollensack METAS - 18.11.2022
+% Metas.UncLib.Matlab.LinProp V2.6.2
+% Michael Wollensack METAS - 09.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % LinProp Const:
@@ -1737,7 +1737,7 @@ classdef LinProp
             n = int32(n);
             s = size(xx);
             xx = double(xx(:));
-            numlib = LinProp.NumLib(y.IsComplex);
+            numlib = LinProp.NumLib2(y.IsComplex);
             ym = LinProp.Convert2UncArray(y);
             yym = numlib.Interpolation(x, ym, n, xx);
             yy = LinProp.Convert2LinProp(yym);
@@ -1838,7 +1838,7 @@ classdef LinProp
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
-            numlib = LinProp.NumLib(x.IsComplex);
+            numlib = LinProp.NumLib2(x.IsComplex);
             xm = LinProp.Convert2UncArray(x);
             ym = LinProp.Convert2UncArray(y);
             pm = numlib.PolyFit(xm, ym, n);

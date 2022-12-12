@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.6.1
-% Michael Wollensack METAS - 18.11.2022
+% Metas.UncLib.Matlab.DistProp V2.6.2
+% Michael Wollensack METAS - 09.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
@@ -1737,7 +1737,7 @@ classdef DistProp
             n = int32(n);
             s = size(xx);
             xx = double(xx(:));
-            numlib = DistProp.NumLib(y.IsComplex);
+            numlib = DistProp.NumLib2(y.IsComplex);
             ym = DistProp.Convert2UncArray(y);
             yym = numlib.Interpolation(x, ym, n, xx);
             yy = DistProp.Convert2DistProp(yym);
@@ -1838,7 +1838,7 @@ classdef DistProp
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
-            numlib = DistProp.NumLib(x.IsComplex);
+            numlib = DistProp.NumLib2(x.IsComplex);
             xm = DistProp.Convert2UncArray(x);
             ym = DistProp.Convert2UncArray(y);
             pm = numlib.PolyFit(xm, ym, n);

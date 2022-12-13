@@ -23,9 +23,9 @@ function unc_budget(x, varargin)
 %
 % The input argument unc is always interpreted as a vector, thus
 % unc_budget(unc) is the same as unc_budget(unc(:)). If unc contains
-% complex values, the real and imag part are interleaved with each imag
-% part right after its respective real part. This is the same as passing
-% [real(unc(:)), imag(unc(:))]' instead of unc.
+% complex values, the real and imaginary parts are interleaved with each
+% imaginary part right after its respective real part. This is the same as
+% passing [real(unc(:)), imag(unc(:))]' instead of unc.
 
 % Michael Wollensack METAS - 20.09.2021
 

@@ -1174,11 +1174,11 @@ classdef LinProp
             % p, with 0 < p < 1 and n=numel(unc). The first column are the lower
             % bounds, the second column the upper bounds.
             %
-            % unc is always interpreted as a vector, thus get_coverage_interval(unc, p)
-            % is the same as get_coverage_interval(unc(:), p). If unc contains complex
-            % values, the real and imag part are treated separately, thus
-            % get_coverage_interval(cUnc, p) is the same as
-            % get_coverage_interval([real(cUnc(:)), imag(cUnc(:))], p).
+            % The input argument unc is always interpreted as a vector, thus
+            % get_coverage_interval(unc) is the same as get_coverage_interval(unc(:)).
+            % If unc contains complex values, the real and imag part are interleaved
+            % with each imag part right after its respective real part. This is the
+            % same as passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1201,9 +1201,9 @@ classdef LinProp
             %
             % The input argument unc is always interpreted as a vector, thus
             % get_correlation(unc) is the same as get_correlation(unc(:)). If unc
-            % contains complex values, the real and imag part are treated separately,
-            % thus get_correlation(cUnc) is the same as get_correlation([real(cUnc(:)),
-            % imag(cUnc(:))]).
+            % contains complex values, the real and imag part are interleaved with each
+            % imag part right after its respective real part. This is the same as
+            % passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1218,9 +1218,9 @@ classdef LinProp
             %
             % The input argument unc is always interpreted as a vector, thus
             % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
-            % contains complex values, the real and imag part are treated separately,
-            % thus get_covariance(cUnc) is the same as get_covariance([real(cUnc(:)),
-            % imag(cUnc(:))]).
+            % contains complex values, the real and imag part are interleaved with each
+            % imag part right after its respective real part. This is the same as
+            % passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1241,8 +1241,9 @@ classdef LinProp
             %
             % The input argument unc is always interpreted as a vector, thus
             % get_jacobi(unc) is the same as get_jacobi(unc(:)). If unc contains
-            % complex values, the real and imag part are treated separately, thus
-            % get_jacobi(cUnc) is the same as get_jacobi([real(cUnc(:)),imag(cUnc(:))]).
+            % complex values, the real and imag part are interleaved with each imag
+            % part right after its respective real part. This is the same as passing
+            % [real(unc(:)), imag(unc(:))]' instead of unc.
             % 
             % The computational and mathematical relations between base inputs and 
             % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.

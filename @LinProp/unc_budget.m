@@ -20,9 +20,12 @@ function unc_budget(x, varargin)
 % strings. This option is only available when var is complex or a vector 
 % or matrix.
 %
-% If unc contains a complex values vector, the real and imag part are
-% interleaved. In this respect unc_budget behaves differently than
-% get_correlation(), get_covariance(), etc.
+%
+% The input argument unc is always interpreted as a vector, thus
+% unc_budget(unc) is the same as unc_budget(unc(:)). If unc contains
+% complex values, the real and imag part are interleaved with each imag
+% part right after its respective real part. This is the same as passing
+% [real(unc(:)), imag(unc(:))]' instead of unc.
 
 % Michael Wollensack METAS - 20.09.2021
 

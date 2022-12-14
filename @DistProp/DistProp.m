@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.DistProp V2.6.2
-% Michael Wollensack METAS - 09.12.2022
+% Michael Wollensack METAS - 14.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % DistProp Const:
@@ -1618,19 +1618,32 @@ classdef DistProp
             U = DistProp.Convert2DistProp(temp.u);
             P = DistProp.Convert2DistProp(temp.p);
         end
+        function U = chol(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            lm = linalg.Cholesky(am);
+            L = DistProp.Convert2DistProp(lm);
+            U = L';
+        end
+        function [Q, R] = qr(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            [qm, rm] = linalg.Qr(am);
+            Q = DistProp.Convert2DistProp(qm);
+            R = DistProp.Convert2DistProp(rm);
+        end
+        function [U, S, V] = svd(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            [um, sm, vm] = linalg.Svd(am);
+            U = DistProp.Convert2DistProp(um);
+            S = DistProp.Convert2DistProp(sm);
+            V = DistProp.Convert2DistProp(vm);
+        end
         function x = lscov(A,b,V)
             A = DistProp(A);
             b = DistProp(b);
-            [v, d] = eig(V);
-            e = diag(d);
-            for i = 1:length(e)
-                if e(i) > 1e-15
-                    e(i) = 1./e(i);
-                else
-                    e(i) = 0;
-                end
-            end
-            W = DistProp(v*diag(e)*v');
+            V = DistProp(V);
             if A.IsComplex && ~b.IsComplex
                 b = complex(b);
             end
@@ -1640,8 +1653,14 @@ classdef DistProp
             linalg = DistProp.LinAlg2(A.IsComplex);
             Am = DistProp.Convert2UncArray(A);
             bv = DistProp.Convert2UncArray(b);
-            Wm = DistProp.Convert2UncArray(W);
-            xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            if isvector(V)
+                W = diag(V);
+                Wm = DistProp.Convert2UncArray(W);
+                xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            else
+                Vm = DistProp.Convert2UncArray(V);
+                xv = linalg.GeneralLstSqrSolve(Am, bv, Vm);
+            end
             x = DistProp.Convert2DistProp(xv);
         end
         function a = sum(x, varargin)

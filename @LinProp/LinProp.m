@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.LinProp V2.6.2
-% Michael Wollensack METAS - 09.12.2022
+% Michael Wollensack METAS - 14.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % LinProp Const:
@@ -1618,19 +1618,32 @@ classdef LinProp
             U = LinProp.Convert2LinProp(temp.u);
             P = LinProp.Convert2LinProp(temp.p);
         end
+        function U = chol(A)
+            linalg = LinProp.LinAlg2(A.IsComplex);
+            am = LinProp.Convert2UncArray(A);
+            lm = linalg.Cholesky(am);
+            L = LinProp.Convert2LinProp(lm);
+            U = L';
+        end
+        function [Q, R] = qr(A)
+            linalg = LinProp.LinAlg2(A.IsComplex);
+            am = LinProp.Convert2UncArray(A);
+            [qm, rm] = linalg.Qr(am);
+            Q = LinProp.Convert2LinProp(qm);
+            R = LinProp.Convert2LinProp(rm);
+        end
+        function [U, S, V] = svd(A)
+            linalg = LinProp.LinAlg2(A.IsComplex);
+            am = LinProp.Convert2UncArray(A);
+            [um, sm, vm] = linalg.Svd(am);
+            U = LinProp.Convert2LinProp(um);
+            S = LinProp.Convert2LinProp(sm);
+            V = LinProp.Convert2LinProp(vm);
+        end
         function x = lscov(A,b,V)
             A = LinProp(A);
             b = LinProp(b);
-            [v, d] = eig(V);
-            e = diag(d);
-            for i = 1:length(e)
-                if e(i) > 1e-15
-                    e(i) = 1./e(i);
-                else
-                    e(i) = 0;
-                end
-            end
-            W = LinProp(v*diag(e)*v');
+            V = LinProp(V);
             if A.IsComplex && ~b.IsComplex
                 b = complex(b);
             end
@@ -1640,8 +1653,14 @@ classdef LinProp
             linalg = LinProp.LinAlg2(A.IsComplex);
             Am = LinProp.Convert2UncArray(A);
             bv = LinProp.Convert2UncArray(b);
-            Wm = LinProp.Convert2UncArray(W);
-            xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            if isvector(V)
+                W = diag(V);
+                Wm = LinProp.Convert2UncArray(W);
+                xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            else
+                Vm = LinProp.Convert2UncArray(V);
+                xv = linalg.GeneralLstSqrSolve(Am, bv, Vm);
+            end
             x = LinProp.Convert2LinProp(xv);
         end
         function a = sum(x, varargin)

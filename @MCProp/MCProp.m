@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.MCProp V2.6.2
-% Michael Wollensack METAS - 09.12.2022
+% Michael Wollensack METAS - 14.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
 % MCProp Const:
@@ -1618,19 +1618,32 @@ classdef MCProp
             U = MCProp.Convert2MCProp(temp.u);
             P = MCProp.Convert2MCProp(temp.p);
         end
+        function U = chol(A)
+            linalg = MCProp.LinAlg2(A.IsComplex);
+            am = MCProp.Convert2UncArray(A);
+            lm = linalg.Cholesky(am);
+            L = MCProp.Convert2MCProp(lm);
+            U = L';
+        end
+        function [Q, R] = qr(A)
+            linalg = MCProp.LinAlg2(A.IsComplex);
+            am = MCProp.Convert2UncArray(A);
+            [qm, rm] = linalg.Qr(am);
+            Q = MCProp.Convert2MCProp(qm);
+            R = MCProp.Convert2MCProp(rm);
+        end
+        function [U, S, V] = svd(A)
+            linalg = MCProp.LinAlg2(A.IsComplex);
+            am = MCProp.Convert2UncArray(A);
+            [um, sm, vm] = linalg.Svd(am);
+            U = MCProp.Convert2MCProp(um);
+            S = MCProp.Convert2MCProp(sm);
+            V = MCProp.Convert2MCProp(vm);
+        end
         function x = lscov(A,b,V)
             A = MCProp(A);
             b = MCProp(b);
-            [v, d] = eig(V);
-            e = diag(d);
-            for i = 1:length(e)
-                if e(i) > 1e-15
-                    e(i) = 1./e(i);
-                else
-                    e(i) = 0;
-                end
-            end
-            W = MCProp(v*diag(e)*v');
+            V = MCProp(V);
             if A.IsComplex && ~b.IsComplex
                 b = complex(b);
             end
@@ -1640,8 +1653,14 @@ classdef MCProp
             linalg = MCProp.LinAlg2(A.IsComplex);
             Am = MCProp.Convert2UncArray(A);
             bv = MCProp.Convert2UncArray(b);
-            Wm = MCProp.Convert2UncArray(W);
-            xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            if isvector(V)
+                W = diag(V);
+                Wm = MCProp.Convert2UncArray(W);
+                xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            else
+                Vm = MCProp.Convert2UncArray(V);
+                xv = linalg.GeneralLstSqrSolve(Am, bv, Vm);
+            end
             x = MCProp.Convert2MCProp(xv);
         end
         function a = sum(x, varargin)

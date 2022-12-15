@@ -2,41 +2,61 @@
 % Michael Wollensack METAS - 14.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
-% LinProp Const:
-% a = LinProp(value)
+% This class supports the creation of uncertainty objects and subsequent
+% calculation with them as well as storage of the results. It can handle
+% complex-valued and multivariate quantities. Internally, LinProp objects
+% in MATLAB are wrappers of the .NET interface of the <a href="https://www.metas.ch/unclib">METAS UncLib library</a>.
 %
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, (idof))
+% Commonly used Constructors  (Round brackets indicate vectors.)
+%   u = LinProp(value)
+%   u = LinProp(value, standard_unc, [description])
+%   u = LinProp(value, (covariance), [description])
+%  (u)= LinProp((value), (covariance), [description])
+%   u = LinProp((samples), 'samples', [description], [probability])
+%   u = LinProp(value, (sys_inputs), (sys_sensitivities), 'system')
+%   Documentation of all constructors available with <a href="matlab: help LinProp/LinProp -displayBanner">help LinProp/LinProp</a>.
 %
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, description)
+% Properties and Common Functions
+%   The values of u can be accessed through u<a href="matlab:help LinProp.Value -displayBanner">.Value</a> or <a href="matlab:help LinProp.get_value -displayBanner">get_value</a>(u), 
+%   and the standard uncertainties through u<a href="matlab:help LinProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help LinProp.get_stdunc -displayBanner">get_stdunc</a>(u).
+%   Many common MATLAB functions are available, see <a href="matlab:methods(LinProp(1))">list of all methods</a>.
 %
-% LinProp Input (ComplexUncNumber)
-% a = LinProp(value, [covariance], (description))
+% Uncertainty Methods
+%   <a href="matlab:help LinProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
+%   <a href="matlab:help LinProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
+%   <a href="matlab:help LinProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
+%   <a href="matlab:help LinProp.get_jacobi -displayBanner"             >get_jacobi</a>              Uncertainty contributions of base inputs
+%   <a href="matlab:help LinProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty contributions of intermediate results
+%   <a href="matlab:help LinProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
+%   <a href="matlab:help LinProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedom
+%   <a href="matlab:help LinProp.get_moment -displayBanner"             >get_moment</a>              n'th central moment
+%   <a href="matlab:help LinProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
-% LinProp Input (RealUncArray)
-% [a] = LinProp([value], [covariance], (description))
+% Interpolation and Integration Methods
+%   <a href="matlab:help LinProp.integrate -displayBanner"          >integrate</a>           Integration with cumulative result
+%   <a href="matlab:help LinProp.integrate2 -displayBanner"         >integrate2</a>          Integration with scalar result
+%   <a href="matlab:help LinProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
+%   <a href="matlab:help LinProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
+%   <a href="matlab:help LinProp.spline -displayBanner"             >spline</a>              Spline interpolation
+%   <a href="matlab:help LinProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
+%   <a href="matlab:help LinProp.splinecoefs -displayBanner"        >splinecoefs</a>         Coefficients of interpolation spline
+%   <a href="matlab:help LinProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
+%   <a href="matlab:help LinProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
 %
-% LinProp Input (ComplexUncArray)
-% [a] = LinProp([value], [covariance], (description))
+% Object Behavior
+%   Scalar LinProp objects behave like MATLAB fundamental types with
+%   respect to copy operations. Copies are independent values. Operations
+%   that you perform on one object do not affect copies of that object.
+%   Non-scalar LinProp objects are referenced by their handle variable.
+%   Copies of the handle variable refer to the same object. Operations that
+%   you perform on a handle object are visible from all handle variables
+%   that reference that object.
 %
-% LinProp From Samples
-% a = LinProp([samples], 'samples', (description), (probability))
-%
-% LinProp Xml String
-% a = LinProp(xml_string)
-%
-% LinProp Xml File
-% a = LinProp(filepath, 'xml_file')
-%
-% LinProp Binary File
-% a = LinProp(filepath, 'binary_file')
-%
-% LinProp System (RealUncNumber)
-% a = LinProp(value, [sys_inputs], [sys_sensitivities], 'system')
-%
-% LinProp Input (RealUncNumber)
-% a = LinProp(value, standard_unc, idof, id, description)
+%   B = <a href="matlab:help LinProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+%   array of handles B.
+% 
+% See also LinProp/LinProp.
+
 
 classdef LinProp
     properties
@@ -50,6 +70,59 @@ classdef LinProp
     end
     methods
         function obj = LinProp(varargin)
+            % Constructor to create LinProp uncertainty objects.
+            %
+            % u = LinProp(value) creates an uncertainty object without any
+            % uncertainties but the specified value. value can real- or complex-valued
+            % and have any shape. This operation can be used to preallocate variables.
+            %
+            % u = LinProp(value, standard_unc, [description]) creates a real-valued
+            % scalar uncertainty object with the specified value and standard
+            % uncertainty. value and standard_unc must be real-valued scalars.
+            % Optionally, a description can be specified (see below).
+            %
+            % u = LinProp(value, covariance, [description]) creates an uncertainty
+            % object based on a complex and/or non-scalar value and an associated
+            % covariance matrix. value must be a complex scalar or a real- or
+            % complex-valued matrix. covariance must be a square, real-valued matrix.
+            % The rows and columns of covariance match the elements of value interpred
+            % as a vector, i.e. value(:). If value is complex-valued the first row and
+            % column of covariance relate to real(value(1)), the second row and colum
+            % of covariance to imag(value(1)), the third row and colum of covariance to
+            % real(value(2)), etc. Optionally, a description can be specified (see
+            % below).
+            %
+            % u = LinProp(samples, 'samples', [description], [probability]) creates a
+            % scalar or vector uncertainty object from a column vector or matrix of
+            % real- or complex-valued samples. u will be a scalar or column vector. The
+            % number of elements in u is the same as the number of columns of samples.
+            % samples must have at least one more row than columns. Optionally, a
+            % description can be specified (see below).
+            %
+            % u = LinProp(value, sys_inputs, sys_sensitivities, 'system') creates an
+            % uncertainty object with the specified value and sensitivities to the
+            % specified system inputs. This approach can be used to bridge a function,
+            % e.g. a numerical method like nonlinear least squares. value must be the
+            % result of this function, sys_inputs a vector of uncertainty objects used
+            % as inputs to this function, and sys_sensitivities a vector of sensitivies
+            % of value to changes of sys_inputs. This constructor is LinProp only!
+            % 
+            % Use u = LinProp(xml_string), u = LinProp(filepath, 'xml_file'), or 
+            % u = LinProp(filepath, 'binary_file') to load an uncertainty object which 
+            % has previously been exported with xml_string(u), xml_file(u, filepath), 
+            % or binary_file(u, filepath).
+            % 
+            % LinProp(value, standard_unc, idof, [id, description]) creates a scalar,
+            % real-valued uncertainty object based on the specified value, standard
+            % uncertainy, and inverse degree of freedom. All three variables must be
+            % real-valued scalars. Additionally, an id and description can be specified
+            % for the uncertainty.
+            %
+            % With several constructors it is possible define a description to an
+            % uncertainty object. This description must be a char array and will later
+            % show in the uncertainty budget. Use '\t' to mark levels of hirachy and
+            % thus group uncertainties.
+            
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.
             switch nargin
@@ -267,9 +340,8 @@ classdef LinProp
         end
         function str = string(obj)
             
-            % The plus/minus sign coded as unicode number so this
-            % source code file is not dependent on the encoding.
-            pm = sprintf(' \xB1 ');
+            pm = sprintf(' \xB1 '); % The plus/minus sign coded as unicode 
+            % number so this source code file is not dependent on the encoding.
             
             % Using evalc(disp(x)) prints using the current format setting.
             edisp = @(x) strtrim(evalc('disp(x)'));
@@ -825,7 +897,7 @@ classdef LinProp
             %
             % When addressing a = {1, 2, 3} with a{:}, this function would
             % return 3. When addressing a = {1, 2, 3} with a(:), this
-            % function would retrun 1. 
+            % function would return 1. 
             %
             % This class does not support brace indexing. When using dot
             % indexing on a LinProp matrix, e.g. a = LinProp(1:3); a.Value, 
@@ -1085,12 +1157,29 @@ classdef LinProp
             d = LinProp.Convert2Double(LinProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
+            % GET_IDOF Inverse degree of freedom.
+            %
+            % d = GET_IDOF(unc) returns a matrix of the same size of unc, containing
+            % the inverse degrees of freedom of every element of unc.
             d = LinProp.Convert2Double(LinProp.UncHelper.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)
             d = LinProp.Convert2Double(LinProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
+            % GET_COVERAGE_INTERVAL Coverage interval bounds.
+            %
+            % I = get_coverage_interval(unc, p) returns a matrix of size n-by-2
+            % containing the bounds of the coverage interval of unc for the probability
+            % p, with 0 < p < 1 and n=numel(unc). The first column are the lower
+            % bounds, the second column the upper bounds.
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_coverage_interval(unc) is the same as get_coverage_interval(unc(:)).
+            % If unc contains complex values, the real and imaginary parts are
+            % interleaved with each imaginary part right after its respective real
+            % part. This is the same as passing [real(unc(:)), imag(unc(:))]' instead
+            % of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1098,9 +1187,24 @@ classdef LinProp
             d = LinProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
+            % GET_MOMENT Central moment.
+            %
+            % d = GET_MOMENT(unc, n) returns the n'th central moment of the
+            % distribution of obj. unc must be a scalar LinProp, n must be a
+            % non-negative integer.
             d = LinProp.Convert2Double(LinProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
+            % GET_CORRELATION Correlation matrix.
+            %
+            % C = get_correlation(unc) returns a matrix of size n-by-n containing the
+            % correlation factors between the elements of unc, with n = numel(unc).
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_correlation(unc) is the same as get_correlation(unc(:)). If unc
+            % contains complex values, the real and imaginary parts are interleaved
+            % with each imaginary part right after its respective real part. This is
+            % the same as passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1108,6 +1212,16 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
+            % GET_COVARIANCE Covariance matrix.
+            %
+            % C = get_covariance(unc) returns a matrix of size n-by-n containing the
+            % covariances of the elements of unc, with n = numel(unc).
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
+            % contains complex values, the real and imaginary parts are interleaved
+            % with each imaginary part right after its respective real part. This is
+            % the same as passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1115,6 +1229,27 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
+            % GET_JACOBI Uncertainty contributions of base inputs.
+            %
+            % c = GET_JACOBI(unc) returns a m-by-n matrix containing the sensitivity
+            % coefficients multiplied with the standard uncertainties of the base
+            % inputs of unc. m is the number of elements in unc (*2 for complex
+            % numbers), n is the number of base inputs of unc.
+            %
+            % If the order of the base inputs is not clear, use get_unc_component() and
+            % explicitly specify the order of the base inputs by passing them as
+            % intermediate results.
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_jacobi(unc) is the same as get_jacobi(unc(:)). If unc contains
+            % complex values, the real and imaginary parts are interleaved with each
+            % imaginary part right after its respective real part. This is the same as
+            % passing [real(unc(:)), imag(unc(:))]' instead of unc.
+            % 
+            % The computational and mathematical relations between base inputs and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);
             temp = LinProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1122,6 +1257,36 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_jacobi2(x, y)
+            % GET_JACOBI2 Sensitivities to intermediate results.
+            %
+            % c = GET_JACOBI2(x, y) returns a m-by-n matrix containing the sensitivities
+            % of x to the intermediate results y. m is the number of elements in x (*2
+            % for complex numbers), n is the number intermediate results y.
+            %
+            % The intermediate results y must form a base for x, thus 
+            %   1. y must be complete in the sense that there exists a function f such 
+            %      that x = f(y).
+            %   2. the elements of y must be linearly independent, i.e. there must not
+            %      exist a function g such that x = g(y') with y' being a subset of y.
+            %
+            % The user is required to ensure that these conditions are met.
+            % Otherwise, the result returned by this method might be incorrect.
+            %
+            % To check that these conditions were met in the statement
+            %   j = get_jacobi2(x,y)
+            % test if standard uncertainty of y matches
+            %   get_stdunc(x) == sqrt(j*get_covariance(y)*j')
+            %
+            % The input arguments x and y are always interpreted as vectors, thus
+            % get_jacobi2(x, y) is the same as get_jacobi2(x(:), y(:)). If x or y
+            % contain complex values, the real and imag part are treated separately,
+            % thus get_jacobi2(cx, cy) is the same as get_jacobi2([real(cx(:)),
+            % imag(cx(:))], [real(cy(:)), imag(cy(:))]).
+            % 
+            % The mathematical relations between base inputs, intermediate results, and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi, get_unc_component.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = LinProp.UncHelper.GetJacobi2(x2, y2);
@@ -1130,6 +1295,23 @@ classdef LinProp
             c = LinProp.Convert2Double(array);
         end
         function c = get_unc_component(x, y)
+            % GET_UNC_COMPONENT Uncertainty contributions of intermediate results.
+            %
+            % c = get_unc_component(x, y) returns the uncertainty contributions of the
+            % intermediate results y to the uncertainty object x.
+            %
+            % get_unc_component(x,y) is the same as get_jacobi2(x,y) .* get_stdunc(y).
+            %
+            % The input arguments x and y are always interpreted as vectors, thus
+            % get_unc_component(x, y) is the same as get_unc_component(x(:), y(:)). If
+            % x or y contain complex values, the real and imag part are treated
+            % separately, thus get_unc_component(cx, cy) is the same as
+            % get_unc_component([real(cx(:)),imag(cx(:))], [real(cy(:)),imag(cy(:))]).
+            % 
+            % The mathematical relations between base inputs, intermediate results, and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi, get_jacobi2.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = LinProp.UncHelper.GetUncComponent(x2, y2);
@@ -1751,6 +1933,22 @@ classdef LinProp
             X = reshape(X, s);
         end
         function yy = interpolation(x, y, n, xx)
+            % yy = INTERPOLATION(x, y, n, xx) Interpolation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
+            % degree, specified by the vectors x and y. Returns yy, a LinProp vector of
+            % the same size as xx, which contains the interpolated values. The
+            % uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
+            % x and xx are ignored. While y must be a LinProp, x and xx can be any
+            % type. The parameter n must be a positive integer smaller than numel(x).
+            % 
+            % In general, the interpolated values are calculated based on n values of x
+            % and y. Using interpolation, this will result in the uncertainties of yy
+            % being smaller (or at the edges larger) that those of y. Using interpolation2, 
+            % the uncertainties of yy will be a linear interpolation of y.
+            % See <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also LinProp.interpolation2, LinProp.spline.
             x = double(x(:));
             y = LinProp(y);
             n = int32(n);
@@ -1763,6 +1961,23 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = interpolation2(x, y, n, xx)
+            % yy = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
+            % degree, specified by the vectors x and y. Returns yy, a LinProp vector of
+            % the same size as xx, which contains the interpolated values. The
+            % uncertainties of y (i.e. y(x)) are linearly interpolated, while any
+            % uncertainties of x and xx are ignored. While y must be a LinProp, x and
+            % xx can be any type. The parameter n must be a positive integer smaller
+            % than numel(x).
+            % 
+            % In general, the interpolated values are calculated based on n values of x
+            % and y. Using interpolation, this will result in the uncertainties of yy
+            % being smaller (or at the edges larger) that those of y. Using interpolation2, 
+            % the uncertainties of yy will be a linear interpolation of y.
+            % See <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also LinProp.interpolation, LinProp.spline2.
             x = double(x(:));
             y = LinProp(y);
             n = int32(n);
@@ -1775,6 +1990,35 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline(x, y, xx, varargin)
+            % yy = SPLINE(x, y, xx, [bounds]) Spline interpolation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+            % the vectors x and y and the boundary conditions. Returns yy, a LinProp
+            % vector of the same size as xx, which contains the interpolated values.
+            % The uncertainties of y(x) are propagated, while any uncertainties of x
+            % and xx are ignored. While y must be a LinProp, x and xx can be any type.
+            %
+            % SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINE(__, boundaryCond) Specifies the boundary condition on both ends.
+            % Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % In general, the interpolated values are calculated based on multiple
+            % values of x and y. Using spline, this will result in the uncertainties of
+            % yy being smaller (or at the edges larger) that those of y. Using spline2,
+            % the uncertainties of yy will be a linear interpolation of y. See 
+            % <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also LinProp.interpolation, LinProp.spline2, LinProp.splinecoefs.
             x = double(x(:));
             y = LinProp(y);
             s = size(xx);
@@ -1787,6 +2031,36 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
+            % yy = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+            % the vectors x and y and the boundary conditions. Returns yy, a LinProp
+            % vector of the same size as xx, which contains the interpolated values. The
+            % uncertainties of y(x) are linearly propagated, while any uncertainties of
+            % x and xx are ignored. While y must be a LinProp, x and xx can be any
+            % type.
+            %
+            % SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINE2(__, boundaryCond) Specifies the boundary condition on both ends.
+            % Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % In general, the interpolated values are calculated based on multiple
+            % values of x and y. Using spline, this will result in the uncertainties of
+            % yy being smaller (or at the edges larger) that those of y. Using spline2,
+            % the uncertainties of yy will be a linear interpolation of y. See 
+            % <a href="matlab:s=which('LinProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also LinProp.interpolation2, LinProp.spline, LinProp.splinecoefs.
             x = double(x(:));
             y = LinProp(y);
             s = size(xx);
@@ -1799,6 +2073,34 @@ classdef LinProp
             yy = reshape(yy, s);
         end
         function p = splinecoefs(x, y, varargin)
+            % p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline.
+            %
+            % Returns the coefficients of the cubic splines that connect the points
+            % defined by the vectors x and y and the specified the boundary conditions.
+            % Returns a n-by-4 matrix of local coefficients, where n is the number of
+            % spline segments, i.e. n = length(x)-1. While x and y can be any type,
+            % uncertainties of x are ignored.
+            %
+            % The i'th row of p with values [a b c d] can be interpreted as 
+            %   f(xq) = a*(xq - x(i)).^3 + b*(xq - x(i)).^2 + c*(xq - x(i)) + d.
+            % The matrix returned by this method has the same properties as the
+            % pp.coefs matrix returned by <a href="matlab:help spline">PP = spline(X,Y)</a>.
+            %
+            % SPLINECOEFS(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINECOEFS(__, boundaryCond) Specifies the boundary condition on both
+            % ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINECOEFS(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also LinProp.spline.
             x = double(x(:));
             y = LinProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
@@ -1808,6 +2110,17 @@ classdef LinProp
             p = LinProp.Convert2LinProp(pm);
         end
         function a = integrate(x, y, n)
+            % a = INTEGRATE(x, y, n) Integration with cumulative result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a polynomial
+            % of n-th degree specified by the vectors x and y. Returns a LinProp vector
+            % of the same size as y which contains the cumulative integral up to every
+            % value of x. The uncertainties of y(x) are propagated, while any uncer-
+            % tainties of x are ignored. While y must be a LinProp, x can be any
+            % type. The parameter n must be a positive integer smaller than numel(y).
+            %
+            % See also LinProp.integrate2, LinProp.splineintegrate.
+
             x = double(x(:));
             y = LinProp(y);
             n = int32(n);
@@ -1819,6 +2132,21 @@ classdef LinProp
             a = reshape(a, s);
         end
         function a = integrate2(x, y, n)
+            % a = INTEGRATE2(x, y, n) Integration with scalar result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a polynomial
+            % of n-th degree specified by the vectors x and y. Returns the result of
+            % the whole integral as a LinProp scalar. The input arguments x and y
+            % specify y(x). The uncertainties of y(x) are propagated, while any
+            % uncertainties of x are ignored. While y must be a LinProp, x can be any
+            % type. The parameter n must be a positive integer smaller than numel(y).
+            %
+            % a = integrate2(x, y, n) returns the same result as:
+            %   a = integrate(x, y, n);
+            %   a = a(end);
+            %
+            % See also LinProp.integrate, LinProp.splineintegrate2.
+            
             x = double(x(:));
             y = LinProp(y);
             n = int32(n);
@@ -1828,6 +2156,30 @@ classdef LinProp
             a = LinProp.Convert2LinProp(am);
         end
         function a = splineintegrate(x, y, varargin)
+            % a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a cubic spline
+            % defined by the vectors x and y and the boundary conditions. Returns a
+            % LinProp vector of the same size as y which contains the cumulative
+            % integral up to every value of x. The uncertainties of y(x) are
+            % propagated, while any uncertainties of x are ignored. While y has to be a
+            % LinProp, x can be any type.
+            %
+            % SPLINEINTEGRATE(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINEINTEGRATE(__, boundaryCond) Specifies the boundary condition on
+            % both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the
+            % conditions '1st derivative' and '2nd derivative', the respective
+            % derivatives are set to zero.
+            % 
+            % SPLINEINTEGRATE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also LinProp.integrate, LinProp.splineintegrate2.
             x = double(x(:));
             y = LinProp(y);
             s = size(y);
@@ -1839,6 +2191,29 @@ classdef LinProp
             a = reshape(a, s);
         end
         function a = splineintegrate2(x, y, varargin)
+            % a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a cubic spline
+            % defined by the vectors x and y and the boundary conditions. Returns the
+            % result of the whole integral as a LinProp scalar. The uncertainties of
+            % y(x) are propagated, while any uncertainties of x are ignored. While y
+            % must be a LinProp, x can be any type.
+            %
+            % SPLINEINTEGRATE2(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINEINTEGRATE2(__, boundaryCond) Specifies the boundary condition on
+            % both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the
+            % conditions '1st derivative' and '2nd derivative', the respective
+            % derivatives are set to zero.
+            % 
+            % SPLINEINTEGRATE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also LinProp.integrate2, LinProp.splineintegrate.
             x = double(x(:));
             y = LinProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
@@ -1899,6 +2274,15 @@ classdef LinProp
             l = temp.op_Implicit(obj.NetObject);
         end
         function [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin)
+            % (..., y)
+            % (..., boundaryConditions)
+            % (..., startBoundaryCondition, startV, endBoundaryCondition, endV)
+            %
+            % Boundary conditions are strings. Valid values are:
+            %   'not-a-knot' (default)
+            %   'natural spline'
+            %   'first derivative'
+            %   'second derivative'
             switch nargin
                 case 1
                     sb = Metas.UncLib.Core.SplineBoundary.Not_a_Knot;

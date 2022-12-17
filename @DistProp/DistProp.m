@@ -1,42 +1,62 @@
-% Metas.UncLib.Matlab.DistProp V2.6.0
-% Michael Wollensack METAS - 06.07.2022
+% Metas.UncLib.Matlab.DistProp V2.6.2
+% Michael Wollensack METAS - 14.12.2022
 % Dion Timmermann PTB - 22.06.2022
 %
-% DistProp Const:
-% a = DistProp(value)
+% This class supports the creation of uncertainty objects and subsequent
+% calculation with them as well as storage of the results. It can handle
+% complex-valued and multivariate quantities. Internally, DistProp objects
+% in MATLAB are wrappers of the .NET interface of the <a href="https://www.metas.ch/unclib">METAS UncLib library</a>.
 %
-% DistProp Input (RealUncNumber)
-% a = DistProp(value, standard_unc, (idof))
+% Commonly used Constructors  (Round brackets indicate vectors.)
+%   u = DistProp(value)
+%   u = DistProp(value, standard_unc, [description])
+%   u = DistProp(value, (covariance), [description])
+%  (u)= DistProp((value), (covariance), [description])
+%   u = DistProp((samples), 'samples', [description], [probability])
+%   u = DistProp(value, (sys_inputs), (sys_sensitivities), 'system')
+%   Documentation of all constructors available with <a href="matlab: help DistProp/DistProp -displayBanner">help DistProp/DistProp</a>.
 %
-% DistProp Input (RealUncNumber)
-% a = DistProp(value, standard_unc, description)
+% Properties and Common Functions
+%   The values of u can be accessed through u<a href="matlab:help DistProp.Value -displayBanner">.Value</a> or <a href="matlab:help DistProp.get_value -displayBanner">get_value</a>(u), 
+%   and the standard uncertainties through u<a href="matlab:help DistProp.StdUnc -displayBanner">.StdUnc</a> or <a href="matlab:help DistProp.get_stdunc -displayBanner">get_stdunc</a>(u).
+%   Many common MATLAB functions are available, see <a href="matlab:methods(DistProp(1))">list of all methods</a>.
 %
-% DistProp Input (ComplexUncNumber)
-% a = DistProp(value, [covariance], (description))
+% Uncertainty Methods
+%   <a href="matlab:help DistProp.get_correlation -displayBanner"        >get_correlation</a>         Correlation matrix
+%   <a href="matlab:help DistProp.get_covariance -displayBanner"         >get_covariance</a>          Covariance matrix
+%   <a href="matlab:help DistProp.get_coverage_interval -displayBanner"  >get_coverage_interval</a>   Coverage interval bounds
+%   <a href="matlab:help DistProp.get_jacobi -displayBanner"             >get_jacobi</a>              Uncertainty contributions of base inputs
+%   <a href="matlab:help DistProp.get_unc_component -displayBanner"      >get_unc_component</a>       Uncertainty contributions of intermediate results
+%   <a href="matlab:help DistProp.get_jacobi2 -displayBanner"            >get_jacobi2</a>             Sensitivities to intermediate results
+%   <a href="matlab:help DistProp.get_idof -displayBanner"               >get_idof</a>                Inverse degrees of freedom
+%   <a href="matlab:help DistProp.get_moment -displayBanner"             >get_moment</a>              n'th central moment
+%   <a href="matlab:help DistProp.unc_budget -displayBanner"             >unc_budget</a>              Opens budget window (LinProp only)
 %
-% DistProp Input (RealUncArray)
-% [a] = DistProp([value], [covariance], (description))
+% Interpolation and Integration Methods
+%   <a href="matlab:help DistProp.integrate -displayBanner"          >integrate</a>           Integration with cumulative result
+%   <a href="matlab:help DistProp.integrate2 -displayBanner"         >integrate2</a>          Integration with scalar result
+%   <a href="matlab:help DistProp.interpolation -displayBanner"      >interpolation</a>       Interpolation
+%   <a href="matlab:help DistProp.interpolation2 -displayBanner"     >interpolation2</a>      Interpolation with linear unc. propagation
+%   <a href="matlab:help DistProp.spline -displayBanner"             >spline</a>              Spline interpolation
+%   <a href="matlab:help DistProp.spline2 -displayBanner"            >spline2</a>             Spline interpolation with linear unc. propagation
+%   <a href="matlab:help DistProp.splinecoefs -displayBanner"        >splinecoefs</a>         Coefficients of interpolation spline
+%   <a href="matlab:help DistProp.splineintegrate -displayBanner"    >splineintegrate</a>     Spline integration with cumulative result
+%   <a href="matlab:help DistProp.splineintegrate2 -displayBanner"   >splineintegrate2</a>    Spline integration with scalar result
 %
-% DistProp Input (ComplexUncArray)
-% [a] = DistProp([value], [covariance], (description))
+% Object Behavior
+%   Scalar DistProp objects behave like MATLAB fundamental types with
+%   respect to copy operations. Copies are independent values. Operations
+%   that you perform on one object do not affect copies of that object.
+%   Non-scalar DistProp objects are referenced by their handle variable.
+%   Copies of the handle variable refer to the same object. Operations that
+%   you perform on a handle object are visible from all handle variables
+%   that reference that object.
 %
-% DistProp From Samples
-% a = DistProp([samples], 'samples', (description), (probability))
-%
-% DistProp Xml String
-% a = DistProp(xml_string)
-%
-% DistProp Xml File
-% a = DistProp(filepath, 'xml_file')
-%
-% DistProp Binary File
-% a = DistProp(filepath, 'binary_file')
-%
-% DistProp System (RealUncNumber)
-% a = DistProp(value, [sys_inputs], [sys_sensitivities], 'system')
-%
-% DistProp Input (RealUncNumber)
-% a = DistProp(value, standard_unc, idof, id, description)
+%   B = <a href="matlab:help DistProp.copy -displayBanner">copy</a>(A) copies each element in the array of handles A to a new
+%   array of handles B.
+% 
+% See also DistProp/DistProp.
+
 
 classdef DistProp < matlab.mixin.CustomDisplay
     properties
@@ -50,6 +70,59 @@ classdef DistProp < matlab.mixin.CustomDisplay
     end
     methods
         function obj = DistProp(varargin)
+            % Constructor to create DistProp uncertainty objects.
+            %
+            % u = DistProp(value) creates an uncertainty object without any
+            % uncertainties but the specified value. value can real- or complex-valued
+            % and have any shape. This operation can be used to preallocate variables.
+            %
+            % u = DistProp(value, standard_unc, [description]) creates a real-valued
+            % scalar uncertainty object with the specified value and standard
+            % uncertainty. value and standard_unc must be real-valued scalars.
+            % Optionally, a description can be specified (see below).
+            %
+            % u = DistProp(value, covariance, [description]) creates an uncertainty
+            % object based on a complex and/or non-scalar value and an associated
+            % covariance matrix. value must be a complex scalar or a real- or
+            % complex-valued matrix. covariance must be a square, real-valued matrix.
+            % The rows and columns of covariance match the elements of value interpred
+            % as a vector, i.e. value(:). If value is complex-valued the first row and
+            % column of covariance relate to real(value(1)), the second row and colum
+            % of covariance to imag(value(1)), the third row and colum of covariance to
+            % real(value(2)), etc. Optionally, a description can be specified (see
+            % below).
+            %
+            % u = DistProp(samples, 'samples', [description], [probability]) creates a
+            % scalar or vector uncertainty object from a column vector or matrix of
+            % real- or complex-valued samples. u will be a scalar or column vector. The
+            % number of elements in u is the same as the number of columns of samples.
+            % samples must have at least one more row than columns. Optionally, a
+            % description can be specified (see below).
+            %
+            % u = DistProp(value, sys_inputs, sys_sensitivities, 'system') creates an
+            % uncertainty object with the specified value and sensitivities to the
+            % specified system inputs. This approach can be used to bridge a function,
+            % e.g. a numerical method like nonlinear least squares. value must be the
+            % result of this function, sys_inputs a vector of uncertainty objects used
+            % as inputs to this function, and sys_sensitivities a vector of sensitivies
+            % of value to changes of sys_inputs. This constructor is LinProp only!
+            % 
+            % Use u = DistProp(xml_string), u = DistProp(filepath, 'xml_file'), or 
+            % u = DistProp(filepath, 'binary_file') to load an uncertainty object which 
+            % has previously been exported with xml_string(u), xml_file(u, filepath), 
+            % or binary_file(u, filepath).
+            % 
+            % DistProp(value, standard_unc, idof, [id, description]) creates a scalar,
+            % real-valued uncertainty object based on the specified value, standard
+            % uncertainy, and inverse degree of freedom. All three variables must be
+            % real-valued scalars. Additionally, an id and description can be specified
+            % for the uncertainty.
+            %
+            % With several constructors it is possible define a description to an
+            % uncertainty object. This description must be a char array and will later
+            % show in the uncertainty budget. Use '\t' to mark levels of hirachy and
+            % thus group uncertainties.
+            
             % The assemblies are guaranteed to be loaded through the
             % constant UncHelper property.
             switch nargin
@@ -265,6 +338,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 end
             end 
         end
+        
         function str = string(obj, varargin)
             % STRING Return DistProp matrix as string array.
             %
@@ -840,7 +914,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
             %
             % When addressing a = {1, 2, 3} with a{:}, this function would
             % return 3. When addressing a = {1, 2, 3} with a(:), this
-            % function would retrun 1. 
+            % function would return 1. 
             %
             % This class does not support brace indexing. When using dot
             % indexing on a DistProp matrix, e.g. a = DistProp(1:3); a.Value, 
@@ -1100,12 +1174,29 @@ classdef DistProp < matlab.mixin.CustomDisplay
             d = DistProp.Convert2Double(DistProp.UncHelper.GetStdUnc(obj.NetObject));
         end
         function d = get_idof(obj)
+            % GET_IDOF Inverse degree of freedom.
+            %
+            % d = GET_IDOF(unc) returns a matrix of the same size of unc, containing
+            % the inverse degrees of freedom of every element of unc.
             d = DistProp.Convert2Double(DistProp.UncHelper.GetIDof(obj.NetObject));
         end
         function d = get_fcn_value(obj)
             d = DistProp.Convert2Double(DistProp.UncHelper.GetFcnValue(obj.NetObject));
         end
         function d = get_coverage_interval(obj, p)
+            % GET_COVERAGE_INTERVAL Coverage interval bounds.
+            %
+            % I = get_coverage_interval(unc, p) returns a matrix of size n-by-2
+            % containing the bounds of the coverage interval of unc for the probability
+            % p, with 0 < p < 1 and n=numel(unc). The first column are the lower
+            % bounds, the second column the upper bounds.
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_coverage_interval(unc) is the same as get_coverage_interval(unc(:)).
+            % If unc contains complex values, the real and imaginary parts are
+            % interleaved with each imaginary part right after its respective real
+            % part. This is the same as passing [real(unc(:)), imag(unc(:))]' instead
+            % of unc.
             l = ToUncList(obj);
             temp = DistProp.UncHelper.GetCoverageInterval(l, p);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1113,9 +1204,24 @@ classdef DistProp < matlab.mixin.CustomDisplay
             d = DistProp.Convert2Double(array);
         end
         function d = get_moment(obj, n)
+            % GET_MOMENT Central moment.
+            %
+            % d = GET_MOMENT(unc, n) returns the n'th central moment of the
+            % distribution of obj. unc must be a scalar DistProp, n must be a
+            % non-negative integer.
             d = DistProp.Convert2Double(DistProp.UncHelper.GetMoment(obj.NetObject, int32(n)));
         end
         function c = get_correlation(obj)
+            % GET_CORRELATION Correlation matrix.
+            %
+            % C = get_correlation(unc) returns a matrix of size n-by-n containing the
+            % correlation factors between the elements of unc, with n = numel(unc).
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_correlation(unc) is the same as get_correlation(unc(:)). If unc
+            % contains complex values, the real and imaginary parts are interleaved
+            % with each imaginary part right after its respective real part. This is
+            % the same as passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = DistProp.UncHelper.GetCorrelation(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1123,6 +1229,16 @@ classdef DistProp < matlab.mixin.CustomDisplay
             c = DistProp.Convert2Double(array);
         end
         function c = get_covariance(obj)
+            % GET_COVARIANCE Covariance matrix.
+            %
+            % C = get_covariance(unc) returns a matrix of size n-by-n containing the
+            % covariances of the elements of unc, with n = numel(unc).
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_covariance(unc) is the same as get_covariance(unc(:)). If unc
+            % contains complex values, the real and imaginary parts are interleaved
+            % with each imaginary part right after its respective real part. This is
+            % the same as passing [real(unc(:)), imag(unc(:))]' instead of unc.
             l = ToUncList(obj);
             temp = DistProp.UncHelper.GetCovariance(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1130,6 +1246,27 @@ classdef DistProp < matlab.mixin.CustomDisplay
             c = DistProp.Convert2Double(array);
         end
         function c = get_jacobi(obj)
+            % GET_JACOBI Uncertainty contributions of base inputs.
+            %
+            % c = GET_JACOBI(unc) returns a m-by-n matrix containing the sensitivity
+            % coefficients multiplied with the standard uncertainties of the base
+            % inputs of unc. m is the number of elements in unc (*2 for complex
+            % numbers), n is the number of base inputs of unc.
+            %
+            % If the order of the base inputs is not clear, use get_unc_component() and
+            % explicitly specify the order of the base inputs by passing them as
+            % intermediate results.
+            %
+            % The input argument unc is always interpreted as a vector, thus
+            % get_jacobi(unc) is the same as get_jacobi(unc(:)). If unc contains
+            % complex values, the real and imaginary parts are interleaved with each
+            % imaginary part right after its respective real part. This is the same as
+            % passing [real(unc(:)), imag(unc(:))]' instead of unc.
+            % 
+            % The computational and mathematical relations between base inputs and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi2, get_unc_component.
             l = ToUncList(obj);
             temp = DistProp.UncHelper.GetJacobi(l);
             array = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.Core.Number'});
@@ -1137,6 +1274,36 @@ classdef DistProp < matlab.mixin.CustomDisplay
             c = DistProp.Convert2Double(array);
         end
         function c = get_jacobi2(x, y)
+            % GET_JACOBI2 Sensitivities to intermediate results.
+            %
+            % c = GET_JACOBI2(x, y) returns a m-by-n matrix containing the sensitivities
+            % of x to the intermediate results y. m is the number of elements in x (*2
+            % for complex numbers), n is the number intermediate results y.
+            %
+            % The intermediate results y must form a base for x, thus 
+            %   1. y must be complete in the sense that there exists a function f such 
+            %      that x = f(y).
+            %   2. the elements of y must be linearly independent, i.e. there must not
+            %      exist a function g such that x = g(y') with y' being a subset of y.
+            %
+            % The user is required to ensure that these conditions are met.
+            % Otherwise, the result returned by this method might be incorrect.
+            %
+            % To check that these conditions were met in the statement
+            %   j = get_jacobi2(x,y)
+            % test if standard uncertainty of y matches
+            %   get_stdunc(x) == sqrt(j*get_covariance(y)*j')
+            %
+            % The input arguments x and y are always interpreted as vectors, thus
+            % get_jacobi2(x, y) is the same as get_jacobi2(x(:), y(:)). If x or y
+            % contain complex values, the real and imag part are treated separately,
+            % thus get_jacobi2(cx, cy) is the same as get_jacobi2([real(cx(:)),
+            % imag(cx(:))], [real(cy(:)), imag(cy(:))]).
+            % 
+            % The mathematical relations between base inputs, intermediate results, and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi, get_unc_component.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = DistProp.UncHelper.GetJacobi2(x2, y2);
@@ -1145,6 +1312,23 @@ classdef DistProp < matlab.mixin.CustomDisplay
             c = DistProp.Convert2Double(array);
         end
         function c = get_unc_component(x, y)
+            % GET_UNC_COMPONENT Uncertainty contributions of intermediate results.
+            %
+            % c = get_unc_component(x, y) returns the uncertainty contributions of the
+            % intermediate results y to the uncertainty object x.
+            %
+            % get_unc_component(x,y) is the same as get_jacobi2(x,y) .* get_stdunc(y).
+            %
+            % The input arguments x and y are always interpreted as vectors, thus
+            % get_unc_component(x, y) is the same as get_unc_component(x(:), y(:)). If
+            % x or y contain complex values, the real and imag part are treated
+            % separately, thus get_unc_component(cx, cy) is the same as
+            % get_unc_component([real(cx(:)),imag(cx(:))], [real(cy(:)),imag(cy(:))]).
+            % 
+            % The mathematical relations between base inputs, intermediate results, and 
+            % uncertainty numbers are described in <a href="https://doi.org/10.1088/0026-1394/49/6/809">doi.org/10.1088/0026-1394/49/6/809</a>.
+            %
+            % See also get_jacobi, get_jacobi2.
             x2 = ToUncList(x);
             y2 = ToUncList(y);
             temp = DistProp.UncHelper.GetUncComponent(x2, y2);
@@ -1633,19 +1817,32 @@ classdef DistProp < matlab.mixin.CustomDisplay
             U = DistProp.Convert2DistProp(temp.u);
             P = DistProp.Convert2DistProp(temp.p);
         end
+        function U = chol(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            lm = linalg.Cholesky(am);
+            L = DistProp.Convert2DistProp(lm);
+            U = L';
+        end
+        function [Q, R] = qr(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            [qm, rm] = linalg.Qr(am);
+            Q = DistProp.Convert2DistProp(qm);
+            R = DistProp.Convert2DistProp(rm);
+        end
+        function [U, S, V] = svd(A)
+            linalg = DistProp.LinAlg2(A.IsComplex);
+            am = DistProp.Convert2UncArray(A);
+            [um, sm, vm] = linalg.Svd(am);
+            U = DistProp.Convert2DistProp(um);
+            S = DistProp.Convert2DistProp(sm);
+            V = DistProp.Convert2DistProp(vm);
+        end
         function x = lscov(A,b,V)
             A = DistProp(A);
             b = DistProp(b);
-            [v, d] = eig(V);
-            e = diag(d);
-            for i = 1:length(e)
-                if e(i) > 1e-15
-                    e(i) = 1./e(i);
-                else
-                    e(i) = 0;
-                end
-            end
-            W = DistProp(v*diag(e)*v');
+            V = DistProp(V);
             if A.IsComplex && ~b.IsComplex
                 b = complex(b);
             end
@@ -1655,8 +1852,14 @@ classdef DistProp < matlab.mixin.CustomDisplay
             linalg = DistProp.LinAlg2(A.IsComplex);
             Am = DistProp.Convert2UncArray(A);
             bv = DistProp.Convert2UncArray(b);
-            Wm = DistProp.Convert2UncArray(W);
-            xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            if isvector(V)
+                W = diag(V);
+                Wm = DistProp.Convert2UncArray(W);
+                xv = linalg.WeightedLstSqrSolve(Am, bv, Wm);
+            else
+                Vm = DistProp.Convert2UncArray(V);
+                xv = linalg.GeneralLstSqrSolve(Am, bv, Vm);
+            end
             x = DistProp.Convert2DistProp(xv);
         end
         function a = sum(x, varargin)
@@ -1747,18 +1950,51 @@ classdef DistProp < matlab.mixin.CustomDisplay
             X = reshape(X, s);
         end
         function yy = interpolation(x, y, n, xx)
+            % yy = INTERPOLATION(x, y, n, xx) Interpolation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
+            % degree, specified by the vectors x and y. Returns yy, a DistProp vector of
+            % the same size as xx, which contains the interpolated values. The
+            % uncertainties of y (i.e. y(x)) are propagated, while any uncertainties of
+            % x and xx are ignored. While y must be a DistProp, x and xx can be any
+            % type. The parameter n must be a positive integer smaller than numel(x).
+            % 
+            % In general, the interpolated values are calculated based on n values of x
+            % and y. Using interpolation, this will result in the uncertainties of yy
+            % being smaller (or at the edges larger) that those of y. Using interpolation2, 
+            % the uncertainties of yy will be a linear interpolation of y.
+            % See <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also DistProp.interpolation2, DistProp.spline.
             x = double(x(:));
             y = DistProp(y);
             n = int32(n);
             s = size(xx);
             xx = double(xx(:));
-            numlib = DistProp.NumLib(y.IsComplex);
+            numlib = DistProp.NumLib2(y.IsComplex);
             ym = DistProp.Convert2UncArray(y);
             yym = numlib.Interpolation(x, ym, n, xx);
             yy = DistProp.Convert2DistProp(yym);
             yy = reshape(yy, s);
         end
         function yy = interpolation2(x, y, n, xx)
+            % yy = INTERPOLATION2(x, y, n, xx) Interpolation with linear unc. propagation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a polynomial of n-th
+            % degree, specified by the vectors x and y. Returns yy, a DistProp vector of
+            % the same size as xx, which contains the interpolated values. The
+            % uncertainties of y (i.e. y(x)) are linearly interpolated, while any
+            % uncertainties of x and xx are ignored. While y must be a DistProp, x and
+            % xx can be any type. The parameter n must be a positive integer smaller
+            % than numel(x).
+            % 
+            % In general, the interpolated values are calculated based on n values of x
+            % and y. Using interpolation, this will result in the uncertainties of yy
+            % being smaller (or at the edges larger) that those of y. Using interpolation2, 
+            % the uncertainties of yy will be a linear interpolation of y.
+            % See <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also DistProp.interpolation, DistProp.spline2.
             x = double(x(:));
             y = DistProp(y);
             n = int32(n);
@@ -1771,6 +2007,35 @@ classdef DistProp < matlab.mixin.CustomDisplay
             yy = reshape(yy, s);
         end
         function yy = spline(x, y, xx, varargin)
+            % yy = SPLINE(x, y, xx, [bounds]) Spline interpolation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+            % the vectors x and y and the boundary conditions. Returns yy, a DistProp
+            % vector of the same size as xx, which contains the interpolated values.
+            % The uncertainties of y(x) are propagated, while any uncertainties of x
+            % and xx are ignored. While y must be a DistProp, x and xx can be any type.
+            %
+            % SPLINE(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINE(__, boundaryCond) Specifies the boundary condition on both ends.
+            % Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % In general, the interpolated values are calculated based on multiple
+            % values of x and y. Using spline, this will result in the uncertainties of
+            % yy being smaller (or at the edges larger) that those of y. Using spline2,
+            % the uncertainties of yy will be a linear interpolation of y. See 
+            % <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also DistProp.interpolation, DistProp.spline2, DistProp.splinecoefs.
             x = double(x(:));
             y = DistProp(y);
             s = size(xx);
@@ -1783,6 +2048,36 @@ classdef DistProp < matlab.mixin.CustomDisplay
             yy = reshape(yy, s);
         end
         function yy = spline2(x, y, xx, varargin)
+            % yy = SPLINE2(x, y, xx, [bounds]) Spline interpolation with linear unc. propagation.
+            %
+            % Interpolates y(x) at points xx, with y(x) being a cubic spline defined by
+            % the vectors x and y and the boundary conditions. Returns yy, a DistProp
+            % vector of the same size as xx, which contains the interpolated values. The
+            % uncertainties of y(x) are linearly propagated, while any uncertainties of
+            % x and xx are ignored. While y must be a DistProp, x and xx can be any
+            % type.
+            %
+            % SPLINE2(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINE2(__, boundaryCond) Specifies the boundary condition on both ends.
+            % Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % In general, the interpolated values are calculated based on multiple
+            % values of x and y. Using spline, this will result in the uncertainties of
+            % yy being smaller (or at the edges larger) that those of y. Using spline2,
+            % the uncertainties of yy will be a linear interpolation of y. See 
+            % <a href="matlab:s=which('DistProp');[s,~,~]=fileparts(s);edit([s,'\..\Examples\Example_Interpolation.m']);">Examples/Example_Interpolation.m</a>
+            %
+            % See also DistProp.interpolation2, DistProp.spline, DistProp.splinecoefs.
             x = double(x(:));
             y = DistProp(y);
             s = size(xx);
@@ -1795,6 +2090,34 @@ classdef DistProp < matlab.mixin.CustomDisplay
             yy = reshape(yy, s);
         end
         function p = splinecoefs(x, y, varargin)
+            % p = SPLINECOEFS(x, y, [bounds]) Coefficients of interpolation spline.
+            %
+            % Returns the coefficients of the cubic splines that connect the points
+            % defined by the vectors x and y and the specified the boundary conditions.
+            % Returns a n-by-4 matrix of local coefficients, where n is the number of
+            % spline segments, i.e. n = length(x)-1. While x and y can be any type,
+            % uncertainties of x are ignored.
+            %
+            % The i'th row of p with values [a b c d] can be interpreted as 
+            %   f(xq) = a*(xq - x(i)).^3 + b*(xq - x(i)).^2 + c*(xq - x(i)) + d.
+            % The matrix returned by this method has the same properties as the
+            % pp.coefs matrix returned by <a href="matlab:help spline">PP = spline(X,Y)</a>.
+            %
+            % SPLINECOEFS(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINECOEFS(__, boundaryCond) Specifies the boundary condition on both
+            % ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the 
+            % conditions '1st derivative' and '2nd derivative', the respective 
+            % derivatives are set to zero.
+            % 
+            % SPLINECOEFS(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also DistProp.spline.
             x = double(x(:));
             y = DistProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
@@ -1804,6 +2127,17 @@ classdef DistProp < matlab.mixin.CustomDisplay
             p = DistProp.Convert2DistProp(pm);
         end
         function a = integrate(x, y, n)
+            % a = INTEGRATE(x, y, n) Integration with cumulative result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a polynomial
+            % of n-th degree specified by the vectors x and y. Returns a DistProp vector
+            % of the same size as y which contains the cumulative integral up to every
+            % value of x. The uncertainties of y(x) are propagated, while any uncer-
+            % tainties of x are ignored. While y must be a DistProp, x can be any
+            % type. The parameter n must be a positive integer smaller than numel(y).
+            %
+            % See also DistProp.integrate2, DistProp.splineintegrate.
+
             x = double(x(:));
             y = DistProp(y);
             n = int32(n);
@@ -1815,6 +2149,21 @@ classdef DistProp < matlab.mixin.CustomDisplay
             a = reshape(a, s);
         end
         function a = integrate2(x, y, n)
+            % a = INTEGRATE2(x, y, n) Integration with scalar result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a polynomial
+            % of n-th degree specified by the vectors x and y. Returns the result of
+            % the whole integral as a DistProp scalar. The input arguments x and y
+            % specify y(x). The uncertainties of y(x) are propagated, while any
+            % uncertainties of x are ignored. While y must be a DistProp, x can be any
+            % type. The parameter n must be a positive integer smaller than numel(y).
+            %
+            % a = integrate2(x, y, n) returns the same result as:
+            %   a = integrate(x, y, n);
+            %   a = a(end);
+            %
+            % See also DistProp.integrate, DistProp.splineintegrate2.
+            
             x = double(x(:));
             y = DistProp(y);
             n = int32(n);
@@ -1824,6 +2173,30 @@ classdef DistProp < matlab.mixin.CustomDisplay
             a = DistProp.Convert2DistProp(am);
         end
         function a = splineintegrate(x, y, varargin)
+            % a = SPLINEINTEGRATE(x, y, ...) Spline integration with cumulative result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a cubic spline
+            % defined by the vectors x and y and the boundary conditions. Returns a
+            % DistProp vector of the same size as y which contains the cumulative
+            % integral up to every value of x. The uncertainties of y(x) are
+            % propagated, while any uncertainties of x are ignored. While y has to be a
+            % DistProp, x can be any type.
+            %
+            % SPLINEINTEGRATE(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINEINTEGRATE(__, boundaryCond) Specifies the boundary condition on
+            % both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the
+            % conditions '1st derivative' and '2nd derivative', the respective
+            % derivatives are set to zero.
+            % 
+            % SPLINEINTEGRATE(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also DistProp.integrate, DistProp.splineintegrate2.
             x = double(x(:));
             y = DistProp(y);
             s = size(y);
@@ -1835,6 +2208,29 @@ classdef DistProp < matlab.mixin.CustomDisplay
             a = reshape(a, s);
         end
         function a = splineintegrate2(x, y, varargin)
+            % a = SPLINEINTEGRATE2(x, y, ...) Spline integration with scalar result.
+            %
+            % Calculates the numerical integral of y(x), with y(x) being a cubic spline
+            % defined by the vectors x and y and the boundary conditions. Returns the
+            % result of the whole integral as a DistProp scalar. The uncertainties of
+            % y(x) are propagated, while any uncertainties of x are ignored. While y
+            % must be a DistProp, x can be any type.
+            %
+            % SPLINEINTEGRATE2(x, y) Uses the 'not-a-knot' boundary condition.
+            %
+            % SPLINEINTEGRATE2(__, boundaryCond) Specifies the boundary condition on
+            % both ends. Valid values for boundaryCond are 'not-a-knot' (default),
+            % 'natural spline', '1st derivative', and '2nd derivative'. With the
+            % conditions '1st derivative' and '2nd derivative', the respective
+            % derivatives are set to zero.
+            % 
+            % SPLINEINTEGRATE2(__, leftBoundCond, leftValue, rightBoundCond, rightValue)
+            % Specifies the boundary condition for the left and right end and also the
+            % value of the derivatives. Valid values for leftBoundCond and
+            % rightBoundCond are 'not-a-knot' (default), 'natural spline', 
+            % '1st derivative', and '2nd derivative'.
+            %
+            % See also DistProp.integrate2, DistProp.splineintegrate.
             x = double(x(:));
             y = DistProp(y);
             [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin{:});
@@ -1853,7 +2249,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
             if ~x.IsComplex && y.IsComplex
                 x = complex(x);
             end
-            numlib = DistProp.NumLib(x.IsComplex);
+            numlib = DistProp.NumLib2(x.IsComplex);
             xm = DistProp.Convert2UncArray(x);
             ym = DistProp.Convert2UncArray(y);
             pm = numlib.PolyFit(xm, ym, n);
@@ -1895,6 +2291,15 @@ classdef DistProp < matlab.mixin.CustomDisplay
             l = temp.op_Implicit(obj.NetObject);
         end
         function [y, sb, sv, eb, ev] = SplineOptArgs(y, varargin)
+            % (..., y)
+            % (..., boundaryConditions)
+            % (..., startBoundaryCondition, startV, endBoundaryCondition, endV)
+            %
+            % Boundary conditions are strings. Valid values are:
+            %   'not-a-knot' (default)
+            %   'natural spline'
+            %   'first derivative'
+            %   'second derivative'
             switch nargin
                 case 1
                     sb = Metas.UncLib.Core.SplineBoundary.Not_a_Knot;
@@ -2488,153 +2893,5 @@ classdef DistProp < matlab.mixin.CustomDisplay
             end
         end
     end
-    
-    properties (Constant)
-        % Physical Constants CODATA 2014
-        Const2014 = InitConst2014();
-        % Physical Constants CODATA 2014 for Conventional Electrical Units 90
-        Const2014_90 = InitConst2014_90();
-        % Physical Constants CODATA 2018
-        Const2018 = InitConst2018();
-        % Newest Physical Constants
-        Const = InitConst2018();
-    end
-end
-
-function c = InitConst2014()
-    const = Metas.UncLib.Core.Const2014;
-    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2014', {'Metas.UncLib.DistProp.UncNumber'});
-    c = {};
-    % Hyperfine transition frequency of Cs-133 / Hz
-    c.deltavCs = const.deltavCs;
-    % Speed of light in vacuum / (m/s)
-    c.c0 = const.c0;
-    % Vacuum magnetic permeability / (Vs/Am)
-    c.mu0 = const.mu0;
-    % Vacuum electric permittivity / (As/Vm)
-    c.ep0 = const.ep0;
-    % Luminous efficacy / (lm/W)
-    c.Kcd = const.Kcd;
-    % Molar mass constant / (kg/mol)
-    c.Mu = const.Mu;
-    % Newtonian constant of gravitation / (m^3/(kg*s^2))
-    c.G = DistProp(uconst.G);
-    % Fine-structure constant
-    c.alpha = DistProp(uconst.alpha);
-    % Rydberg constant / (1/m)
-    c.Ryd = DistProp(uconst.Ryd);
-    % Proton-electron mass ratio
-    c.mpsme = DistProp(uconst.mpsme);
-    % Avogadro constant / (1/mol)
-    c.Na = DistProp(uconst.Na);
-    % Josephson constant / (Hz/V)
-    c.Kj = DistProp(uconst.Kj);
-    % Boltzmann constant / (J/K)
-    c.k = DistProp(uconst.k);
-    % von Klitzing constant / Ohm
-    c.Rk = DistProp(uconst.Rk);
-    % Elementary charge / C
-    c.e = DistProp(uconst.e);
-    % Planck constant / Js
-    c.h = DistProp(uconst.h);
-    % Electron mass / kg
-    c.me = DistProp(uconst.me);
-    % Proton mass / kg
-    c.mp = DistProp(uconst.mp);
-    % Atomic mass constant / kg
-    c.u = DistProp(uconst.u);
-    % Faraday constant / (C/mol)
-    c.F = DistProp(uconst.F);
-    % Molar gas constant / (J/(mol*K))
-    c.R = DistProp(uconst.R);
-    % Electron volt / J
-    c.eV = DistProp(uconst.eV);
-end
-
-function c = InitConst2014_90()
-    const = Metas.UncLib.Core.Const2014;
-    const90 = Metas.UncLib.Core.Const2014_90;
-    uconst90 =  NET.createGeneric('Metas.UncLib.Core.Const2014_90', {'Metas.UncLib.DistProp.UncNumber'});
-    c = {};
-    % Hyperfine transition frequency of Cs-133 / Hz
-    c.deltavCs = const.deltavCs;
-    % Speed of light in vacuum / (m/s)
-    c.c0 = const.c0;
-    % Vacuum magnetic permeability / (Vs/Am)
-    c.mu0 = const.mu0;
-    % Vacuum electric permittivity / (As/Vm)
-    c.ep0 = const.ep0;
-    % Luminous efficacy / (lm/W)
-    c.Kcd = const.Kcd;
-    % Molar mass constant / (kg/mol)
-    c.Mu = const.Mu;
-    % Conventional value of Josephson constant / (Hz/V)
-    c.Kj = const90.Kj;
-    % Conventional value of von Klitzing constant / Ohm
-    c.Rk = const90.Rk;
-    % Elementary charge / C
-    c.e = const90.e;
-    % Planck constant / Js
-    c.h = const90.h;
-    % Avogadro constant / (1/mol)
-    c.Na = DistProp(uconst90.Na);
-    % Faraday constant / (C/mol)
-    c.F = DistProp(uconst90.F);
-    % Boltzmann constant / (J/K)
-    c.k = DistProp(uconst90.k);
-end
-
-function c = InitConst2018()
-    const = Metas.UncLib.Core.Const2018;
-    uconst =  NET.createGeneric('Metas.UncLib.Core.Const2018', {'Metas.UncLib.DistProp.UncNumber'});
-    c = {};
-    % Hyperfine transition frequency of Cs-133 / Hz
-    c.deltavCs = const.deltavCs;
-    % Speed of light in vacuum / (m/s)
-    c.c0 = const.c0;
-    % Planck constant / Js
-    c.h = const.h;
-    % Elementary charge / C
-    c.e = const.e;
-    % Boltzmann constant / (J/K)
-    c.k = const.k;
-    % Avogadro constant / (1/mol)
-    c.Na = const.Na;
-    % Luminous efficacy / (lm/W)
-    c.Kcd = const.Kcd;
-    % Josephson constant / (Hz/V)
-    c.Kj = const.Kj;
-    % von Klitzing constant / Ohm
-    c.Rk = const.Rk;
-    % Faraday constant / (C/mol)
-    c.F = const.F;
-    % Molar gas constant / (J/(mol*K))
-    c.R = const.R;
-    % Electron volt / J
-    c.eV = const.eV;
-    % Newtonian constant of gravitation / (m^3/(kg*s^2))
-    c.G = DistProp(uconst.G);
-    % Fine-structure constant
-    c.alpha = DistProp(uconst.alpha);
-    % Vacuum magnetic permeability / (Vs/Am)
-    c.mu0 = DistProp(uconst.mu0);
-    % Vacuum electric permittivity / (As/Vm)
-    c.ep0 = DistProp(uconst.ep0);
-    % Rydberg constant / (1/m)
-    c.Ryd = DistProp(uconst.Ryd);
-    % Electron mass / kg
-    c.me = DistProp(uconst.me);
-    % Electron relative atomic mass
-    c.are = DistProp(uconst.are);
-    % Proton relative atomic mass
-    c.arp = DistProp(uconst.arp);
-    % Proton-electron mass ratio
-    c.mpsme = DistProp(uconst.mpsme);
-    % Proton mass / kg
-    c.mp = DistProp(uconst.mp);
-    % Atomic mass constant / kg
-    c.u = DistProp(uconst.u);
-    % Molar mass constant / (kg/mol)
-    c.Mu = DistProp(uconst.Mu);
 end
 

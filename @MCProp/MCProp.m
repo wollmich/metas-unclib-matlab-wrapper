@@ -2894,5 +2894,3 @@ classdef MCProp < matlab.mixin.CustomDisplay
     end
 end
 
-end
-

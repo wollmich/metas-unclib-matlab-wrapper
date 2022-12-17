@@ -338,7 +338,6 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 end
             end 
         end
-        
         function str = string(obj, varargin)
             % STRING Return DistProp matrix as string array.
             %
@@ -2784,7 +2783,7 @@ classdef DistProp < matlab.mixin.CustomDisplay
                 if ~isempty(size_residual)
                     page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
                 end
-    
+
                 if (isLoose && ii==1); disp(' '); end
                 disp([page_name ' = ']);
                 if (isLoose); disp(' '); end

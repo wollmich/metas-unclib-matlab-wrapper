@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.MCProp V2.6.2
-% Michael Wollensack METAS - 14.12.2022
+% Metas.UncLib.Matlab.MCProp V2.6.3
+% Michael Wollensack METAS - 01.03.2023
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -13,6 +13,7 @@
 %   u = MCProp(value, (covariance), [description])
 %  (u)= MCProp((value), (covariance), [description])
 %   u = MCProp((samples), 'samples', [description], [probability])
+%   u = MCProp(distribution, [id], [description])
 %   u = MCProp(value, (sys_inputs), (sys_sensitivities), 'system')
 %   Documentation of all constructors available with <a href="matlab: help MCProp/MCProp -displayBanner">help MCProp/MCProp</a>.
 %
@@ -160,11 +161,15 @@ classdef MCProp
                         case 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*MCProp*UncNumber>'
                             obj.NetObject = varargin{1};
                         case 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*MCProp*UncNumber>'
-                            obj.NetObject = varargin{1};    
+                            obj.NetObject = varargin{1};
                         case 'char'
                             obj.NetObject = MCProp.XmlString2MCProp(varargin{1}).NetObject;
                         otherwise
-                            error('Wrong type of input arguments')
+                            if isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution')
+                                obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, UncInputId(), '');
+                            else
+                                error('Wrong type of input arguments')
+                            end
                     end
                 case 2
                     if isa(varargin{1}, 'double') && isa(varargin{2}, 'double')
@@ -222,6 +227,10 @@ classdef MCProp
                             otherwise
                                 error('Wrong type of input arguments')
                         end
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId')
+                        obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2}, '');
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'char')
+                        obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, UncInputId(), varargin{2});
                     else
                         error('Wrong type of input arguments')
                     end
@@ -274,6 +283,8 @@ classdef MCProp
                             otherwise
                                 error('Wrong type of input arguments')
                         end
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId') && isa(varargin{3}, 'char')
+                        obj.NetObject = Metas.UncLib.MCProp.UncNumber(varargin{1}, varargin{2}, varargin{3});
                     else
                         error('Wrong type of input arguments')
                     end

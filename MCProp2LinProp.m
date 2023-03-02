@@ -14,7 +14,7 @@ function y = MCProp2LinProp(yMC, xMC, x)
 %   The expected values of y are the same as the expected values of yMC.
 %   The covariance of y is the same as the covariance of yMC.
 
-% Michael Wollensack METAS - 22.02.2023
+% Michael Wollensack METAS - 02.03.2023
 
 yMC = MCProp(yMC);
 xMC = MCProp(xMC);
@@ -38,8 +38,8 @@ if isreal(yMC)
 else
     y2 = reshape(y2, size(yMC2));
     y = y2(1,:) + 1i.*y2(2,:);
-    y = reshape(y, size(yMC));
 end
+y = reshape(y, size(yMC));
 end
 
 function y = MCProp2LinPropSub(yMC, xMC, x)

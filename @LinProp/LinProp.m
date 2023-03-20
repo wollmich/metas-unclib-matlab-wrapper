@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.LinProp V2.6.3
-% Michael Wollensack METAS - 13.03.2023
+% Metas.UncLib.Matlab.LinProp V2.7.0
+% Michael Wollensack METAS - 20.03.2023
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent

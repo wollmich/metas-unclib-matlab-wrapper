@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.6.2
-% Michael Wollensack METAS - 14.12.2022
+% Metas.UncLib.Matlab.DistProp V2.7.0
+% Michael Wollensack METAS - 20.03.2023
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -13,6 +13,8 @@
 %   u = DistProp(value, (covariance), [description])
 %  (u)= DistProp((value), (covariance), [description])
 %   u = DistProp((samples), 'samples', [description], [probability])
+%   u = DistProp((samples), 'randomchoices', [description], [probability])
+%   u = DistProp(distribution, [id], [description])
 %   u = DistProp(value, (sys_inputs), (sys_sensitivities), 'system')
 %   Documentation of all constructors available with <a href="matlab: help DistProp/DistProp -displayBanner">help DistProp/DistProp</a>.
 %
@@ -160,11 +162,15 @@ classdef DistProp < matlab.mixin.CustomDisplay
                         case 'Metas.UncLib.Core.Ndims.RealNArray<Metas*UncLib*DistProp*UncNumber>'
                             obj.NetObject = varargin{1};
                         case 'Metas.UncLib.Core.Ndims.ComplexNArray<Metas*UncLib*DistProp*UncNumber>'
-                            obj.NetObject = varargin{1};    
+                            obj.NetObject = varargin{1};
                         case 'char'
                             obj.NetObject = DistProp.XmlString2DistProp(varargin{1}).NetObject;
                         otherwise
-                            error('Wrong type of input arguments')
+                            if isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution')
+                                obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, UncInputId(), '');
+                            else
+                                error('Wrong type of input arguments')
+                            end
                     end
                 case 2
                     if isa(varargin{1}, 'double') && isa(varargin{2}, 'double')
@@ -219,15 +225,58 @@ classdef DistProp < matlab.mixin.CustomDisplay
                                         obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix);
                                     end
                                 end
+                            case 'randomchoices'
+                                s = DistProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromRandomChoices(s.Vector);
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromRandomChoices(s.Vector);
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromRandomChoices(s.Matrix);
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromRandomChoices(s.Matrix);
+                                    end
+                                end
                             otherwise
                                 error('Wrong type of input arguments')
                         end
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId')
+                        obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, '');
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'char')
+                        obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, UncInputId(), varargin{2});
                     else
                         error('Wrong type of input arguments')
                     end
                 case 3
                     if isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'double')
-                        obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, varargin{3});
+                        if numel(varargin{1}) == 1
+                            if ~isreal(varargin{1})
+                                % ComplexUncNumber
+                                v = DistProp.Double2ComplexNumber(varargin{1});
+                                cv = DistProp.Double2Array(varargin{2});
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNumber(v, cv.Matrix, varargin{3});
+                            else
+                                % RealUncNumber
+                                obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, varargin{3});
+                            end
+                        else
+                            v = DistProp.Double2Array(varargin{1});
+                            cv = DistProp.Double2Array(varargin{2});
+                            if ~isreal(varargin{1})
+                                % ComplexUncArray
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNArray(v, cv.Matrix, varargin{3});
+                            else
+                                % RealUncArray
+                                obj.NetObject = DistProp.UncHelper.RealUncNArray(v, cv.Matrix, varargin{3});
+                            end
+                        end
                     elseif isa(varargin{1}, 'double') && isa(varargin{2}, 'double') && isa(varargin{3}, 'char')
                         if numel(varargin{1}) == 1
                             if ~isreal(varargin{1})
@@ -271,9 +320,30 @@ classdef DistProp < matlab.mixin.CustomDisplay
                                         obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}));
                                     end
                                 end
+                            case 'randomchoices'
+                                s = DistProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromRandomChoices(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromRandomChoices(s.Vector, UncInputId(), sprintf(varargin{3}));
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromRandomChoices(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromRandomChoices(s.Matrix, UncInputId(), sprintf(varargin{3}));
+                                    end
+                                end
                             otherwise
                                 error('Wrong type of input arguments')
                         end
+                    elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId') && isa(varargin{3}, 'char')
+                        obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, varargin{3});
                     else
                         error('Wrong type of input arguments')
                     end
@@ -309,6 +379,25 @@ classdef DistProp < matlab.mixin.CustomDisplay
                                         obj.NetObject = DistProp.UncHelper.RealUncNArrayFromSamples(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
                                     end
                                 end
+                            case 'randomchoices'
+                                s = DistProp.Double2Array(varargin{1});
+                                if size(varargin{1}, 2) == 1
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncNumber
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNumberFromRandomChoices(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    else
+                                        % RealUncNumber
+                                        obj.NetObject = DistProp.UncHelper.RealUncNumberFromRandomChoices(s.Vector, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    end
+                                else
+                                    if ~isreal(varargin{1})
+                                        % ComplexUncArray
+                                        obj.NetObject = DistProp.UncHelper.ComplexUncNArrayFromRandomChoices(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    else
+                                        % RealUncArray
+                                        obj.NetObject = DistProp.UncHelper.RealUncNArrayFromRandomChoices(s.Matrix, UncInputId(), sprintf(varargin{3}), varargin{4});
+                                    end
+                                end
                             otherwise
                                 error('Wrong type of input arguments')
                         end
@@ -321,9 +410,25 @@ classdef DistProp < matlab.mixin.CustomDisplay
                             varargin{4} = UncInputId(varargin{4});
                         end
                         if numel(varargin{1}) == 1
-                            obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, varargin{3}, varargin{4}, sprintf(varargin{5}));
+                            if ~isreal(varargin{1})
+                                % ComplexUncNumber
+                                v = DistProp.Double2ComplexNumber(varargin{1});
+                                cv = DistProp.Double2Array(varargin{2});
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNumber(v, cv.Matrix, varargin{3}, varargin{4}, sprintf(varargin{5}));
+                            else
+                                % RealUncNumber
+                                obj.NetObject = Metas.UncLib.DistProp.UncNumber(varargin{1}, varargin{2}, varargin{3}, varargin{4}, sprintf(varargin{5}));
+                            end
                         else
-                            error('Wrong type of input arguments')
+                            v = DistProp.Double2Array(varargin{1});
+                            cv = DistProp.Double2Array(varargin{2});
+                            if ~isreal(varargin{1})
+                                % ComplexUncArray
+                                obj.NetObject = DistProp.UncHelper.ComplexUncNArray(v, cv.Matrix, varargin{3}, varargin{4}, sprintf(varargin{5}));
+                            else
+                                % RealUncArray
+                                obj.NetObject = DistProp.UncHelper.RealUncNArray(v, cv.Matrix, varargin{3}, varargin{4}, sprintf(varargin{5}));
+                            end
                         end
                     else
                         error('Wrong type of input arguments')

@@ -1,11 +1,11 @@
-function xMC = LinProp2MCProp(x)
-% LinProp2MCProp Converts LinProp objects to MCProp objects
+function xMC = MCProp(x)
+% Converts objects to MCProp
 %
-%   xMC = LinProp2MCProp(x) returns MCProp objects where
+%   xMC = MCProp(x) returns MCProp objects where
 %     x are the input LinProp objects.
 %
 %   Example of usage:
-%     xMC = LinProp2MCProp(x);
+%     xMC = MCProp(x);
 %     yMC = f(xMC);
 %     y = MCProp2LinProp(yMC, xMC, x);
 %

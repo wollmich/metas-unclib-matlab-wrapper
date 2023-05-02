@@ -1011,6 +1011,39 @@ classdef LinProp
             %
             n = 1;
         end
+        function B = permute(A, order)
+            
+            if isscalar(A)
+                B = copy(A);
+                return;
+            end
+            % Here, we only have to deal with matricies. Scalars are trival to permute
+            
+            % TODO: Test for the following:
+            %For an N-D array A, numel(ORDER)>=ndims(A).  All the elements
+            %of ORDER must be unique.
+            
+            sizeA = size(A);
+            sizeB = permute(sizeA, order);
+            for ii = numel(sizeA):-1:1
+                src_subs{ii} = 1:sizeA(ii);
+            end
+            
+            src_index  = LinProp.IndexMatrix(src_subs);
+            dest_index = permute(src_index, order);
+
+            if A.IsComplex
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.LinProp.UncNumber'});
+               bm.InitNd(sizeB);
+            else
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.LinProp.UncNumber'});
+               bm.InitNd(sizeB);
+            end
+
+            bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+            B = LinProp(bm);
+                    
+        end
         function B = subsref(A, S)
             %SUBSREF Subscripted reference.
             %   A(I) is an array formed from the elements of A specified by the

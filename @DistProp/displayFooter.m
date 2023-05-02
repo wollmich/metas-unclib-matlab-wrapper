@@ -1,6 +1,6 @@
 function displayFooter(obj, inputname, matrixDisplay)
 
-    if isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj))
+    if isempty(matlab.mixin.CustomDisplay.getDetailedFooter(obj)) || isempty(inputname)
         return;
     end
     if nargin < 3

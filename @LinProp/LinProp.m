@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.LinProp V2.7.0
-% Michael Wollensack METAS - 20.03.2023
+% Metas.UncLib.Matlab.LinProp V2.7.1
+% Michael Wollensack METAS - 24.05.2023
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -250,7 +250,7 @@ classdef LinProp
                     elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId')
                         obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, '');
                     elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'char')
-                        obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, UncInputId(), varargin{2});
+                        obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, UncInputId(), sprintf(varargin{2}));
                     else
                         error('Wrong type of input arguments')
                     end
@@ -343,7 +343,7 @@ classdef LinProp
                                 error('Wrong type of input arguments')
                         end
                     elseif isa(varargin{1}, 'Metas.UncLib.Core.Unc.Distribution') && isa(varargin{2}, 'Metas.UncLib.Core.Unc.InputId') && isa(varargin{3}, 'char')
-                        obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, varargin{3});
+                        obj.NetObject = Metas.UncLib.LinProp.UncNumber(varargin{1}, varargin{2}, sprintf(varargin{3}));
                     else
                         error('Wrong type of input arguments')
                     end

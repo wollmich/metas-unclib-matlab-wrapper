@@ -27,7 +27,7 @@ function unc_budget(x, varargin)
 % imaginary part right after its respective real part. This is the same as
 % passing [real(unc(:)), imag(unc(:))]' instead of unc.
 
-% Michael Wollensack METAS - 20.09.2021
+% Michael Wollensack METAS - 25.05.2023
 
 x = LinProp(x);
 n = get_net_object(x);
@@ -67,8 +67,8 @@ end
 c.Dock = System.Windows.Forms.DockStyle.Fill;
 f = System.Windows.Forms.Form();
 f.Text = name;
-f.Size.Width = 640;
-f.Size.Height = 480;
+f.Size.Width = Metas.UncLib.LinProp.Gui.HighDPIHelper.ScaleValueX(640);
+f.Size.Height = Metas.UncLib.LinProp.Gui.HighDPIHelper.ScaleValueY(480);
 f.Controls.Add(c);
 f.Show();
 f.Activate();

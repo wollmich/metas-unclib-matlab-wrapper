@@ -1011,6 +1011,77 @@ classdef MCProp
             %
             n = 1;
         end
+        function B = permute(A, order)
+            % permute Permute array dimensions.
+            % B = permute(A,ORDER) rearranges the dimensions of A so that they are in
+            % the order specified by the vector ORDER.  The resulting array has the
+            % same values as A but the order of the subscripts needed to access any
+            % particular element is rearranged as specified by ORDER.  For an N-D
+            % array A, numel(ORDER)>=ndims(A).  All the elements of ORDER must be
+            % unique.
+            % 
+            % permute and IPERMUTE are a generalization of transpose (.') 
+            % for N-D arrays.
+            % 
+            % Example:
+            %    a = MCProp(rand(1,2,3,4));
+            %    size(permute(a,[3 2 1 4])) % now it's 3-by-2-by-1-by-4.
+            % 
+            % See also ipermute, size, pagetranspose.
+            
+            nA = ndims(A);
+            nOrder = numel(order);
+            
+            if nOrder < nA
+                error('MATLAB:permute:tooFewIndices', 'ORDER must have at least N elements for an N-D array.');
+            end
+            if any(order ~= round(order)) || any(isinf(order)) || any(order < 1)
+                error('MATLAB:permute:badIndex', 'ORDER contains an invalid permutation index.');
+            end
+            if numel(unique(order)) ~= numel(order)
+                error('MATLAB:permute:repeatedIndex', 'ORDER cannot contain repeated permutation indices.')
+            end
+            
+            % Catch trivial case of scalars
+            if isscalar(A)
+                B = copy(A);
+                return;
+            end
+            
+            sizeA = size(A, 1:nOrder);
+            sizeB = sizeA(order);
+            for ii = nOrder:-1:1
+                src_subs{ii} = 1:sizeA(ii);
+            end
+            
+            src_index  = MCProp.IndexMatrix(src_subs);
+            dest_index = src_index(:, order);
+            src_index = src_index(:, 1:nA);
+            
+            % Remove trailing singleton dimensions
+            dest_singleton_dim = max(dest_index, [], 1) == 1;
+            for ii=nOrder:-1:3
+                if dest_singleton_dim(ii)
+                    dest_index = dest_index(:, 1:ii-1);
+                    sizeB = sizeB(1:ii-1);
+                else
+                    break
+                end
+            end
+            
+            am = MCProp.Convert2UncArray(A);
+            if A.IsComplex
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.ComplexNArray', {'Metas.UncLib.MCProp.UncNumber'});
+               bm.InitNd(sizeB);
+            else
+               bm = NET.createGeneric('Metas.UncLib.Core.Ndims.RealNArray', {'Metas.UncLib.MCProp.UncNumber'});
+               bm.InitNd(sizeB);
+            end
+
+            bm.SetItemsNd(int32(dest_index - 1), am.GetItemsNd(int32(src_index - 1)));
+            B = MCProp(bm);
+                    
+        end
         function B = subsref(A, S)
             %SUBSREF Subscripted reference.
             %   A(I) is an array formed from the elements of A specified by the

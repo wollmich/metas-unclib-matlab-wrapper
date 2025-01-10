@@ -2755,6 +2755,7 @@ end
 function dispAsPages(name, value, isLoose)
     size_all = size(value);
     size_residual = size_all(3:end);
+    size_residual = [size_residual ones(1, max(0, 2-length(size_residual)))];
     page_subscripts = cell(1, numel(size_residual));
     page_name = name;
     nPages = prod(size_residual);
@@ -2768,7 +2769,7 @@ function dispAsPages(name, value, isLoose)
             page_values = complex(page_values);
         end
 
-        if ~isempty(size_residual)
+        if ~isempty(size_all(3:end))
             page_name = sprintf('%s(:,:,%s)', name, strjoin(strsplit(num2str(cell2mat(page_subscripts))), ','));
         end
         

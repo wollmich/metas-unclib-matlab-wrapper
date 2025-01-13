@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.7.1
-% Michael Wollensack METAS - 24.05.2023
+% Metas.UncLib.Matlab.DistProp V2.8.4
+% Michael Wollensack METAS - 13.01.2025
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent

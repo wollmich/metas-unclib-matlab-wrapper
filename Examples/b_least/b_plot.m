@@ -1,5 +1,5 @@
 % B_LEAST ISO 6143:2001 
-% Michael Wollensack METAS - 25.10.2023 - 01.11.2023
+% Michael Wollensack METAS - 25.10.2023 - 28.03.2025
 
 function h = b_plot(py, px, pym, pxm, b, b_func)
 % b_plot plots the reference points py and pxm, the fit function b_func
@@ -51,7 +51,7 @@ end
 function plot_ellipse(pxi, pyi, c)
 k = 2.45;
 cv = get_covariance([pxi pyi]);
-[V, D] = eig(k.*cv);
+[V, D] = eig(k.^2.*cv);
 t = linspace(0, 2*pi, 100);
 e = V*sqrt(D)*[cos(t); sin(t)];
 fill(e(1,:) + double(pxi), e(2,:) + double(pyi), c, 'FaceAlpha', 0.5, 'LineStyle','none');

@@ -1,3 +1,3 @@
-classdef Const < LinProp.Const2018
+classdef Const < LinProp.Const2022
 % Newest Physical Constants
 end

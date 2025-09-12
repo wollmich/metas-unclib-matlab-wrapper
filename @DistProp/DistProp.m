@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.DistProp V2.8.4
-% Michael Wollensack METAS - 13.01.2025
+% Metas.UncLib.Matlab.DistProp V2.9.1
+% Michael Wollensack METAS - 12.09.2025
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -1727,6 +1727,24 @@ classdef DistProp
             end
             k = DistProp(x.NetObject.Ellipk());
             e = DistProp(x.NetObject.Ellipe());
+        end
+        function z = ellippi(x,y)
+            x = DistProp(x);
+            y = DistProp(y);
+            if x.IsComplex || y.IsComplex
+                error('Inputs must be real');
+            end
+            if ~x.IsArray && ~y.IsArray
+                z = DistProp(x.NetObject.Ellippi(y.NetObject));
+            elseif x.IsArray && ~y.IsArray
+                y = y.*ones(size(x));
+                z = ellippi(x,y);
+            elseif ~x.IsArray && y.IsArray
+                x = x.*ones(size(y));
+                z = ellippi(x,y);
+            else
+                z = DistProp(x.NetObject.Ellippi(y.NetObject));
+            end
         end
         function z = eq(x,y)
             z = double(x) == double(y);

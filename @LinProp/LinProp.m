@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.LinProp V2.9.2
-% Michael Wollensack METAS - 10.14.2025
+% Michael Wollensack METAS - 15.10.2025
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -2350,7 +2350,17 @@ classdef LinProp
             ym = LinProp.Convert2UncArray(y);
             am = numlib.SplineIntegrate2(x, ym, sb, sv, eb, ev);
             a = LinProp.Convert2LinProp(am);
-         end
+        end
+        function g = gradient(f, x)
+            f = LinProp(f);
+            x = double(x(:));
+            s = size(f);
+            numlib = LinProp.NumLib2(f.IsComplex);
+            fm = LinProp.Convert2UncArray(f);
+            gm = numlib.Gradient(fm, x);
+            g = LinProp.Convert2LinProp(gm);
+            g = reshape(g, s);
+        end
         function p = polyfit(x,y,n)
             x = LinProp(x);
             y = LinProp(y);

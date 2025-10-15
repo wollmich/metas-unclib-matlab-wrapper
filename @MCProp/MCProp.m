@@ -1,5 +1,5 @@
 % Metas.UncLib.Matlab.MCProp V2.9.2
-% Michael Wollensack METAS - 10.14.2025
+% Michael Wollensack METAS - 15.10.2025
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -2350,7 +2350,17 @@ classdef MCProp
             ym = MCProp.Convert2UncArray(y);
             am = numlib.SplineIntegrate2(x, ym, sb, sv, eb, ev);
             a = MCProp.Convert2MCProp(am);
-         end
+        end
+        function g = gradient(f, x)
+            f = MCProp(f);
+            x = double(x(:));
+            s = size(f);
+            numlib = MCProp.NumLib2(f.IsComplex);
+            fm = MCProp.Convert2UncArray(f);
+            gm = numlib.Gradient(fm, x);
+            g = MCProp.Convert2MCProp(gm);
+            g = reshape(g, s);
+        end
         function p = polyfit(x,y,n)
             x = MCProp(x);
             y = MCProp(y);

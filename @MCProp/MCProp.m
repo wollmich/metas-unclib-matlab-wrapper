@@ -1,5 +1,5 @@
-% Metas.UncLib.Matlab.MCProp V2.9.2
-% Michael Wollensack METAS - 15.10.2025
+% Metas.UncLib.Matlab.MCProp V2.9.4
+% Michael Wollensack METAS - 11.11.2025
 % Dion Timmermann PTB - 22.06.2022
 %
 % This class supports the creation of uncertainty objects and subsequent
@@ -1751,6 +1751,12 @@ classdef MCProp
                 error('Input must be real');
             end
             e = MCProp(x.NetObject.Erf());
+        end
+        function e = inverf(x)
+            if (x.IsComplex)
+                error('Input must be real');
+            end
+            e = MCProp(x.NetObject.InvErf());
         end
         function z = eq(x,y)
             z = double(x) == double(y);
